@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
+import { AgmCoreModule } from '@agm/core';
 import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
@@ -13,12 +13,16 @@ import { NgProgressRouterModule } from '@ngx-progressbar/router';
 import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { LocationComponent } from './location/location.component';
+import { HistoryComponent } from './history/history.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     MenuComponent,
-    NotfoundComponent
+    NotfoundComponent,
+    LocationComponent,
+    HistoryComponent
   ],
   imports: [
     BrowserModule,
@@ -30,7 +34,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     NgProgressModule.forRoot(),
     NgProgressRouterModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AgmCoreModule.forRoot({
+      apiKey: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I'
+    })
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -2,9 +2,14 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
+import { LocationComponent } from './location/location.component';
+import { HistoryComponent } from './history/history.component';
 
 const routes: Routes = [
-  { path: '', component: MenuComponent, children: [
+  {
+    path: '', component: MenuComponent, children: [
+      { path: '', component: LocationComponent },
+      { path: 'history', component: HistoryComponent }
     // { path: '', loadChildren: './transaction/transaction.module#TransactionModule' },
     // { path: 'a', loadChildren: './account/account.module#AccountModule' },
   ]},
