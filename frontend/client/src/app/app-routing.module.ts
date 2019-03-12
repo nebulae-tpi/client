@@ -1,13 +1,21 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { MenuComponent } from './menu/menu.component';
-import { NotfoundComponent } from './notfound/notfound.component';
+import { NgModule } from "@angular/core";
+import { Routes, RouterModule } from "@angular/router";
+import { MenuComponent } from "./menu/menu.component";
+import { NotfoundComponent } from "./notfound/notfound.component";
+import { AppAuthGuard } from "./auth/appAuthGuard.service";
 
 const routes: Routes = [
-  { path: '', component: MenuComponent, children: [
-    // { path: '', loadChildren: './transaction/transaction.module#TransactionModule' },
-    // { path: 'a', loadChildren: './account/account.module#AccountModule' },
-  ]},
+  {
+    path: '',
+    component: MenuComponent,
+    children: [
+      // { path: '', loadChildren: './transaction/transaction.module#TransactionModule' },
+      // { path: 'a', loadChildren: './account/account.module#AccountModule' },
+    ],
+    // canActivate: [
+    //   AppAuthGuard
+    // ],
+  },
   // { path: 'auth', loadChildren: './auth/auth.module#AuthModule' },
   // { path: 'p', loadChildren: './pages/pages.module#PagesModule' },
   { path: '**', component: NotfoundComponent }
@@ -15,6 +23,7 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [AppAuthGuard]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

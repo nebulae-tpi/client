@@ -1,6 +1,8 @@
+import { KeycloakService } from 'keycloak-angular';
 import { Component, OnInit } from '@angular/core';
 import { ObservableMedia, MediaChange } from '@angular/flex-layout';
 import { Subscription } from 'rxjs';
+import { KeycloakProfile } from 'keycloak-js';
 
 @Component({
   selector: 'app-menu',
@@ -15,9 +17,11 @@ export class MenuComponent implements OnInit {
   displayMode = 'flat';
   // overlap = false;
 
+  userDetails: KeycloakProfile;
+
   watcher: Subscription;
 
-  constructor(media: ObservableMedia) {
+  constructor(media: ObservableMedia, private keycloakService: KeycloakService) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
         this.opened = false;
@@ -29,8 +33,16 @@ export class MenuComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.userDetails = await this.keycloakService.loadUserProfile();
+  }
 
+  async login() {
+    await this.keycloakService.login();
+  }
+
+  async logout() {
+    await this.keycloakService.logout();
   }
 
 }

@@ -1,5 +1,6 @@
+import { KeycloakService, KeycloakAngularModule } from 'keycloak-angular';
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -13,6 +14,7 @@ import { NgProgressRouterModule } from '@ngx-progressbar/router';
 import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { keycloakInitializer } from './auth/keycloakInitializer';
 
 @NgModule({
   declarations: [
@@ -30,9 +32,17 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     NgProgressModule.forRoot(),
     NgProgressRouterModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    KeycloakAngularModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: keycloakInitializer,
+      multi: true,
+      deps: [KeycloakService]
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
