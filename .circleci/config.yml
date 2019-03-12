@@ -1,0 +1,127 @@
+
+version: 2.1
+jobs:
+  build-frontend:    
+    working_directory: /tmp
+    docker:
+      - image: circleci/node:9.9.0
+        command: bash
+    steps:
+      - checkout:
+          path: /tmp/repo
+      - run:
+          name: Installing NebulaE cli & Compose FrontEnd
+          command: |
+            echo $GCP_SERVICE_ACCOUNT_DEV | base64 --decode --ignore-garbage > /tmp/gcloud-service-key.json
+            npm config set prefix '~/.npm-global'
+            export PATH=~/.npm-global/bin:$PATH
+            source ~/.profile
+            npm install -g @nebulae/cli
+            npm install -g @angular/cli@7.2.1
+            nebulae compose-ui production --shell-finalEnvFile=$FILE_ENV_FRONTEND --shell-type=FUSE2_ANGULAR --shell-repo=https://github.com/nebulae-tpi/client.git --frontend-id=$CIRCLE_PROJECT_REPONAME --output-dir=/tmp/nebulae/client/ --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json                        
+            source /tmp/repo/.circleci/scripts/gitScripts.sh
+            # commit & push package-lock.json changes after ng build
+            cp /tmp/nebulae/client/package-lock.json /tmp/repo/frontend/client/package-lock.json
+            cd /tmp/repo/
+            git status -s
+            gitPackageLockChanged && gitCommitPush_package-lock "$GITHUB_USER_EMAIL" "$GITHUB_USER_NAME" "$GITHUB_PERSONAL_ACCESS_TOKEN" "nebulae-tpi/client" "master" 
+            ls /tmp/nebulae/client/dist
+      # Persist the specified paths (workspace/echo-output) into the workspace for use in downstream job.       
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is   
+          # taken to be the root directory of the workspace.      
+          root: /tmp/nebulae/client
+          # Must be relative path from root  
+          paths:
+            - dist    
+  build-docker:
+    working_directory: /tmp
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout:
+          path: /tmp/repo
+      - setup_remote_docker
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory  
+          at: /tmp
+      - run:
+          name:  push docker-hub
+          command: |      
+            ls /tmp/dist/ 
+            export DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE
+            export DOCKERHUB_USER=$DOCKERHUB_USER
+            export DOCKERHUB_PASS=$DOCKERHUB_PASS
+            export FRONTEND_SHELL_PATH=/tmp/
+            cd /tmp/repo
+            sh /tmp/repo/deployment/docker/build-docker-hub.sh
+  deploy-dev:
+      working_directory: /tmp/workspace
+      docker:
+        - image: google/cloud-sdk:latest
+      steps:
+        - checkout
+        - run:
+            name: Setup gcloud & kubectl
+            command: |
+              echo $GCP_SERVICE_ACCOUNT_DEV | base64 --decode --ignore-garbage > /root/gcloud-service-key.json
+              gcloud auth activate-service-account --key-file /root/gcloud-service-key.json            
+              gcloud --quiet config set project $GKE_PROJECT_DEV
+              gcloud --quiet config set compute/zone $GKE_ZONE_DEV
+              gcloud --quiet container clusters get-credentials $GKE_CLUSTER
+        - run:
+            name: Deploy on Kubernetes
+            command: |
+              for xi in $(ls /tmp/workspace/deployment/gke/*.y*ml); do sed -i s/DOCKERHUB/$DOCKERHUB_NAMESPACE/ $xi ; done
+              kubectl apply -f /tmp/workspace/deployment/gke/
+workflows:
+  version: 2.1
+  build-and-deploy:
+    jobs:
+      - build-frontend:
+          context: TPI
+          filters:
+            branches:
+              only:
+                - develop
+      - build-docker:
+          context: TPI
+          requires:
+            - build-frontend
+          filters:
+            branches:
+              only:
+                - develop
+      - deploy-dev:
+          context: TPI
+          requires:
+            - build-docker
+          filters:
+            branches:
+              only:
+                - develop
+      - build-frontend:
+          context: TPI_PROD
+          name: build-frontend-prod
+          filters:
+            branches:
+              only:
+                - master
+      - build-docker:
+          context: TPI_PROD
+          name: build-docker-prod
+          requires:
+            - build-frontend-prod
+          filters:
+            branches:
+              only:
+                - master
+      - deploy-dev:
+          context: TPI_PROD
+          name: deploy-dev-prod
+          requires:
+            - build-docker-prod
+          filters:
+            branches:
+              only:
+                - master
