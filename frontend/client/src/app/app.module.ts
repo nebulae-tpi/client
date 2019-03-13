@@ -46,14 +46,12 @@ import { ServiceComponent } from './service/service.component';
   ],
   providers: [
     GoogleMapsAPIWrapper,
-    /*
     {
       provide: APP_INITIALIZER,
       useFactory: keycloakInitializer,
       multi: true,
       deps: [KeycloakService]
     }
-    */
   ],
   bootstrap: [AppComponent]
 })
