@@ -3,7 +3,18 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  'keycloak': {
+    'url': 'http://localhost:8080/auth',
+    'realm': "DEV_TPI",
+    'clientId': 'CLIENT-APP',
+    "onLoad": "check-sso",
+    'checkLoginIframe': false,
+    'enableBearerInterceptor': true,
+    'bearerExcludedUrls': [
+      '/assets'
+    ]
+  },
 };
 
 /*

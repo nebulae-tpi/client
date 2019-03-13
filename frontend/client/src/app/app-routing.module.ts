@@ -4,6 +4,7 @@ import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { LocationComponent } from './location/location.component';
 import { HistoryComponent } from './history/history.component';
+import { AppAuthGuard } from './auth/appAuthGuard.service';
 
 const routes: Routes = [
   {
@@ -12,6 +13,9 @@ const routes: Routes = [
       { path: 'history', component: HistoryComponent }
     // { path: '', loadChildren: './transaction/transaction.module#TransactionModule' },
     // { path: 'a', loadChildren: './account/account.module#AccountModule' },
+       // canActivate: [
+    //   AppAuthGuard
+    // ],
   ]},
   // { path: 'auth', loadChildren: './auth/auth.module#AuthModule' },
   // { path: 'p', loadChildren: './pages/pages.module#PagesModule' },
@@ -20,6 +24,7 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [AppAuthGuard]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

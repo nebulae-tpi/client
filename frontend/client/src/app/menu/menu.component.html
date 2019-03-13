@@ -30,13 +30,17 @@
         fxLayoutGap="7px"
       >
         <div>
-          <a>
-            <span class="lead">Daniel Tobon</span>
+          <a *ngIf="userDetails">
+            <span class="lead">{{ userDetails.firstName }} {{ userDetails.lastName }}</span>
           </a>
+          <a *ngIf="!userDetails">
+            <span class="lead">Have an account?</span>
+          </a>
+          <a mat-button (click)="login()" *ngIf="!userDetails">Login</a>
         </div>
         <div>
-          <a>
-            <span class="">daniel.tobon@nebulae.com.co</span>
+          <a *ngIf="userDetails">
+            <span class=""> {{userDetails.email}} </span>
           </a>
         </div>
       </div>
@@ -63,9 +67,9 @@
           <a mat-list-item class="ml-2" href="/history">History</a>
         </mat-list-item>
 
-        <mat-list-item>
+        <mat-list-item *ngIf="userDetails">
           <mat-icon>exit_to_app</mat-icon>
-          <a mat-list-item class="ml-2" href="#">Logout</a>
+          <a mat-list-item class="ml-2" (click)="logout()">Logout</a>
         </mat-list-item>
       </mat-nav-list>
     </div>

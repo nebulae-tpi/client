@@ -1,5 +1,6 @@
+import { KeycloakService, KeycloakAngularModule } from 'keycloak-angular';
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { AgmCoreModule } from '@agm/core';
 import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -15,6 +16,7 @@ import { NotfoundComponent } from './notfound/notfound.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LocationComponent } from './location/location.component';
 import { HistoryComponent } from './history/history.component';
+import { keycloakInitializer } from './auth/keycloakInitializer';
 
 @NgModule({
   declarations: [
@@ -37,9 +39,19 @@ import { HistoryComponent } from './history/history.component';
     ReactiveFormsModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I'
-    })
+    }),
+    KeycloakAngularModule
   ],
-  providers: [],
+  providers: [
+    /*
+    {
+      provide: APP_INITIALIZER,
+      useFactory: keycloakInitializer,
+      multi: true,
+      deps: [KeycloakService]
+    }
+    */
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
