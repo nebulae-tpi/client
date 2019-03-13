@@ -43,14 +43,12 @@ import { keycloakInitializer } from './auth/keycloakInitializer';
     KeycloakAngularModule
   ],
   providers: [
-    /*
     {
       provide: APP_INITIALIZER,
       useFactory: keycloakInitializer,
       multi: true,
       deps: [KeycloakService]
     }
-    */
   ],
   bootstrap: [AppComponent]
 })
