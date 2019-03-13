@@ -1,7 +1,7 @@
 import { KeycloakService, KeycloakAngularModule } from 'keycloak-angular';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { AgmCoreModule } from '@agm/core';
+import { AgmCoreModule, GoogleMapsAPIWrapper } from '@agm/core';
 import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
@@ -14,9 +14,10 @@ import { NgProgressRouterModule } from '@ngx-progressbar/router';
 import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { LocationComponent } from './location/location.component';
+import { LocationComponent } from './service/location/location.component';
 import { HistoryComponent } from './history/history.component';
 import { keycloakInitializer } from './auth/keycloakInitializer';
+import { ServiceComponent } from './service/service.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { keycloakInitializer } from './auth/keycloakInitializer';
     MenuComponent,
     NotfoundComponent,
     LocationComponent,
-    HistoryComponent
+    HistoryComponent,
+    ServiceComponent
   ],
   imports: [
     BrowserModule,
@@ -43,6 +45,7 @@ import { keycloakInitializer } from './auth/keycloakInitializer';
     KeycloakAngularModule
   ],
   providers: [
+    GoogleMapsAPIWrapper,
     /*
     {
       provide: APP_INITIALIZER,

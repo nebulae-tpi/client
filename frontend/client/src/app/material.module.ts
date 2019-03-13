@@ -10,6 +10,7 @@ import {
   MatSidenavModule,
   MatListModule,
   MatExpansionModule,
+  MatGridListModule,
   MatToolbarModule
 } from '@angular/material';
 
@@ -25,6 +26,7 @@ import {
     FlexLayoutModule,
     MatSidenavModule,
     MatExpansionModule,
+    MatGridListModule,
     MatListModule
   ],
   exports: [
@@ -38,6 +40,7 @@ import {
     MatIconModule,
     MatSidenavModule,
     MatExpansionModule,
+    MatGridListModule,
     MatListModule
   ]
 })
