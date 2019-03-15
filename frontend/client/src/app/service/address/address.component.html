@@ -1,0 +1,15 @@
+<div class="form-group">
+  <input
+    id="addressInput"
+    placeholder="search for location"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="off"
+    type="text"
+    class="address-input"
+    [(ngModel)]="addressInputValue"
+    onfocus="this.value=''"
+    #search
+    [formControl]="searchControl"
+  />
+</div>

@@ -1,0 +1,22 @@
+<div style="padding: 0px; margin: 0px">
+  <agm-map
+    [ngStyle]="{'width.px': widthMapContent, 'height.px': heightMapContent}"
+    (mapReady)="mapReady($event)"
+    [clickableIcons]="false"
+    [disableDefaultUI]="true"
+    [streetViewControl]="false"
+    [latitude]="lat"
+    [longitude]="lng"
+    [zoom]="zoom"
+    (centerChange)="onCenterChange($event)"
+  >
+  </agm-map>
+  <img
+    src="../../assets/icons/location/user_marker.png"
+    class="vertical-center"
+    alt="image"
+  />
+  <button mat-mini-fab [color]="'location-button-color'" (click)="currentLocation()" class="location-button">
+    <mat-icon #icontest>gps_fixed</mat-icon>
+  </button>
+</div>

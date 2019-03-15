@@ -1,0 +1,26 @@
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  -ms-transform: translateY(-48%);
+  transform: translateY(-48%);
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
+.location-button {
+  margin: 0;
+  position: absolute;
+  top: 2%;
+  left: 98%;
+  -ms-transform: translateY(-10%);
+  transform: translateY(-10%);
+  -ms-transform: translateX(-98%);
+  transform: translateX(-98%);
+}
+
+.mat-location-button-color {
+  background-color: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+}
