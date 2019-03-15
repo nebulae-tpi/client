@@ -3,15 +3,15 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  'keycloak': {
-    'url': 'https://tpi-dev.nebulae.com.co/auth',
-    'realm': "TPI",
-    'clientId': 'CLIENT-APP',
-    "onLoad": "check-sso",
-    'checkLoginIframe': false,
-    'enableBearerInterceptor': true,
-    'bearerExcludedUrls': [
+  production: true,
+  keycloak: {
+    url: 'https://tpi-dev.nebulae.com.co/auth',
+    realm: 'TPI',
+    clientId: 'CLIENT-APP-LOCAL',
+    onLoad: 'check-sso',
+    checkLoginIframe: false,
+    enableBearerInterceptor: true,
+    bearerExcludedUrls: [
       '/assets'
     ]
   },

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import {
+  MatFormFieldModule,
   MatButtonModule,
   MatCheckboxModule,
   MatNativeDateModule,
@@ -11,11 +12,14 @@ import {
   MatListModule,
   MatExpansionModule,
   MatGridListModule,
-  MatToolbarModule
+  MatToolbarModule,
+  MatInputModule
 } from '@angular/material';
 
 @NgModule({
   imports: [
+    MatFormFieldModule,
+    MatInputModule,
     CommonModule,
     MatCheckboxModule,
     MatButtonModule,
@@ -30,6 +34,8 @@ import {
     MatListModule
   ],
   exports: [
+    MatFormFieldModule,
+    MatInputModule,
     CommonModule,
     MatCheckboxModule,
     MatButtonModule,

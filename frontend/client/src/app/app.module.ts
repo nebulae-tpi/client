@@ -18,6 +18,9 @@ import { LocationComponent } from './service/location/location.component';
 import { HistoryComponent } from './history/history.component';
 import { keycloakInitializer } from './auth/keycloakInitializer';
 import { ServiceComponent } from './service/service.component';
+import { ContextComponent } from './service/context/context.component';
+import { AddressComponent } from './service/address/address.component';
+import { RequestButtonComponent } from './service/context/request-button/request-button.component';
 
 @NgModule({
   declarations: [
@@ -26,11 +29,16 @@ import { ServiceComponent } from './service/service.component';
     NotfoundComponent,
     LocationComponent,
     HistoryComponent,
-    ServiceComponent
+    ServiceComponent,
+    ContextComponent,
+    AddressComponent,
+    RequestButtonComponent
   ],
   imports: [
     BrowserModule,
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production
+    }),
     BrowserAnimationsModule,
     CustomMaterialModule,
     LayoutModule,
@@ -40,7 +48,8 @@ import { ServiceComponent } from './service/service.component';
     FormsModule,
     ReactiveFormsModule,
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I'
+      apiKey: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I',
+      libraries: ['places']
     }),
     KeycloakAngularModule
   ],
@@ -55,4 +64,4 @@ import { ServiceComponent } from './service/service.component';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

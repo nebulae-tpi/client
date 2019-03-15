@@ -38,7 +38,7 @@ export class MenuComponent implements OnInit {
   }
 
   async login() {
-    await this.keycloakService.login();
+    await this.keycloakService.login({scope: 'offline_access'});
   }
 
   async logout() {
