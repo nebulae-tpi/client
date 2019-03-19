@@ -1,0 +1,15 @@
+<div fxLayout="column" fxLayoutAlign="start start" class="flex-wrap">
+  <div fxLayout="row" fxLayoutAlign="start start">
+    <h4 class="filter-txt">Por favor dinos la razon de cancelación:</h4>
+  </div>
+
+  <mat-selection-list
+    #cancelationReasonList
+    [(ngModel)]="selectedOption"
+    (ngModelChange)="onNgModelChange($event)"
+  >
+    <mat-list-option class="select-item" *ngFor="let crl of cancelReasonList" [value]="crl.value">
+      {{ crl.text }}
+    </mat-list-option>
+  </mat-selection-list>
+</div>

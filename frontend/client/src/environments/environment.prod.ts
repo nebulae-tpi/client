@@ -11,4 +11,15 @@ export const environment = {
       '/assets'
     ]
   },
+  api: {
+    gateway: {
+      graphql: {
+        httpEndPoint:
+          'https://tpi-dev.nebulae.com.co/api/client-gateway/graphql/http',
+        wsEndPoint: 'wss://tpi-dev.nebulae.com.co/api/client-gateway/graphql/ws',
+        graphiqlEndPoint:
+          'https://tpi-dev.nebulae.com.co/api/client-gateway/graphiql'
+      }
+    }
+  }
 };

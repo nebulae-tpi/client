@@ -13,7 +13,9 @@ import {
   MatExpansionModule,
   MatGridListModule,
   MatToolbarModule,
-  MatInputModule
+  MatInputModule,
+  MatBottomSheetModule,
+  MatSnackBarModule
 } from '@angular/material';
 
 @NgModule({
@@ -31,7 +33,9 @@ import {
     MatSidenavModule,
     MatExpansionModule,
     MatGridListModule,
-    MatListModule
+    MatListModule,
+    MatBottomSheetModule,
+    MatSnackBarModule
   ],
   exports: [
     MatFormFieldModule,
@@ -47,7 +51,9 @@ import {
     MatSidenavModule,
     MatExpansionModule,
     MatGridListModule,
-    MatListModule
+    MatListModule,
+    MatBottomSheetModule,
+    MatSnackBarModule
   ]
 })
 export class CustomMaterialModule {}

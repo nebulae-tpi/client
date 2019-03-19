@@ -14,13 +14,22 @@ import { NgProgressRouterModule } from '@ngx-progressbar/router';
 import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { LocationComponent } from './service/location/location.component';
+import { LocationComponent, CancelSheet } from './service/location/location.component';
 import { HistoryComponent } from './history/history.component';
 import { keycloakInitializer } from './auth/keycloakInitializer';
 import { ServiceComponent } from './service/service.component';
 import { ContextComponent } from './service/context/context.component';
 import { AddressComponent } from './service/address/address.component';
 import { RequestButtonComponent } from './service/context/request-button/request-button.component';
+import { RequestConfirmationComponent, FilterSheet } from './service/context/request-confirmation/request-confirmation.component';
+import { RequestedComponent } from './service/context/requested/requested.component';
+import { RequestedProgressComponent } from './service/location/requested-progress/requested-progress.component';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { HttpClientModule } from '@angular/common/http';
+import { ApolloModule } from 'apollo-angular';
+import { HttpLinkModule } from 'apollo-angular-link-http';
+import { GatewayService } from './api/gateway.service';
+import { AssignedComponent } from './service/context/assigned/assigned.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +41,13 @@ import { RequestButtonComponent } from './service/context/request-button/request
     ServiceComponent,
     ContextComponent,
     AddressComponent,
-    RequestButtonComponent
+    RequestButtonComponent,
+    RequestConfirmationComponent,
+    FilterSheet,
+    CancelSheet,
+    RequestedComponent,
+    RequestedProgressComponent,
+    AssignedComponent
   ],
   imports: [
     BrowserModule,
@@ -51,7 +66,11 @@ import { RequestButtonComponent } from './service/context/request-button/request
       apiKey: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I',
       libraries: ['places']
     }),
-    KeycloakAngularModule
+    KeycloakAngularModule,
+    CurrencyMaskModule,
+    ApolloModule,
+    HttpLinkModule,
+    HttpClientModule
   ],
   providers: [
     GoogleMapsAPIWrapper,
@@ -60,8 +79,10 @@ import { RequestButtonComponent } from './service/context/request-button/request
       useFactory: keycloakInitializer,
       multi: true,
       deps: [KeycloakService]
-    }
+    },
+    GatewayService
   ],
+  entryComponents: [FilterSheet, CancelSheet],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { ServiceState } from './service-state';
+import { GatewayService } from '../api/gateway.service';
+import { NearbyVehicles, ValidateNewClient } from './gql/service.js';
 
 @Injectable({
   providedIn: 'root'
@@ -24,8 +26,44 @@ export class ServiceService {
 
   locationChange$ = new BehaviorSubject(undefined);
 
-  serviceState: ServiceState = ServiceState.NO_SERVICE;
+  addressChange$ = new BehaviorSubject(undefined);
+
+  currentService$ = new BehaviorSubject<any>({
+    state: ServiceState.NO_SERVICE
+  });
   /* #endregion */
+
+  constructor(private gateway: GatewayService) {}
+
+  /* #region QUERIES */
+  getNearbyVehicles() {
+    this.locationChange$.getValue();
+    if (this.locationChange$.getValue()) {
+      return this.gateway.apollo.query<any>({
+        query: ValidateNewClient,
+        fetchPolicy: 'network-only',
+        errorPolicy: 'all'
+      });
+    } else {
+      return of(undefined);
+    }
+  }
+  /* #endregion */
+
+  validateNewClient$() {
+    return this.gateway.apollo.mutate<any>({
+      mutation: ValidateNewClient,
+      variables: {
+        clientLocation: {
+          lat: this.locationChange$.getValue().latitude,
+          lng: this.locationChange$.getValue().longitude
+        },
+        filters: []
+      },
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all'
+    });
+  }
 
   // tslint:disable-next-line:max-line-length
   publishLayoutChange(
@@ -74,7 +112,4 @@ export class ServiceService {
       }
     });
   }
-
-
-  constructor() {}
 }

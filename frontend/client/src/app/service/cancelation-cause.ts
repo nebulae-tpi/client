@@ -1,0 +1,6 @@
+export enum CancelationCause {
+  PlATE_DOESNT_MATCH,
+  IS_NOT_THE_DRIVER,
+  IT_TAKES_TOO_MUCH_TIME,
+  DOESNT_REQUIRED,
+}

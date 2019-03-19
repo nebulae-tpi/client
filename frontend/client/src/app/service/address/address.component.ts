@@ -11,6 +11,7 @@ import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { ServiceState } from '../service-state';
 
 @Component({
   selector: 'app-address',
@@ -23,11 +24,16 @@ export class AddressComponent implements OnInit, OnDestroy {
   public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
   addressInputValue: String;
-  constructor(private mapsAPILoader: MapsAPILoader, private ngZone: NgZone, private serviceService: ServiceService) {}
+  constructor(
+    private mapsAPILoader: MapsAPILoader,
+    private ngZone: NgZone,
+    private serviceService: ServiceService
+  ) {}
 
   ngOnInit() {
     this.searchControl = new FormControl();
     this.listenLocationChanges();
+    this.listenServiceChanges();
     this.buildPlacesAutoComplete();
   }
 
@@ -41,7 +47,6 @@ export class AddressComponent implements OnInit, OnDestroy {
       const autocomplete = new google.maps.places.Autocomplete(
         this.searchElementRef.nativeElement,
         {
-          types: ['address'],
           componentRestrictions: { country: 'co' }
         }
       );
@@ -54,8 +59,10 @@ export class AddressComponent implements OnInit, OnDestroy {
             return;
           }
           this.addressInputValue = place.formatted_address.split(',')[0];
-          console.log(place);
-          this.serviceService.locationChange$.next({latitude: place.geometry.location.lat(), longitude: place.geometry.location.lng()});
+          this.serviceService.locationChange$.next({
+            latitude: place.geometry.location.lat(),
+            longitude: place.geometry.location.lng()
+          });
           // set latitude, longitude and zoom
           /*
           this.latitude = place.geometry.location.lat();
@@ -89,5 +96,29 @@ export class AddressComponent implements OnInit, OnDestroy {
         });
         */
       });
+  }
+
+  listenServiceChanges() {
+    this.serviceService.currentService$
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(service => {
+        if (service) {
+          switch (service.state) {
+            case ServiceState.ARRIVED:
+            case ServiceState.ASSIGNED:
+            case ServiceState.ON_BOARD:
+            case ServiceState.REQUESTED:
+            this.searchElementRef.nativeElement.disabled = true;
+            break;
+            default:
+            this.searchElementRef.nativeElement.disabled = false;
+            break;
+          }
+        }
+      });
+  }
+
+  onBlurAddress() {
+    this.serviceService.addressChange$.next(this.addressInputValue);
   }
 }

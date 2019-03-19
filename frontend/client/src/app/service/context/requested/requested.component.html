@@ -1,0 +1,36 @@
+<div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
+  <div
+    fxLayout="row"
+    style="margin-left: 7px"
+    fxLayoutAlign="start start"
+    class="flex-wrap"
+  >
+    <mat-form-field fxFlex="100">
+      <input
+        matInput
+        placeholder="Dirección"
+        disabled="true"
+        value="Aqui va la dirección"
+      />
+    </mat-form-field>
+    <mat-form-field fxFlex="100">
+      <input
+        matInput
+        placeholder="Referencia"
+        disabled="true"
+        value="Aqui va la referencia"
+      />
+    </mat-form-field>
+
+    <mat-form-field *ngIf="tipValue" fxFlex="100">
+      <input
+        matInput
+        placeholder="Propina"
+        disabled="true"
+        [(ngModel)]="tipValue"
+        currencyMask
+        [options]="{ prefix: '$ ', thousands: '.', precision: '0' }"
+      />
+    </mat-form-field>
+  </div>
+</div>

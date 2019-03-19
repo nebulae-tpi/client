@@ -1,3 +1,3 @@
-<p>
-  context works!
-</p>
+<app-request-button *ngIf="currentService.state === 'NO_SERVICE'"></app-request-button>
+<app-request-confirmation *ngIf="currentService.state === 'REQUEST'"></app-request-confirmation>
+<app-requested *ngIf="currentService.state === 'REQUESTED'"></app-requested>

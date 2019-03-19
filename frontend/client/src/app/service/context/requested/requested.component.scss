@@ -1,0 +1,33 @@
+.mat-confirm-button-color {
+  background-color: rgb(58, 58, 58);
+  color: rgb(255, 255, 255);
+}
+
+.main-container {
+  padding: 10px;
+  margin: 5px;
+}
+
+.filter-txt {
+  margin-top: 9px;
+  margin-left: 5px;
+  color: #444;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-no-wrap {
+  flex-wrap: nowrap;
+}
+
+.scroll-content {
+  display: inline-block;
+  position: relative;
+  overflow-x: hidden;
+  height: 290px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid #e8f8ff;
+}

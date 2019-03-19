@@ -1,0 +1,39 @@
+<div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
+  <div
+    fxLayout="row"
+    style="margin-left: 7px"
+    fxLayoutAlign="start start"
+    class="flex-wrap"
+  >
+    <mat-form-field fxFlex="100">
+      <input matInput [(ngModel)]="reference"placeholder="Referencia" />
+    </mat-form-field>
+
+    <mat-form-field fxFlex="100">
+      <input matInput placeholder="Propina" maxlength="9"  [(ngModel)]="tipValue" currencyMask [options]="{ prefix: '$ ', thousands: '.', precision: '0' }"/>
+    </mat-form-field>
+
+    <mat-form-field fxFlex="100">
+      <select matNativeControl placeholder="Metodo de pago">
+        <option value="volvo">Efectivo</option>
+        <option disabled="true" value="saab">Tarjecta de credito</option>
+      </select>
+    </mat-form-field>
+
+    <button (click)="openBottomSheet()" mat-stroked-button color="warn">
+      Aplicar filtros
+    </button>
+  </div>
+
+  <div
+    fxLayout="row"
+    style="margin-left: 7px; margin-top: 10px; width: 100%"
+    fxLayoutAlign="start start"
+    class="flex-wrap"
+  >
+  <button mat-raised-button style="margin-right: 10px" fxFlex="70" color="confirm-button-color" (click)="confirmService()">Confirmar</button>
+  <button mat-mini-fab color="warn" (click)="cancel()">
+    <mat-icon>cancel</mat-icon>
+  </button>
+</div>
+</div>
