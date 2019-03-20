@@ -1,23 +1,32 @@
 <div fxLayout="column" fxLayoutAlign="start start" class="flex-wrap">
-
-    <div fxLayout="row" fxLayoutAlign="start start">
-        <button mat-mini-fab style="padding: 0px;" [color]="'filter-button-color'">
-          <img
-            style="margin-top: -7px"
-            class="circle"
-            src="../../../../assets/icons/context/icon_vip.png"
-            width="38px"
-            height="38px"
-          />
-        </button>
-        <h4 class="filter-txt">V.I.P</h4>
-      </div>
-
-  <div fxLayout="row" fxLayoutAlign="start start">
+  <div
+    fxLayout="row"
+    style="width: 100%; cursor: pointer"
+    (click)="enableDisableVip()"
+    fxLayoutAlign="start start"
+  >
     <button mat-mini-fab style="padding: 0px;" [color]="'filter-button-color'">
       <img
         style="margin-top: -7px"
-        src="../../../../assets/icons/context/icon_grill.png"
+        class="circle"
+        src="{{ imgVip }}"
+        width="38px"
+        height="38px"
+      />
+    </button>
+    <h4 class="filter-txt">V.I.P</h4>
+  </div>
+
+  <div
+    fxLayout="row"
+    style="width: 100%; cursor: pointer"
+    (click)="enableDisableGrill()"
+    fxLayoutAlign="start start"
+  >
+    <button mat-mini-fab style="padding: 0px;" [color]="'filter-button-color'">
+      <img
+        style="margin-top: -7px"
+        src="{{ imgGrill }}"
         width="38px"
         height="38px"
       />
@@ -25,12 +34,17 @@
     <h4 class="filter-txt">Parrilla</h4>
   </div>
 
-  <div fxLayout="row" fxLayoutAlign="start start">
+  <div
+    fxLayout="row"
+    style="width: 100%; cursor: pointer"
+    fxLayoutAlign="start start"
+    (click)="enableDisableTrunk()"
+  >
     <button mat-mini-fab style="padding: 0px;" [color]="'filter-button-color'">
       <img
         style="margin-top: -7px"
         class="circle"
-        src="../../../../assets/icons/context/icon_trunk.png"
+        src="{{ imgTrunk }}"
         width="38px"
         height="38px"
       />
@@ -38,16 +52,21 @@
     <h4 class="filter-txt">Maletero</h4>
   </div>
 
-    <div fxLayout="row" fxLayoutAlign="start start">
-        <button mat-mini-fab style="padding: 0px;" [color]="'filter-button-color'">
-          <img
-            style="margin-top: -7px"
-            class="circle"
-            src="../../../../assets/icons/context/icon_air.png"
-            width="38px"
-            height="38px"
-          />
-        </button>
-        <h4 class="filter-txt">Aire acondicionado</h4>
-      </div>
+  <div
+    fxLayout="row"
+    fxLayoutAlign="start start"
+    style="width: 100%; cursor: pointer"
+    (click)="enableDisableAc()"
+  >
+    <button mat-mini-fab style="padding: 0px;" [color]="'filter-button-color'">
+      <img
+        style="margin-top: -7px"
+        class="circle"
+        src="{{ imgAc }}"
+        width="38px"
+        height="38px"
+      />
+    </button>
+    <h4 class="filter-txt">Aire acondicionado</h4>
+  </div>
 </div>

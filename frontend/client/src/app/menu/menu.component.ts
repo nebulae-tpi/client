@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ObservableMedia, MediaChange } from '@angular/flex-layout';
 import { Subscription } from 'rxjs';
 import { KeycloakProfile } from 'keycloak-js';
+import { ServiceService } from '../service/service.service';
 
 @Component({
   selector: 'app-menu',
@@ -21,7 +22,7 @@ export class MenuComponent implements OnInit {
 
   watcher: Subscription;
 
-  constructor(media: ObservableMedia, private keycloakService: KeycloakService) {
+  constructor(media: ObservableMedia, private keycloakService: KeycloakService, private serviceService: ServiceService) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
         this.opened = false;
@@ -35,6 +36,7 @@ export class MenuComponent implements OnInit {
 
   async ngOnInit() {
     this.userDetails = await this.keycloakService.loadUserProfile();
+    this.serviceService.userProfile = this.userDetails;
   }
 
   async login() {

@@ -2,7 +2,12 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, of } from 'rxjs';
 import { ServiceState } from './service-state';
 import { GatewayService } from '../api/gateway.service';
-import { NearbyVehicles, ValidateNewClient } from './gql/service.js';
+import {
+  NearbyVehicles,
+  ValidateNewClient,
+  RequestService,
+  CurrentServices
+} from './gql/service.js';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +36,8 @@ export class ServiceService {
   currentService$ = new BehaviorSubject<any>({
     state: ServiceState.NO_SERVICE
   });
+
+  userProfile;
   /* #endregion */
 
   constructor(private gateway: GatewayService) {}
@@ -40,7 +47,26 @@ export class ServiceService {
     this.locationChange$.getValue();
     if (this.locationChange$.getValue()) {
       return this.gateway.apollo.query<any>({
-        query: ValidateNewClient,
+        query: NearbyVehicles,
+        variables: {
+          clientLocation: {
+            lat: this.locationChange$.getValue().latitude,
+            lng: this.locationChange$.getValue().longitude
+          },
+          filters: []
+        },
+        fetchPolicy: 'network-only',
+        errorPolicy: 'all'
+      });
+    } else {
+      return of(undefined);
+    }
+  }
+
+  getCurrentService$() {
+    if (this.userProfile) {
+      return this.gateway.apollo.query<any>({
+        query: CurrentServices,
         fetchPolicy: 'network-only',
         errorPolicy: 'all'
       });
@@ -50,20 +76,38 @@ export class ServiceService {
   }
   /* #endregion */
 
+  /* #region  MUTATIONS */
   validateNewClient$() {
     return this.gateway.apollo.mutate<any>({
       mutation: ValidateNewClient,
-      variables: {
-        clientLocation: {
-          lat: this.locationChange$.getValue().latitude,
-          lng: this.locationChange$.getValue().longitude
-        },
-        filters: []
-      },
-      fetchPolicy: 'network-only',
       errorPolicy: 'all'
     });
   }
+
+  createNewService$(
+    clientUsername: String,
+    pickUpLocation,
+    address: String,
+    reference: String,
+    serviceTip
+  ) {
+    return this.gateway.apollo.mutate<any>({
+      mutation: RequestService,
+      variables: {
+        client: { username: clientUsername, fullname: clientUsername },
+        pickUp: {
+          marker: pickUpLocation,
+          addressLine1: address,
+          addressLine2: reference
+        },
+        paymentType: 'CASH',
+        requestFeatures: [],
+        tip: serviceTip
+      },
+      errorPolicy: 'all'
+    });
+  }
+  /* #endregion */
 
   // tslint:disable-next-line:max-line-length
   publishLayoutChange(
@@ -111,5 +155,10 @@ export class ServiceService {
         }
       }
     });
+  }
+
+  publishServiceChanges(serviceChanges) {
+    const newService = { ...this.currentService$.getValue(), ...serviceChanges };
+    this.currentService$.next(newService);
   }
 }

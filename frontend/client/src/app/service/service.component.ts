@@ -81,13 +81,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.listenServiceChanges();
-    /*
     if (await this.keycloakService.isLoggedIn()) {
       this.serviceService.validateNewClient$().subscribe(res => {
         console.log('Llega validate: ', res);
       });
+      this.serviceService.getCurrentService$().subscribe(res => console.log('Servico: ', res));
     }
-    */
   }
 
   ngOnDestroy() {
@@ -144,7 +143,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     const colWidth = 10;
     const screenHeight = window.innerHeight - screenHeightWaste;
     const screenWidth = window.innerWidth;
-    const onMobile = screenWidth < 770;
+    const onMobile = screenWidth < 820;
     const horizontalLayout = onMobile
       ? screenWidth >= (screenHeight + screenHeightWaste) * 1.5
       : screenWidth >= screenHeight;
@@ -188,7 +187,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
         }
       }
     }
-    console.log('layoutType: ', this.layoutType);
+    // console.log('layoutType: ', this.layoutType);
     if (this.showAddress) {
       if (horizontalLayout) {
         this.addressCols = this.screenCols;

@@ -303,7 +303,6 @@ export class LocationComponent implements OnInit, OnDestroy {
               return val.vehicleId === element.vehicleId;
             });
           });
-          console.log('Lista al final: ', this.nearbyVehicleList);
         },
         error => {
           this.getNearbyVehicles();
@@ -351,7 +350,7 @@ export class CancelSheet implements OnInit {
   }
 
   onNgModelChange($event) {
-    this.serviceService.currentService$.next({
+    this.serviceService.publishServiceChanges({
       state: ServiceState.NO_SERVICE
     });
     this.bottomSheetRef.dismiss();

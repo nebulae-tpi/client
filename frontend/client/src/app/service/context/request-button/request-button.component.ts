@@ -15,7 +15,7 @@ export class RequestButtonComponent implements OnInit {
   }
 
   requestTaxi() {
-    this.serviceService.currentService$.next({state: ServiceState.REQUEST});
+    this.serviceService.publishServiceChanges({state: ServiceState.REQUEST});
   }
 
 
