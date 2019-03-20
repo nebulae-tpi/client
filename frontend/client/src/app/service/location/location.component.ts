@@ -324,7 +324,7 @@ export class CancelSheet implements OnInit {
   cancelReasonList = [
     {
       text: 'Placa no corresponde',
-      value: 'PlATE_DOESNT_MATCH'
+      value: 'PLATE_DOESNT_MATCH'
     },
     {
       text: 'No es el conductor',
@@ -350,9 +350,7 @@ export class CancelSheet implements OnInit {
   }
 
   onNgModelChange($event) {
-    this.serviceService.publishServiceChanges({
-      state: ServiceState.NO_SERVICE
-    });
+    this.serviceService.cancelService$($event[0]).subscribe(res => console.log('Cancela servicio: ', res));
     this.bottomSheetRef.dismiss();
     event.preventDefault();
   }

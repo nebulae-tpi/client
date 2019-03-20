@@ -1,24 +1,35 @@
-<div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
+<div
+  *ngIf="currentService"
+  fxLayout="column"
+  class="scroll-content"
+  fxLayoutAlign="start start"
+>
   <div
     fxLayout="row"
     style="margin-left: 7px"
     fxLayoutAlign="start start"
     class="flex-wrap"
   >
-    <mat-form-field fxFlex="100">
+    <mat-form-field
+      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1"
+      fxFlex="100"
+    >
       <input
         matInput
         placeholder="Dirección"
         disabled="true"
-        value="Aqui va la dirección"
+        [(ngModel)]="currentService.pickUp.addressLine1"
       />
     </mat-form-field>
-    <mat-form-field fxFlex="100">
+    <mat-form-field
+      fxFlex="100"
+      *ngIf="currentService.pickUp && currentService.pickUp.addressLine2"
+    >
       <input
         matInput
         placeholder="Referencia"
         disabled="true"
-        value="Aqui va la referencia"
+        [(ngModel)]="currentService.pickUp.addressLine2"
       />
     </mat-form-field>
 

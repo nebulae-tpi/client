@@ -1,3 +1,68 @@
-<p>
-  assigned works!
-</p>
+<div
+  *ngIf="currentService"
+  fxLayout="column"
+  class="scroll-content"
+  fxLayoutAlign="start start"
+>
+  <div
+    fxLayout="row"
+    style="margin-left: 7px"
+    fxLayoutAlign="start start"
+    class="flex-wrap"
+  >
+    <mat-form-field
+      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1"
+      fxFlex="100"
+    >
+      <input
+        matInput
+        placeholder="Dirección"
+        readonly="true"
+        [(ngModel)]="currentService.pickUp.addressLine1"
+      />
+    </mat-form-field>
+    <mat-form-field
+      fxFlex="100"
+      *ngIf="currentService.vehicle && currentService.vehicle.plate"
+    >
+      <input
+        matInput
+        placeholder="Vehículo"
+        readonly="true"
+        [(ngModel)]="currentService.vehicle.plate"
+      />
+    </mat-form-field>
+
+    <mat-form-field *ngIf="tipValue" fxFlex="100">
+      <input
+        matInput
+        placeholder="Propina"
+        disabled="true"
+        [(ngModel)]="tipValue"
+        currencyMask
+        [options]="{ prefix: '$ ', thousands: '.', precision: '0' }"
+      />
+    </mat-form-field>
+
+    <mat-form-field *ngIf="tipValue" fxFlex="100">
+      <input
+        matInput
+        placeholder="Propina"
+        disabled="true"
+        [(ngModel)]="tipValue"
+        currencyMask
+        [options]="{ prefix: '$ ', thousands: '.', precision: '0' }"
+      />
+    </mat-form-field>
+
+    <button
+      mat-raised-button
+      style="margin-right: 10px"
+      fxFlex="70"
+      color="warn"
+    >
+      Cancelar Servicio
+    </button>
+  </div>
+
+</div>

@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, Observable } from 'rxjs';
 import { ServiceState } from './service-state';
 import { GatewayService } from '../api/gateway.service';
+import gql from 'graphql-tag';
 import {
   NearbyVehicles,
   ValidateNewClient,
   RequestService,
-  CurrentServices
+  CurrentServices,
+  CancelServiceByClient
 } from './gql/service.js';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -65,11 +68,23 @@ export class ServiceService {
 
   getCurrentService$() {
     if (this.userProfile) {
-      return this.gateway.apollo.query<any>({
-        query: CurrentServices,
-        fetchPolicy: 'network-only',
-        errorPolicy: 'all'
-      });
+      return this.gateway.apollo
+        .query<any>({
+          query: CurrentServices,
+          fetchPolicy: 'network-only',
+          errorPolicy: 'all'
+        })
+        .pipe(
+          map(result => {
+            if (result.data && result.data.CurrentServices) {
+              return result.data.CurrentServices.length > 0
+                ? result.data.CurrentServices[0]
+                : undefined;
+            } else {
+              return undefined;
+            }
+          })
+        );
     } else {
       return of(undefined);
     }
@@ -80,6 +95,17 @@ export class ServiceService {
   validateNewClient$() {
     return this.gateway.apollo.mutate<any>({
       mutation: ValidateNewClient,
+      errorPolicy: 'all'
+    });
+  }
+
+  cancelService$(reason) {
+    return this.gateway.apollo.mutate<any>({
+      mutation: CancelServiceByClient,
+      variables: {
+        id: this.currentService$.getValue()._id,
+        reason
+      },
       errorPolicy: 'all'
     });
   }
@@ -105,6 +131,52 @@ export class ServiceService {
         tip: serviceTip
       },
       errorPolicy: 'all'
+    });
+  }
+  /* #endregion */
+
+  /* #region  GQL SUBSCRIPTIONS */
+  subscribeToClientServiceUpdatedSubscription$(): Observable<any> {
+    return this.gateway.apollo.subscribe({
+      query: gql`
+        subscription ClientServiceUpdatedSubscription {
+          ClientServiceUpdatedSubscription {
+            _id
+            timestamp
+            vehicle {
+              plate
+            }
+            pickUp {
+              marker {
+                lat
+                lng
+              }
+              addressLine1
+              addressLine2
+            }
+            dropOff {
+              marker {
+                lat
+                lng
+              }
+              addressLine1
+              addressLine2
+            }
+            dropOffSpecialType
+            verificationCode
+            requestedFeatures
+            paymentType
+            fareDiscount
+            fare
+            tip
+            route {
+              lat
+              lng
+            }
+            state
+          }
+        }
+      `
     });
   }
   /* #endregion */
@@ -158,7 +230,10 @@ export class ServiceService {
   }
 
   publishServiceChanges(serviceChanges) {
-    const newService = { ...this.currentService$.getValue(), ...serviceChanges };
+    const newService = {
+      ...this.currentService$.getValue(),
+      ...serviceChanges
+    };
     this.currentService$.next(newService);
   }
 }

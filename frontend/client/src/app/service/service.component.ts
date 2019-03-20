@@ -40,6 +40,7 @@ import {
 import { ServiceService } from './service.service';
 import { ServiceState } from './service-state';
 import { KeycloakService } from 'keycloak-angular';
+import { GatewayService } from '../api/gateway.service';
 
 /* #endregion */
 
@@ -75,18 +76,25 @@ export class ServiceComponent implements OnInit, OnDestroy {
   LAYOUT_ADDRESS_MAP_CONTENT = 6;
   /* #endregion */
 
-  constructor(protected serviceService: ServiceService, private keycloakService: KeycloakService) {
+  constructor(protected serviceService: ServiceService, private keycloakService: KeycloakService, private gateway: GatewayService) {
     this.onResize();
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.listenServiceChanges();
-    if (await this.keycloakService.isLoggedIn()) {
-      this.serviceService.validateNewClient$().subscribe(res => {
-        console.log('Llega validate: ', res);
+    if (this.gateway.checkIfUserLogger()) {
+      this.serviceService.validateNewClient$().pipe(
+        mergeMap(() => this.serviceService.getCurrentService$())
+      ).subscribe(service => {
+        if (service) {
+          this.serviceService.currentService$.next(service);
+        }
+        console.log('Llega service: ', service);
       });
-      this.serviceService.getCurrentService$().subscribe(res => console.log('Servico: ', res));
     }
+    this.serviceService.subscribeToClientServiceUpdatedSubscription$().
+        pipe(takeUntil(this.ngUnsubscribe))
+        .subscribe(service => console.log('Se escucha cambio del service: ', service));
   }
 
   ngOnDestroy() {
@@ -248,7 +256,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
         this.contextRows = 30;
         break;
       case ServiceState.REQUESTED:
-        this.contextRows = 15;
+        this.contextRows = 22;
+        break;
+        case ServiceState.ASSIGNED:
+        this.contextRows = 35;
         break;
       default:
         this.contextRows = 4;

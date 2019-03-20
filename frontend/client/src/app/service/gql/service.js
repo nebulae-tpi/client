@@ -66,6 +66,14 @@ export const ValidateNewClient = gql`
   }
 `;
 
+export const CancelServiceByClient = gql`
+  mutation CancelServiceByClient($id: String!, $reason: String!, $notes: String){
+  CancelServiceByClient(id: $id, reason: $reason, notes: $notes){
+    accepted
+  }
+}
+`;
+
 export const RequestService = gql`
   mutation RequestService(
     $client: ClientInput!
