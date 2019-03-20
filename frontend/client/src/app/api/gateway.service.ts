@@ -38,45 +38,56 @@ export class GatewayService {
     // );
     //#endregion
 
-    this.keycloakService.getToken().then(token => {
+    if (this.checkIfUserLogger()) {
+      // console.log('ENTRO');
+      this.keycloakService.getToken().then(token => {
 
-      // Add the JWT token in every request
-      const auth = setContext((request, previousContext) => ({
-        authorization: token
-      }));
+        // Add the JWT token in every request
+        const auth = setContext((request, previousContext) => ({
+          authorization: token
+        }));
 
-      // Create a WebSocket link:
-      const ws = new WebSocketLink({
-        uri: environment.api.gateway.graphql.wsEndPoint,
-        options: {
-          reconnect: true,
-          connectionParams: {
-            authToken: token,
+        // Create a WebSocket link:
+        const ws = new WebSocketLink({
+          uri: environment.api.gateway.graphql.wsEndPoint,
+          options: {
+            reconnect: true,
+            connectionParams: {
+              authToken: token,
+            },
+          }
+        });
+
+
+
+        // using the ability to split links, you can send data to each link
+        // depending on what kind of operation is being sent
+        const link = split(
+          // split based on operation type
+          ({ query }) => {
+            const definition = getMainDefinition(query);
+            return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
           },
-        }
+          ws,
+          auth.concat(http),
+        );
+
+
+        // Create Apollo client
+        this.apollo.create({
+          link,
+          cache: new InMemoryCache()
+        });
+
       });
+    }
 
 
+  }
 
-      // using the ability to split links, you can send data to each link
-      // depending on what kind of operation is being sent
-      const link = split(
-        // split based on operation type
-        ({ query }) => {
-          const definition = getMainDefinition(query);
-          return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
-        },
-        ws,
-        auth.concat(http),
-      );
-
-
-      // Create Apollo client
-      this.apollo.create({
-        link,
-        cache: new InMemoryCache()
-      });
-
-    });
+  checkIfUserLogger() {
+    const logged = this.keycloakService.getKeycloakInstance().authenticated;
+    // console.log('logged => ', logged);
+    return logged;
   }
 }
