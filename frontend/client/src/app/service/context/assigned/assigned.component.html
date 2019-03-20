@@ -33,35 +33,37 @@
       />
     </mat-form-field>
 
-    <mat-form-field *ngIf="tipValue" fxFlex="100">
-      <input
-        matInput
-        placeholder="Propina"
-        disabled="true"
-        [(ngModel)]="tipValue"
-        currencyMask
-        [options]="{ prefix: '$ ', thousands: '.', precision: '0' }"
-      />
-    </mat-form-field>
-
-    <mat-form-field *ngIf="tipValue" fxFlex="100">
-      <input
-        matInput
-        placeholder="Propina"
-        disabled="true"
-        [(ngModel)]="tipValue"
-        currencyMask
-        [options]="{ prefix: '$ ', thousands: '.', precision: '0' }"
-      />
-    </mat-form-field>
-
-    <button
-      mat-raised-button
-      style="margin-right: 10px"
-      fxFlex="70"
-      color="warn"
+    <mat-form-field
+      fxFlex="100"
+      *ngIf="currentService.driver && currentService.driver.fullname"
     >
-      Cancelar Servicio
+      <input
+        matInput
+        placeholder="Conductor"
+        readonly="true"
+        [(ngModel)]="currentService.driver.fullname"
+      />
+    </mat-form-field>
+
+    <mat-form-field *ngIf="tipValue" fxFlex="100">
+      <input
+        matInput
+        placeholder="Propina"
+        disabled="true"
+        [(ngModel)]="tipValue"
+        currencyMask
+        [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }"
+      />
+    </mat-form-field>
+
+    <button fxFlex="100" mat-raised-button [color]="'request-button-color'">
+      Cancelar servicio
+      <img
+        class="circle"
+        src="../../../../assets/icons/context/btn_cancel_icon.png"
+        width="23px"
+        height="20px"
+      />
     </button>
   </div>
 

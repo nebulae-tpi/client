@@ -21,6 +21,9 @@ export const CurrentServices = gql`
       vehicle {
         plate
       }
+      driver {
+        fullname
+      }
       pickUp {
         marker {
           lat

@@ -128,7 +128,7 @@ export class ServiceService {
         },
         paymentType: 'CASH',
         requestFeatures: [],
-        tip: serviceTip
+        tip: serviceTip > 0 ? serviceTip : undefined
       },
       errorPolicy: 'all'
     });
@@ -137,47 +137,58 @@ export class ServiceService {
 
   /* #region  GQL SUBSCRIPTIONS */
   subscribeToClientServiceUpdatedSubscription$(): Observable<any> {
-    return this.gateway.apollo.subscribe({
-      query: gql`
-        subscription ClientServiceUpdatedSubscription {
-          ClientServiceUpdatedSubscription {
-            _id
-            timestamp
-            vehicle {
-              plate
-            }
-            pickUp {
-              marker {
+    return this.gateway.apollo
+      .subscribe({
+        query: gql`
+          subscription ClientServiceUpdatedSubscription {
+            ClientServiceUpdatedSubscription {
+              _id
+              timestamp
+              vehicle {
+                plate
+              }
+              driver {
+                fullname
+              }
+              pickUp {
+                marker {
+                  lat
+                  lng
+                }
+                addressLine1
+                addressLine2
+              }
+              dropOff {
+                marker {
+                  lat
+                  lng
+                }
+                addressLine1
+                addressLine2
+              }
+              dropOffSpecialType
+              verificationCode
+              requestedFeatures
+              paymentType
+              fareDiscount
+              fare
+              tip
+              route {
                 lat
                 lng
               }
-              addressLine1
-              addressLine2
+              state
             }
-            dropOff {
-              marker {
-                lat
-                lng
-              }
-              addressLine1
-              addressLine2
-            }
-            dropOffSpecialType
-            verificationCode
-            requestedFeatures
-            paymentType
-            fareDiscount
-            fare
-            tip
-            route {
-              lat
-              lng
-            }
-            state
           }
-        }
-      `
-    });
+        `
+      })
+      .pipe(
+        map(result => {
+          return result.data && result.data.ClientServiceUpdatedSubscription
+            ? result.data.ClientServiceUpdatedSubscription
+            : undefined;
+        })
+      );
   }
   /* #endregion */
 

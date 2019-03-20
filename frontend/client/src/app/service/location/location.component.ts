@@ -44,6 +44,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   showCenterMarker = true;
   currentService;
   userMarker;
+  vehicleMarker;
   disableMap = false;
   nearbyVehiclesEnabled = true;
   nearbyTimer;
@@ -194,12 +195,8 @@ export class LocationComponent implements OnInit, OnDestroy {
       .subscribe(service => {
         if (service) {
           switch (service.state) {
-            case ServiceState.ARRIVED:
-            case ServiceState.ASSIGNED:
-            case ServiceState.ON_BOARD:
             case ServiceState.REQUESTED:
-              this.nearbyVehiclesEnabled = false;
-              this.disableMap = service.state === ServiceState.REQUESTED;
+              this.disableMap = true;
               this.currentService = service;
               if (
                 this.currentService &&
@@ -219,7 +216,102 @@ export class LocationComponent implements OnInit, OnDestroy {
               }
               this.showCenterMarker = false;
               break;
+            case ServiceState.ARRIVED:
+            case ServiceState.ASSIGNED:
+              this.nearbyVehiclesEnabled = false;
+              this.disableMap = false;
+              this.currentService = service;
+              this.nearbyVehicleList.forEach(vehicle => {
+                vehicle.marker.setMap(undefined);
+              });
+              this.nearbyVehicleList = [];
+              if (
+                this.currentService &&
+                this.currentService.pickup &&
+                this.currentService.pickup.location &&
+                this.currentService.pickup.marker
+              ) {
+                if (this.userMarker) {
+                  this.changeMarkerPosition(
+                    this.userMarker,
+                    this.currentService.pickup.location.marker.lat,
+                    this.currentService.pickup.location.marker.lng
+                  );
+                } else {
+                  this.userMarker = new google.maps.Marker({
+                    position: new google.maps.LatLng(
+                      this.currentService.pickup.location.marker.lat,
+                      this.currentService.pickup.location.marker.lng
+                    ),
+                    icon:
+                      '../../../assets/icons/location/assigned_user_marker.png',
+                    map: this.map
+                  });
+                }
+              }
+
+              if (this.currentService && this.currentService.location) {
+                if (this.vehicleMarker) {
+                  this.changeMarkerPosition(
+                    this.vehicleMarker,
+                    this.currentService.pickup.location.marker.lat,
+                    this.currentService.pickup.location.marker.lng
+                  );
+                } else {
+                  this.vehicleMarker = new google.maps.Marker({
+                    position: new google.maps.LatLng(
+                      this.currentService.pickup.location.marker.lat,
+                      this.currentService.pickup.location.marker.lng
+                    ),
+                    icon: '../../../assets/icons/location/vehicle_marker.png',
+                    map: this.map
+                  });
+                }
+              }
+              this.showCenterMarker = false;
+              break;
+            case ServiceState.ON_BOARD:
+              this.nearbyVehiclesEnabled = false;
+              this.disableMap = false;
+              this.currentService = service;
+              this.nearbyVehicleList.forEach(vehicle => {
+                vehicle.marker.setMap(undefined);
+              });
+              this.nearbyVehicleList = [];
+
+              if (this.userMarker) {
+                this.userMarker.setMap(undefined);
+                this.userMarker = undefined;
+              }
+              if (this.currentService && this.currentService.location) {
+                if (this.vehicleMarker) {
+                  this.changeMarkerPosition(
+                    this.vehicleMarker,
+                    this.currentService.pickup.location.marker.lat,
+                    this.currentService.pickup.location.marker.lng
+                  );
+                } else {
+                  this.vehicleMarker = new google.maps.Marker({
+                    position: new google.maps.LatLng(
+                      this.currentService.pickup.location.marker.lat,
+                      this.currentService.pickup.location.marker.lng
+                    ),
+                    icon: '../../../assets/icons/location/vehicle_marker.png',
+                    map: this.map
+                  });
+                }
+              }
+              this.showCenterMarker = false;
+              break;
             default:
+              if (this.vehicleMarker) {
+                this.vehicleMarker.setMap(undefined);
+                this.vehicleMarker = undefined;
+              }
+              if (this.userMarker) {
+                this.userMarker.setMap(undefined);
+                this.userMarker = undefined;
+              }
               this.disableMap = false;
               this.currentService = undefined;
               this.showCenterMarker = true;
@@ -350,7 +442,9 @@ export class CancelSheet implements OnInit {
   }
 
   onNgModelChange($event) {
-    this.serviceService.cancelService$($event[0]).subscribe(res => console.log('Cancela servicio: ', res));
+    this.serviceService
+      .cancelService$($event[0])
+      .subscribe(res => console.log('Cancela servicio: ', res));
     this.bottomSheetRef.dismiss();
     event.preventDefault();
   }

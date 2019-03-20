@@ -41,6 +41,7 @@ import { ServiceService } from './service.service';
 import { ServiceState } from './service-state';
 import { KeycloakService } from 'keycloak-angular';
 import { GatewayService } from '../api/gateway.service';
+import { MatSnackBar } from '@angular/material';
 
 /* #endregion */
 
@@ -76,25 +77,54 @@ export class ServiceComponent implements OnInit, OnDestroy {
   LAYOUT_ADDRESS_MAP_CONTENT = 6;
   /* #endregion */
 
-  constructor(protected serviceService: ServiceService, private keycloakService: KeycloakService, private gateway: GatewayService) {
+  constructor(
+    protected serviceService: ServiceService,
+    private keycloakService: KeycloakService,
+    private gateway: GatewayService,
+    private snackBar: MatSnackBar
+  ) {
     this.onResize();
   }
 
   ngOnInit() {
     this.listenServiceChanges();
     if (this.gateway.checkIfUserLogger()) {
-      this.serviceService.validateNewClient$().pipe(
-        mergeMap(() => this.serviceService.getCurrentService$())
-      ).subscribe(service => {
-        if (service) {
-          this.serviceService.currentService$.next(service);
-        }
-        console.log('Llega service: ', service);
-      });
+      this.serviceService
+        .validateNewClient$()
+        .pipe(mergeMap(() => this.serviceService.getCurrentService$()))
+        .subscribe(service => {
+          if (service) {
+            this.serviceService.currentService$.next(service);
+          }
+        });
     }
-    this.serviceService.subscribeToClientServiceUpdatedSubscription$().
-        pipe(takeUntil(this.ngUnsubscribe))
-        .subscribe(service => console.log('Se escucha cambio del service: ', service));
+    this.serviceService
+      .subscribeToClientServiceUpdatedSubscription$()
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(service => {
+        if (service) {
+          if (service.state === ServiceState.CANCELLED_DRIVER) {
+            this.showSnackBar('El conductor ha cancelado el servicio');
+            this.serviceService.currentService$.next({
+              state: ServiceState.NO_SERVICE
+            });
+          } else if (
+            service.state === ServiceState.CANCELLED_OPERATOR ||
+            service.state === ServiceState.CANCELLED_SYSTEM
+          ) {
+            this.showSnackBar('El sistema ha cancelado el servicio');
+            this.serviceService.currentService$.next({
+              state: ServiceState.NO_SERVICE
+            });
+          } else if (service.state === ServiceState.DONE) {
+            this.serviceService.currentService$.next({
+              state: ServiceState.NO_SERVICE
+            });
+          } else {
+            this.serviceService.currentService$.next(service);
+          }
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -105,6 +135,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
   @HostListener('window:resize', ['$event'])
   onResize(event?) {
     this.recalculateLayout();
+  }
+
+  showSnackBar(message) {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 2000
+    });
   }
 
   /* #region LAYOUT CONTROL */
@@ -258,7 +294,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.REQUESTED:
         this.contextRows = 22;
         break;
-        case ServiceState.ASSIGNED:
+      case ServiceState.ASSIGNED:
+      case ServiceState.ARRIVED:
         this.contextRows = 35;
         break;
       default:
