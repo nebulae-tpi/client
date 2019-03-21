@@ -76,14 +76,12 @@ import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog
   ],
   providers: [
     GoogleMapsAPIWrapper,
-    /*
     {
       provide: APP_INITIALIZER,
       useFactory: keycloakInitializer,
       multi: true,
       deps: [KeycloakService]
     },
-    */
     GatewayService
   ],
   entryComponents: [FilterSheet, CancelSheet, DialogArrivedComponent],

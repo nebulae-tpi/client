@@ -59,6 +59,7 @@ export class AddressComponent implements OnInit, OnDestroy {
             return;
           }
           this.addressInputValue = place.formatted_address.split(',')[0];
+          this.serviceService.addressChange$.next(this.addressInputValue);
           this.serviceService.locationChange$.next({
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng()
