@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-emi
+  name: frontend-pwa-client
   labels:
-    run: frontend-emi
+    run: frontend-pwa-client
 spec:
   type: NodePort
   ports:
@@ -12,22 +12,22 @@ spec:
     protocol: TCP
     name: http
   selector:
-    run: frontend-emi
+    run: frontend-pwa-client
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: frontend-emi
+  name: frontend-pwa-client
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        run: frontend-emi
+        run: frontend-pwa-client
     spec:
       containers:
-      - name: frontend-emi
-        image: DOCKERHUB/emi:0.0.3
+      - name: frontend-pwa-client
+        image: DOCKERHUB/pwa-client:0.0.6
         resources:
           requests:
             cpu: "10m"
