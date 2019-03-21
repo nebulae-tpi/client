@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-pwa-client
+  labels:
+    run: frontend-pwa-client
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    run: frontend-pwa-client
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: frontend-pwa-client
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: frontend-pwa-client
+    spec:
+      containers:
+      - name: frontend-pwa-client
+        image: DOCKERHUB/pwa-client:0.0.1
+        resources:
+          requests:
+            cpu: "10m"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
