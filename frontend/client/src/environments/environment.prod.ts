@@ -21,5 +21,10 @@ export const environment = {
           'https://tpi.nebulae.com.co/api/client-gateway/graphiql'
       }
     }
+  },
+  google: {
+    maps: {
+      key: 'AIzaSyC1VkMKnBB_TATeaszTe_a8phyo-B8DSVg'
+    }
   }
 };

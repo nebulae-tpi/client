@@ -67,7 +67,7 @@ import { OnboardComponent } from './service/context/onboard/onboard.component';
     FormsModule,
     ReactiveFormsModule,
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I',
+      apiKey: environment.google.maps.key,
       libraries: ['places']
     }),
     KeycloakAngularModule,

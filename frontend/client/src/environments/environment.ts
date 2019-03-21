@@ -23,8 +23,14 @@ export const environment = {
           'https://tpi-dev.nebulae.com.co/api/client-gateway/graphiql'
       }
     }
+  },
+  google: {
+    maps: {
+      key: 'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I'
+    }
   }
 };
+
 
 /*
  * For easier debugging in development mode, you can import the following file
