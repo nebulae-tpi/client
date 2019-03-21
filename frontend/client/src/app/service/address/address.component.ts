@@ -24,6 +24,7 @@ export class AddressComponent implements OnInit, OnDestroy {
   public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
   addressInputValue: String;
+  autocomplete: any;
   constructor(
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
@@ -43,16 +44,16 @@ export class AddressComponent implements OnInit, OnDestroy {
 
   buildPlacesAutoComplete() {
     this.mapsAPILoader.load().then(() => {
-      const autocomplete = new google.maps.places.Autocomplete(
+      this.autocomplete = new google.maps.places.Autocomplete(
         this.searchElementRef.nativeElement,
         {
           componentRestrictions: { country: 'co' }
         }
       );
-      autocomplete.addListener('place_changed', () => {
+      this.autocomplete.addListener('place_changed', () => {
         this.ngZone.run(() => {
           // get the place result
-          const place: google.maps.places.PlaceResult = autocomplete.getPlace();
+          const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
           // verify result
           if (place.geometry === undefined || place.geometry === null) {
             return;
@@ -72,6 +73,36 @@ export class AddressComponent implements OnInit, OnDestroy {
         });
       });
     });
+  }
+
+  listenLocationChanges() {
+    this.serviceService.locationChange$
+      .pipe(
+        filter(evt => evt),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(location => {
+        const latlng = new google.maps.LatLng(location.latitude, location.longitude);
+        const circle = new google.maps.Circle({
+          center: latlng,
+          radius: 50000 // meter
+        });
+        this.autocomplete.setOptions({bounds: circle.getBounds()});
+        /*
+        this.mapsAPILoader.load().then(() => {
+          const geocoder = new google.maps.Geocoder;
+          const latlng = {lat: location.latitude, lng: location.longitude};
+          geocoder.geocode({location: latlng}, function(results) {
+              if (results[0]) {
+                // that.currentLocation = results[0].formatted_address;
+                console.log(results[0]);
+              } else {
+                console.log('No results found');
+              }
+          });
+        });
+        */
+      });
   }
 
   listenServiceChanges() {
