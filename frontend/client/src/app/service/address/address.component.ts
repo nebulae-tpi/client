@@ -24,6 +24,7 @@ export class AddressComponent implements OnInit, OnDestroy {
   public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
   addressInputValue: String;
+  autocomplete: any;
   constructor(
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
@@ -32,7 +33,6 @@ export class AddressComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.searchControl = new FormControl();
-    this.listenLocationChanges();
     this.listenServiceChanges();
     this.buildPlacesAutoComplete();
   }
@@ -44,26 +44,26 @@ export class AddressComponent implements OnInit, OnDestroy {
 
   buildPlacesAutoComplete() {
     this.mapsAPILoader.load().then(() => {
-      const autocomplete = new google.maps.places.Autocomplete(
+      this.autocomplete = new google.maps.places.Autocomplete(
         this.searchElementRef.nativeElement,
         {
           componentRestrictions: { country: 'co' }
         }
       );
-      autocomplete.addListener('place_changed', () => {
+      this.autocomplete.addListener('place_changed', () => {
         this.ngZone.run(() => {
           // get the place result
-          const place: google.maps.places.PlaceResult = autocomplete.getPlace();
+          const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
           // verify result
           if (place.geometry === undefined || place.geometry === null) {
             return;
           }
           this.addressInputValue = place.formatted_address.split(',')[0];
-          this.serviceService.addressChange$.next(this.addressInputValue);
           this.serviceService.locationChange$.next({
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng()
           });
+          this.serviceService.addressChange$.next(this.addressInputValue);
           // set latitude, longitude and zoom
           /*
           this.latitude = place.geometry.location.lat();
@@ -82,6 +82,12 @@ export class AddressComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
+        const latlng = new google.maps.LatLng(location.latitude, location.longitude);
+        const circle = new google.maps.Circle({
+          center: latlng,
+          radius: 50000 // meter
+        });
+        this.autocomplete.setOptions({bounds: circle.getBounds()});
         /*
         this.mapsAPILoader.load().then(() => {
           const geocoder = new google.maps.Geocoder;
@@ -120,6 +126,6 @@ export class AddressComponent implements OnInit, OnDestroy {
   }
 
   onBlurAddress() {
-    this.serviceService.addressChange$.next(this.addressInputValue);
+    // this.serviceService.addressChange$.next(this.addressInputValue);
   }
 }
