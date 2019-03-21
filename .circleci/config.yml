@@ -19,7 +19,9 @@ jobs:
             cd /tmp/repo/frontend/client
             export PWA_CLIENT_ANGULAR_ENV_FILE=$PWA_CLIENT_ANGULAR_ENV_FILE
             export PWA_CLIENT_ANGULAR_BASE_HREF=$PWA_CLIENT_ANGULAR_BASE_HREF
-            if [ "$PWA_CLIENT_ANGULAR_ENV_FILE" != "environment.prod.ts" ]; then cp /tmp/repo/frontend/client/src/environments/$PWA_CLIENT_ANGULAR_ENV_FILE /tmp/repo/frontend/client/src/environments/environment.prod.ts; else echo "using original production env file"; fi
+
+
+            if [ "$PWA_CLIENT_ANGULAR_ENV_FILE" != "environment.prod.ts" ]; then echo using /tmp/repo/frontend/client/src/environments/$PWA_CLIENT_ANGULAR_ENV_FILE; cp /tmp/repo/frontend/client/src/environments/$PWA_CLIENT_ANGULAR_ENV_FILE /tmp/repo/frontend/client/src/environments/environment.prod.ts; else echo "using original production env file"; fi
             sed -i "s|<base href=\"/\">|<base href=\"$PWA_CLIENT_ANGULAR_BASE_HREF\">|g" /tmp/repo/frontend/client/src/index.html
             npm i
             ng build --base-href "$PWA_CLIENT_ANGULAR_BASE_HREF" --prod
