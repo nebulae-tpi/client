@@ -5,6 +5,9 @@ server {
   root /usr/share/nginx/html/client/client;
   
   location / {
+    if ($http_x_forwarded_proto = “http”) {
+      return 301 https://$host$request_uri;
+    }
     expires -1;
     add_header Pragma "no-cache";
     add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";    
