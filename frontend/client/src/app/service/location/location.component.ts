@@ -266,12 +266,14 @@ export class LocationComponent implements OnInit, OnDestroy {
 
               if (this.currentService && this.currentService.location) {
                 if (this.vehicleMarker) {
+                  console.log('modifica ubicacion del vehiculo: ', this.currentService.location );
                   this.changeMarkerPosition(
                     this.vehicleMarker,
-                    this.currentService.pickUp.marker.lat,
-                    this.currentService.pickUp.marker.lng
+                    this.currentService.location.lat,
+                    this.currentService.location.lng
                   );
                 } else {
+                  console.log('agrega ubicacion del vehiculo: ', this.currentService.location );
                   this.vehicleMarker = new google.maps.Marker({
                     position: new google.maps.LatLng(
                       this.currentService.location.lat,
@@ -362,7 +364,6 @@ export class LocationComponent implements OnInit, OnDestroy {
                 return from(nearbyVehicles).pipe(
                   tap((vehicle: any) => {
                     // find in current vehicleList and refresh the marker position
-                    console.log('NearbyVehicles before');
                     const searchElement = this.nearbyVehicleList.find(
                       element => {
                         return vehicle.vehicleId === element.vehicleId;
@@ -381,7 +382,6 @@ export class LocationComponent implements OnInit, OnDestroy {
                       // add the missing vehicles
                       this.addNearbyVehicle(vehicle);
                     }
-                    console.log('NearbyVehicles after');
                   }),
                   toArray()
                   // map(nearbyVehicles)
@@ -390,14 +390,12 @@ export class LocationComponent implements OnInit, OnDestroy {
             }),
             // Get the items to remove
             mergeMap((nearbyVehicles: any) => {
-              console.log('NearbyVehicles');
               return from(this.nearbyVehicleList).pipe(
                 map(vehicle => {
                   const searchVehicle = nearbyVehicles.find(element => {
                     return vehicle.vehicleId === element.vehicleId;
                   });
                   if (!searchVehicle) {
-                    console.log('Se remueve vehiculo: ', vehicle);
                     vehicle.marker.setMap(undefined);
                   }
                   return searchVehicle ? undefined : vehicle;
