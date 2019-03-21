@@ -34,9 +34,9 @@
             <span class="lead">{{ userDetails.firstName }} {{ userDetails.lastName }}</span>
           </a>
           <a *ngIf="!userDetails">
-            <span class="lead">Have an account?</span>
+            <span class="lead">Tienes una cuenta?</span>
           </a>
-          <a mat-button (click)="login()" *ngIf="!userDetails">Login</a>
+          <a mat-button (click)="login()" *ngIf="!userDetails">Iniciar sesión</a>
         </div>
         <div>
           <a *ngIf="userDetails">
@@ -49,29 +49,31 @@
       <mat-nav-list>
         <mat-list-item>
           <mat-icon>location_on</mat-icon>
-          <a href="#" mat-list-item class="ml-2">Location</a>
+          <a href="#" mat-list-item class="ml-2">Servicios</a>
         </mat-list-item>
 
-        <mat-list-item>
+        <mat-list-item *ngIf="false">
           <mat-icon>account_circle</mat-icon>
           <a mat-list-item class="ml-2" href="#">Profile</a>
         </mat-list-item>
 
-        <mat-list-item>
+        <mat-list-item *ngIf="false">
           <mat-icon>settings</mat-icon>
           <a mat-list-item class="ml-2" href="#">Settings</a>
         </mat-list-item>
 
-        <mat-list-item>
+        <mat-list-item *ngIf="false">
           <mat-icon>access_time</mat-icon>
           <a mat-list-item class="ml-2" href="/history">History</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="userDetails">
           <mat-icon>exit_to_app</mat-icon>
-          <a mat-list-item class="ml-2" (click)="logout()">Logout</a>
+          <a mat-list-item class="ml-2" (click)="logout()">Cerrar sesión</a>
         </mat-list-item>
       </mat-nav-list>
+
+      <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.0.1</h4>
     </div>
   </mat-sidenav>
 

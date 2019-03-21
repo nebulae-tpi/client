@@ -34,6 +34,7 @@ export class AddressComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.searchControl = new FormControl();
     this.listenServiceChanges();
+    this.listenLocationChanges();
     this.buildPlacesAutoComplete();
   }
 
@@ -63,6 +64,8 @@ export class AddressComponent implements OnInit, OnDestroy {
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng()
           });
+          console.log('se setea a true');
+          this.serviceService.fromAddressLocation = true;
           this.serviceService.addressChange$.next(this.addressInputValue);
           // set latitude, longitude and zoom
           /*
@@ -82,6 +85,7 @@ export class AddressComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
+        console.log('Se actualiza google places');
         const latlng = new google.maps.LatLng(location.latitude, location.longitude);
         const circle = new google.maps.Circle({
           center: latlng,

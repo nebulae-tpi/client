@@ -57,7 +57,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
         .createNewService$(
           this.serviceService.userProfile.username,
           pickUpMarker,
-          this.currentAddress,
+          this.currentAddress ? this.currentAddress : this.reference,
           this.reference,
           parseInt(this.tipValue, 10)
         )
@@ -66,7 +66,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
         });
     } else {
       this.snackBar.open(
-        'Por favor dar una dirección o referencia para el punto de recogida',
+        'Por favor ingresar una referencia para el punto de recogida',
         'Cerrar',
         {
           duration: 2000
@@ -79,6 +79,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     this.serviceService.addressChange$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(address => {
+        console.log('cambia direccion: ', address);
         this.currentAddress = address;
       });
   }

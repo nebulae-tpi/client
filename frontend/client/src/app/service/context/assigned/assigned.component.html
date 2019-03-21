@@ -11,7 +11,7 @@
     class="flex-wrap"
   >
     <mat-form-field
-      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1"
+      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1 && currentService.pickUp.addressLine1 !== currentService.pickUp.addressLine2"
       fxFlex="100"
     >
       <input
@@ -23,7 +23,7 @@
     </mat-form-field>
 
     <mat-form-field
-      *ngIf="currentService.pickUp && !currentService.pickUp.addressLine1"
+      *ngIf="currentService.pickUp && currentService.pickUp.addressLine2"
       fxFlex="100"
     >
       <input

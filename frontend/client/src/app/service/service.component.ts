@@ -5,7 +5,8 @@ import {
   OnDestroy,
   ViewChild,
   ElementRef,
-  HostListener
+  HostListener,
+  AfterViewInit
 } from '@angular/core';
 /* #endregion */
 
@@ -55,7 +56,7 @@ const ADDRESS_ROWS = 4;
   templateUrl: './service.component.html',
   styleUrls: ['./service.component.scss']
 })
-export class ServiceComponent implements OnInit, OnDestroy {
+export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   /* #region  VARIABLES*/
   layoutType: number;
   screenCols: number;
@@ -87,6 +88,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    console.log('Se llama el onInit');
     this.listenServiceChanges();
     if (this.gateway.checkIfUserLogger()) {
       this.serviceService
@@ -132,6 +134,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+  }
+
+  ngAfterViewInit() {
+    console.log('afterViewInit');
   }
 
   @HostListener('window:resize', ['$event'])
@@ -298,14 +304,27 @@ export class ServiceComponent implements OnInit, OnDestroy {
         break;
       case ServiceState.ASSIGNED:
       case ServiceState.ARRIVED:
-        if (this.serviceService.currentService$.getValue().tip) {
+        if (
+          this.serviceService.currentService$.getValue().pickUp.addressLine1 !==
+          this.serviceService.currentService$.getValue().pickUp.addressLine2
+        ) {
+          if (this.serviceService.currentService$.getValue().tip) {
+            this.contextRows = 37;
+          } else {
+            this.contextRows = 32;
+          }
+        } else if (this.serviceService.currentService$.getValue().tip) {
           this.contextRows = 30;
         } else {
           this.contextRows = 25;
         }
         break;
       case ServiceState.ON_BOARD:
-        this.contextRows = 0;
+        if (this.serviceService.currentService$.getValue().tip) {
+          this.contextRows = 25;
+        } else {
+          this.contextRows = 19;
+        }
         break;
       default:
         this.contextRows = 4;

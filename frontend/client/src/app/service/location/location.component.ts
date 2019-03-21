@@ -36,8 +36,8 @@ import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.componen
   styleUrls: ['./location.component.scss']
 })
 export class LocationComponent implements OnInit, OnDestroy {
-  lat = 51.678418;
-  lng = 7.809007;
+  lat = 3.416652;
+  lng = -76.524436;
   zoom = 17;
   render = true;
   widthMapContent = 0;
@@ -93,8 +93,20 @@ export class LocationComponent implements OnInit, OnDestroy {
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(location => {
           return this.getNearbyVehicles$().pipe(
-            tap(() => this.serviceService.addressChange$.next(undefined)),
-            map(() => location)
+            tap(() =>
+              console.log(
+                'fromAddress: ',
+                this.serviceService.fromAddressLocation
+              )
+            ),
+            filter(() => {
+              const temp = !this.serviceService.fromAddressLocation;
+              this.serviceService.fromAddressLocation = false;
+              return temp;
+            }),
+            tap(() => {
+              this.serviceService.addressChange$.next(undefined);
+            })
           );
         }),
         takeUntil(this.ngUnsubscribe)
@@ -168,13 +180,11 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   changeMarkerPosition(marker, newLat, newLng) {
-
     const deltaLat = (newLat - marker.getPosition().lat()) / this.numDeltas;
     const deltaLng = (newLng - marker.getPosition().lng()) / this.numDeltas;
 
     const timeDelay = this.delay * 0.5;
     for (let i = 0; i < this.numDeltas; i++) {
-
       setTimeout(() => {
         let lat = marker.position.lat();
         let lng = marker.position.lng();
@@ -182,9 +192,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         lng += deltaLng;
         const latlng = new google.maps.LatLng(lat, lng);
         marker.setPosition(latlng);
-      }, timeDelay * i
-    );
-
+      }, timeDelay * i);
     }
   }
   addNearbyVehicle(vehicleMarker) {
@@ -227,6 +235,14 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.center$.next($event);
   }
 
+  refreshCenterMap(service) {
+    if (this.lastServiceStateReported !== service.state) {
+      setTimeout(() => {
+        this.currentLocation();
+      }, 1000);
+    }
+  }
+
   listenLocationChanges() {
     this.serviceService.locationChange$
       .pipe(
@@ -246,11 +262,15 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   listenServiceChanges() {
     this.serviceService.currentService$
-      .pipe(debounceTime(100), takeUntil(this.ngUnsubscribe))
+      .pipe(
+        debounceTime(100),
+        takeUntil(this.ngUnsubscribe)
+      )
       .subscribe(service => {
         if (service) {
           switch (service.state) {
             case ServiceState.REQUESTED:
+              this.refreshCenterMap(service);
               this.disableMap = true;
               this.currentService = service;
               if (
@@ -273,6 +293,7 @@ export class LocationComponent implements OnInit, OnDestroy {
               break;
             case ServiceState.ARRIVED:
             case ServiceState.ASSIGNED:
+              this.refreshCenterMap(service);
               if (
                 service.state === ServiceState.ARRIVED &&
                 this.lastServiceStateReported !== service.state
@@ -344,6 +365,7 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.showCenterMarker = false;
               break;
             case ServiceState.ON_BOARD:
+              this.refreshCenterMap(service);
               this.nearbyVehiclesEnabled = false;
               this.disableMap = false;
               this.currentService = service;
@@ -380,7 +402,7 @@ export class LocationComponent implements OnInit, OnDestroy {
                   'Recuerde que tiene 10% de dcto sobre el valor total del servicio',
                   'Cerrar',
                   {
-                    duration: 5000
+                    duration: 10000
                   }
                 );
               }

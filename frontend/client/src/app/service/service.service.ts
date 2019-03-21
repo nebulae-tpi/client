@@ -40,6 +40,7 @@ export class ServiceService {
     state: ServiceState.NO_SERVICE
   });
 
+  fromAddressLocation = false;
   userProfile;
   /* #endregion */
 
@@ -123,7 +124,9 @@ export class ServiceService {
         pickUp: {
           marker: pickUpLocation,
           addressLine1: address,
-          addressLine2: reference
+          addressLine2: reference,
+          neighborhood: 'Solicitud app cliente',
+          zone: ''
         },
         paymentType: 'CASH',
         requestFeatures: [],

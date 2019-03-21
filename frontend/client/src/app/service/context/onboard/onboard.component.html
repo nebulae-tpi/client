@@ -1,3 +1,59 @@
-<div class="container">
-  <p>Recuerde que tiene 10% de dcto cobre el valor total del servicio</p>
+<div
+  *ngIf="currentService"
+  fxLayout="column"
+  class="scroll-content"
+  fxLayoutAlign="start start"
+>
+  <div
+    fxLayout="row"
+    style="margin-left: 7px; margin-top: 7px"
+    fxLayoutAlign="start start"
+    class="flex-wrap"
+  >
+    <mat-form-field
+      fxFlex="100"
+      *ngIf="currentService.vehicle && currentService.vehicle.plate"
+    >
+      <input
+        matInput
+        placeholder="Vehículo"
+        readonly="true"
+        [(ngModel)]="currentService.vehicle.plate"
+      />
+    </mat-form-field>
+
+    <mat-form-field
+      fxFlex="100"
+      *ngIf="currentService.driver && currentService.driver.fullname"
+    >
+      <input
+        matInput
+        placeholder="Conductor"
+        readonly="true"
+        [(ngModel)]="currentService.driver.fullname"
+      />
+    </mat-form-field>
+
+    <mat-form-field *ngIf="tipValue" fxFlex="100">
+      <input
+        matInput
+        placeholder="Propina"
+        readonly="true"
+        [(ngModel)]="tipValue"
+        currencyMask
+        [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }"
+      />
+    </mat-form-field>
+
+    <button fxFlex="100" mat-raised-button [color]="'onboard-button-color'">
+      Estas a bordo
+      <img
+        class="circle"
+        src="../../../../assets/icons/context/tx_white_car.png"
+        width="23px"
+        height="20px"
+      />
+    </button>
+  </div>
+
 </div>
