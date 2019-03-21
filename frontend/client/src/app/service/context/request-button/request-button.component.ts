@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ServiceService } from '../../service.service';
 import { ServiceState } from '../../service-state';
+import { KeycloakService } from 'keycloak-angular';
 
 @Component({
   selector: 'app-request-button',
@@ -9,13 +10,14 @@ import { ServiceState } from '../../service-state';
 })
 export class RequestButtonComponent implements OnInit {
 
-  constructor(private serviceService: ServiceService) { }
+  constructor(private serviceService: ServiceService, private keycloakService: KeycloakService) { }
 
   ngOnInit() {
   }
 
-  requestTaxi() {
-    this.serviceService.publishServiceChanges({state: ServiceState.REQUEST});
+  async requestTaxi() {
+    this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+    await this.keycloakService.getToken();
   }
 
 

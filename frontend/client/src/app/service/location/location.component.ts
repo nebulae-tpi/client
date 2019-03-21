@@ -23,9 +23,11 @@ import {
   MatBottomSheetRef,
   MatBottomSheet,
   MatSelectionList,
-  MatListOption
+  MatListOption,
+  MatDialog
 } from '@angular/material';
 import { SelectionModel } from '@angular/cdk/collections';
+import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.component';
 
 @Component({
   selector: 'app-location',
@@ -51,17 +53,20 @@ export class LocationComponent implements OnInit, OnDestroy {
   nearbyVehicleList = [];
   protected map: any;
   private ngUnsubscribe = new Subject();
+  index = 0;
+  numDeltas = 80;
+  delay = 10;
   constructor(
     private cdRef: ChangeDetectorRef,
     private serviceService: ServiceService,
-    private bottomSheet: MatBottomSheet
+    private bottomSheet: MatBottomSheet,
+    private dialog: MatDialog
   ) {}
 
   /* #region ANGULAR NGS */
   ngOnInit() {
     this.listenLayoutCommands();
     this.listenLocationChanges();
-    this.listenServiceChanges();
     this.center$
       .pipe(
         debounceTime(1000),
@@ -84,7 +89,6 @@ export class LocationComponent implements OnInit, OnDestroy {
           longitude: (val as any).lng
         });
       });
-    this.getNearbyVehicles();
   }
 
   ngOnDestroy() {
@@ -102,8 +106,9 @@ export class LocationComponent implements OnInit, OnDestroy {
           if (this.map) {
             this.map.setCenter({
               lat: position.coords.latitude,
-              lng: position.coords.longitude
+              lng: position.coords.longitude,
             });
+            this.map.setZoom(17);
 
             this.serviceService.locationChange$.next({
               latitude: position.coords.latitude,
@@ -166,6 +171,8 @@ export class LocationComponent implements OnInit, OnDestroy {
   mapReady(map) {
     this.map = map;
     this.currentLocation();
+    this.listenServiceChanges();
+    this.getNearbyVehicles();
   }
 
   onCenterChange($event) {
@@ -183,8 +190,8 @@ export class LocationComponent implements OnInit, OnDestroy {
           this.map.setCenter({
             lat: location.latitude,
             lng: location.longitude,
-            zoom: 17
           });
+//          this.map.setZoom(17);
         }
       });
   }
@@ -200,14 +207,14 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.currentService = service;
               if (
                 this.currentService &&
-                this.currentService.pickup &&
-                this.currentService.pickup.location &&
-                this.currentService.pickup.marker
+                this.currentService.pickUp &&
+                this.currentService.pickUp &&
+                this.currentService.pickUp.marker
               ) {
                 this.userMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
-                    this.currentService.pickup.location.marker.lat,
-                    this.currentService.pickup.location.marker.lng
+                    this.currentService.pickUp.marker.lat,
+                    this.currentService.pickUp.marker.lng
                   ),
                   icon:
                     '../../../assets/icons/location/assigned_user_marker.png',
@@ -218,6 +225,13 @@ export class LocationComponent implements OnInit, OnDestroy {
               break;
             case ServiceState.ARRIVED:
             case ServiceState.ASSIGNED:
+              if (service.state === ServiceState.ARRIVED) {
+                this.dialog.closeAll();
+                this.dialog.open(DialogArrivedComponent, {
+                  width: '250px',
+                  data: {}
+                });
+              }
               this.nearbyVehiclesEnabled = false;
               this.disableMap = false;
               this.currentService = service;
@@ -227,21 +241,21 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.nearbyVehicleList = [];
               if (
                 this.currentService &&
-                this.currentService.pickup &&
-                this.currentService.pickup.location &&
-                this.currentService.pickup.marker
+                this.currentService.pickUp &&
+                this.currentService.pickUp &&
+                this.currentService.pickUp.marker
               ) {
                 if (this.userMarker) {
                   this.changeMarkerPosition(
                     this.userMarker,
-                    this.currentService.pickup.location.marker.lat,
-                    this.currentService.pickup.location.marker.lng
+                    this.currentService.pickUp.marker.lat,
+                    this.currentService.pickUp.marker.lng
                   );
                 } else {
                   this.userMarker = new google.maps.Marker({
                     position: new google.maps.LatLng(
-                      this.currentService.pickup.location.marker.lat,
-                      this.currentService.pickup.location.marker.lng
+                      this.currentService.pickUp.marker.lat,
+                      this.currentService.pickUp.marker.lng
                     ),
                     icon:
                       '../../../assets/icons/location/assigned_user_marker.png',
@@ -254,14 +268,14 @@ export class LocationComponent implements OnInit, OnDestroy {
                 if (this.vehicleMarker) {
                   this.changeMarkerPosition(
                     this.vehicleMarker,
-                    this.currentService.pickup.location.marker.lat,
-                    this.currentService.pickup.location.marker.lng
+                    this.currentService.pickUp.marker.lat,
+                    this.currentService.pickUp.marker.lng
                   );
                 } else {
                   this.vehicleMarker = new google.maps.Marker({
                     position: new google.maps.LatLng(
-                      this.currentService.pickup.location.marker.lat,
-                      this.currentService.pickup.location.marker.lng
+                      this.currentService.location.lat,
+                      this.currentService.location.lng
                     ),
                     icon: '../../../assets/icons/location/vehicle_marker.png',
                     map: this.map
@@ -287,14 +301,14 @@ export class LocationComponent implements OnInit, OnDestroy {
                 if (this.vehicleMarker) {
                   this.changeMarkerPosition(
                     this.vehicleMarker,
-                    this.currentService.pickup.location.marker.lat,
-                    this.currentService.pickup.location.marker.lng
+                    this.currentService.pickUp.marker.lat,
+                    this.currentService.pickUp.marker.lng
                   );
                 } else {
                   this.vehicleMarker = new google.maps.Marker({
                     position: new google.maps.LatLng(
-                      this.currentService.pickup.location.marker.lat,
-                      this.currentService.pickup.location.marker.lng
+                      this.currentService.location.lat,
+                      this.currentService.location.lng
                     ),
                     icon: '../../../assets/icons/location/vehicle_marker.png',
                     map: this.map
@@ -348,6 +362,7 @@ export class LocationComponent implements OnInit, OnDestroy {
                 return from(nearbyVehicles).pipe(
                   tap((vehicle: any) => {
                     // find in current vehicleList and refresh the marker position
+                    console.log('NearbyVehicles before');
                     const searchElement = this.nearbyVehicleList.find(
                       element => {
                         return vehicle.vehicleId === element.vehicleId;
@@ -355,28 +370,34 @@ export class LocationComponent implements OnInit, OnDestroy {
                     );
 
                     if (searchElement) {
+
                       this.changeMarkerPosition(
                         searchElement.marker,
                         vehicle.point.lat,
                         vehicle.point.lng
                       );
+
                     } else {
                       // add the missing vehicles
                       this.addNearbyVehicle(vehicle);
                     }
-                  })
+                    console.log('NearbyVehicles after');
+                  }),
+                  toArray()
                   // map(nearbyVehicles)
                 );
               }
             }),
             // Get the items to remove
             mergeMap((nearbyVehicles: any) => {
+              console.log('NearbyVehicles');
               return from(this.nearbyVehicleList).pipe(
                 map(vehicle => {
                   const searchVehicle = nearbyVehicles.find(element => {
                     return vehicle.vehicleId === element.vehicleId;
                   });
                   if (!searchVehicle) {
+                    console.log('Se remueve vehiculo: ', vehicle);
                     vehicle.marker.setMap(undefined);
                   }
                   return searchVehicle ? undefined : vehicle;
@@ -390,13 +411,17 @@ export class LocationComponent implements OnInit, OnDestroy {
       )
       .subscribe(
         vehiclesToRemoveList => {
-          this.nearbyVehicleList = this.nearbyVehicleList.filter(val => {
-            return !vehiclesToRemoveList.find(element => {
-              return val.vehicleId === element.vehicleId;
+          console.log('vehiclesToRemoveList: ', vehiclesToRemoveList);
+          if (vehiclesToRemoveList && vehiclesToRemoveList[0]) {
+            this.nearbyVehicleList = this.nearbyVehicleList.filter(val => {
+              return !vehiclesToRemoveList.find(element => {
+                return val.vehicleId === element.vehicleId;
+              });
             });
-          });
+          }
         },
         error => {
+          // console.error('error buscando vehiculos: ', error);
           this.getNearbyVehicles();
         }
       );

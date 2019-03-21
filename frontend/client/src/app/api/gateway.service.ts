@@ -85,9 +85,10 @@ export class GatewayService {
 
   }
 
-  checkIfUserLogger() {
+  checkIfUserLogger() {/*
     const logged = this.keycloakService.getKeycloakInstance().authenticated;
     // console.log('logged => ', logged);
-    return logged;
+    */
+    return false;
   }
 }

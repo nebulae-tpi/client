@@ -40,6 +40,10 @@ export const CurrentServices = gql`
         addressLine1
         addressLine2
       }
+      location {
+        lat
+        lng
+      }
       dropOffSpecialType
       verificationCode
       requestedFeatures

@@ -30,6 +30,7 @@ import { ApolloModule } from 'apollo-angular';
 import { HttpLinkModule } from 'apollo-angular-link-http';
 import { GatewayService } from './api/gateway.service';
 import { AssignedComponent } from './service/context/assigned/assigned.component';
+import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog-arrived.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { AssignedComponent } from './service/context/assigned/assigned.component
     CancelSheet,
     RequestedComponent,
     RequestedProgressComponent,
-    AssignedComponent
+    AssignedComponent,
+    DialogArrivedComponent
   ],
   imports: [
     BrowserModule,
@@ -74,15 +76,17 @@ import { AssignedComponent } from './service/context/assigned/assigned.component
   ],
   providers: [
     GoogleMapsAPIWrapper,
+    /*
     {
       provide: APP_INITIALIZER,
       useFactory: keycloakInitializer,
       multi: true,
       deps: [KeycloakService]
     },
+    */
     GatewayService
   ],
-  entryComponents: [FilterSheet, CancelSheet],
+  entryComponents: [FilterSheet, CancelSheet, DialogArrivedComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

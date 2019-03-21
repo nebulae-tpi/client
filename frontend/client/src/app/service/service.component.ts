@@ -94,37 +94,39 @@ export class ServiceComponent implements OnInit, OnDestroy {
         .pipe(mergeMap(() => this.serviceService.getCurrentService$()))
         .subscribe(service => {
           if (service) {
+            console.log('Llega cambio de servicio:', service);
             this.serviceService.currentService$.next(service);
           }
         });
-    }
-    this.serviceService
-      .subscribeToClientServiceUpdatedSubscription$()
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe(service => {
-        if (service) {
-          if (service.state === ServiceState.CANCELLED_DRIVER) {
-            this.showSnackBar('El conductor ha cancelado el servicio');
-            this.serviceService.currentService$.next({
-              state: ServiceState.NO_SERVICE
-            });
-          } else if (
-            service.state === ServiceState.CANCELLED_OPERATOR ||
-            service.state === ServiceState.CANCELLED_SYSTEM
-          ) {
-            this.showSnackBar('El sistema ha cancelado el servicio');
-            this.serviceService.currentService$.next({
-              state: ServiceState.NO_SERVICE
-            });
-          } else if (service.state === ServiceState.DONE) {
-            this.serviceService.currentService$.next({
-              state: ServiceState.NO_SERVICE
-            });
-          } else {
-            this.serviceService.currentService$.next(service);
+      this.serviceService
+        .subscribeToClientServiceUpdatedSubscription$()
+        .pipe(takeUntil(this.ngUnsubscribe))
+        .subscribe(service => {
+          if (service) {
+            console.log('Llega cambio de servicio:', service);
+            if (service.state === ServiceState.CANCELLED_DRIVER) {
+              this.showSnackBar('El conductor ha cancelado el servicio');
+              this.serviceService.currentService$.next({
+                state: ServiceState.NO_SERVICE
+              });
+            } else if (
+              service.state === ServiceState.CANCELLED_OPERATOR ||
+              service.state === ServiceState.CANCELLED_SYSTEM
+            ) {
+              this.showSnackBar('El sistema ha cancelado el servicio');
+              this.serviceService.currentService$.next({
+                state: ServiceState.NO_SERVICE
+              });
+            } else if (service.state === ServiceState.DONE) {
+              this.serviceService.currentService$.next({
+                state: ServiceState.NO_SERVICE
+              });
+            } else {
+              this.serviceService.currentService$.next(service);
+            }
           }
-        }
-      });
+        });
+    }
   }
 
   ngOnDestroy() {
@@ -296,7 +298,11 @@ export class ServiceComponent implements OnInit, OnDestroy {
         break;
       case ServiceState.ASSIGNED:
       case ServiceState.ARRIVED:
-        this.contextRows = 35;
+        if (this.serviceService.currentService$.getValue().tip) {
+          this.contextRows = 30;
+        } else {
+          this.contextRows = 25;
+        }
         break;
       default:
         this.contextRows = 4;

@@ -4,6 +4,7 @@ import { ObservableMedia, MediaChange } from '@angular/flex-layout';
 import { Subscription } from 'rxjs';
 import { KeycloakProfile } from 'keycloak-js';
 import { ServiceService } from '../service/service.service';
+import { GatewayService } from '../api/gateway.service';
 
 @Component({
   selector: 'app-menu',
@@ -22,7 +23,12 @@ export class MenuComponent implements OnInit {
 
   watcher: Subscription;
 
-  constructor(media: ObservableMedia, private keycloakService: KeycloakService, private serviceService: ServiceService) {
+  constructor(
+    media: ObservableMedia,
+    private keycloakService: KeycloakService,
+    private serviceService: ServiceService,
+    private gateway: GatewayService
+  ) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
         this.opened = false;
@@ -35,16 +41,17 @@ export class MenuComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.userDetails = await this.keycloakService.loadUserProfile();
-    this.serviceService.userProfile = this.userDetails;
+    if (this.gateway.checkIfUserLogger()) {
+      this.userDetails = await this.keycloakService.loadUserProfile();
+      this.serviceService.userProfile = this.userDetails;
+    }
   }
 
   async login() {
-    await this.keycloakService.login({scope: 'offline_access'});
+    await this.keycloakService.login({ scope: 'offline_access' });
   }
 
   async logout() {
     await this.keycloakService.logout();
   }
-
 }

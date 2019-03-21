@@ -166,6 +166,10 @@ export class ServiceService {
                 addressLine1
                 addressLine2
               }
+              location {
+                lat
+                lng
+              }
               dropOffSpecialType
               verificationCode
               requestedFeatures

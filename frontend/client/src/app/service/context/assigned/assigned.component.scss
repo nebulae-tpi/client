@@ -18,11 +18,5 @@
 }
 
 .scroll-content {
-  display: inline-block;
-  position: relative;
-  overflow-x: hidden;
-  height: 290px;
-  overflow-y: auto;
-  box-sizing: border-box;
-  border: 1px solid #e8f8ff;
+  height: 100%;
 }

@@ -6,7 +6,7 @@
 >
   <div
     fxLayout="row"
-    style="margin-left: 7px"
+    style="margin-left: 7px; margin-top: 7px"
     fxLayoutAlign="start start"
     class="flex-wrap"
   >
@@ -19,6 +19,18 @@
         placeholder="Dirección"
         readonly="true"
         [(ngModel)]="currentService.pickUp.addressLine1"
+      />
+    </mat-form-field>
+
+    <mat-form-field
+      *ngIf="currentService.pickUp && !currentService.pickUp.addressLine1"
+      fxFlex="100"
+    >
+      <input
+        matInput
+        placeholder="Referencia"
+        readonly="true"
+        [(ngModel)]="currentService.pickUp.addressLine2"
       />
     </mat-form-field>
     <mat-form-field
@@ -49,18 +61,18 @@
       <input
         matInput
         placeholder="Propina"
-        disabled="true"
+        readonly="true"
         [(ngModel)]="tipValue"
         currencyMask
         [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }"
       />
     </mat-form-field>
 
-    <button fxFlex="100" mat-raised-button [color]="'request-button-color'">
+    <button fxFlex="100" (click)="openCancelSheet()" mat-raised-button color="warn">
       Cancelar servicio
       <img
         class="circle"
-        src="../../../../assets/icons/context/btn_cancel_icon.png"
+        src="../../../../assets/icons/context/btn_cancel_trip_icon.png"
         width="23px"
         height="20px"
       />
