@@ -55,6 +55,7 @@ export const CurrentServices = gql`
         lat
         lng
       }
+      lastModificationTimestamp
       state
     }
   }
@@ -83,7 +84,6 @@ export const CancelServiceByClient = gql`
 
 export const RequestService = gql`
   mutation RequestService(
-    $client: ClientInput!
     $pickUp: LocationInput!
     $paymentType: String!
     $requestedFeatures: [String]
@@ -91,7 +91,6 @@ export const RequestService = gql`
     $tip: Int
   ) {
     RequestService(
-      client: $client
       pickUp: $pickUp
       paymentType: $paymentType
       requestedFeatures: $requestedFeatures

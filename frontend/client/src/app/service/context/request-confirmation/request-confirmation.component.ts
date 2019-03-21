@@ -46,9 +46,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
 
   confirmService() {
     console.log('Actual propina: ', this.tipValue);
-    if (
-      (this.currentAddress && this.currentAddress !== '') ||
-      (this.reference && this.reference !== '')
+    if ((this.reference && this.reference !== '')
     ) {
       const pickUpMarker = {
         lat: this.serviceService.locationChange$.getValue().latitude,

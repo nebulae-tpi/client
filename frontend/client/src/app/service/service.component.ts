@@ -304,6 +304,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
           this.contextRows = 25;
         }
         break;
+      case ServiceState.ON_BOARD:
+        this.contextRows = 0;
+        break;
       default:
         this.contextRows = 4;
         break;

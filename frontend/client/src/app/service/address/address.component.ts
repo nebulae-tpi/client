@@ -32,7 +32,6 @@ export class AddressComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.searchControl = new FormControl();
-    this.listenLocationChanges();
     this.listenServiceChanges();
     this.buildPlacesAutoComplete();
   }
@@ -59,11 +58,11 @@ export class AddressComponent implements OnInit, OnDestroy {
             return;
           }
           this.addressInputValue = place.formatted_address.split(',')[0];
-          this.serviceService.addressChange$.next(this.addressInputValue);
           this.serviceService.locationChange$.next({
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng()
           });
+          this.serviceService.addressChange$.next(this.addressInputValue);
           // set latitude, longitude and zoom
           /*
           this.latitude = place.geometry.location.lat();
@@ -73,30 +72,6 @@ export class AddressComponent implements OnInit, OnDestroy {
         });
       });
     });
-  }
-
-  listenLocationChanges() {
-    this.serviceService.locationChange$
-      .pipe(
-        filter(evt => evt),
-        takeUntil(this.ngUnsubscribe)
-      )
-      .subscribe(location => {
-        /*
-        this.mapsAPILoader.load().then(() => {
-          const geocoder = new google.maps.Geocoder;
-          const latlng = {lat: location.latitude, lng: location.longitude};
-          geocoder.geocode({location: latlng}, function(results) {
-              if (results[0]) {
-                // that.currentLocation = results[0].formatted_address;
-                console.log(results[0]);
-              } else {
-                console.log('No results found');
-              }
-          });
-        });
-        */
-      });
   }
 
   listenServiceChanges() {
@@ -120,6 +95,6 @@ export class AddressComponent implements OnInit, OnDestroy {
   }
 
   onBlurAddress() {
-    this.serviceService.addressChange$.next(this.addressInputValue);
+    // this.serviceService.addressChange$.next(this.addressInputValue);
   }
 }

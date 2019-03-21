@@ -120,7 +120,6 @@ export class ServiceService {
     return this.gateway.apollo.mutate<any>({
       mutation: RequestService,
       variables: {
-        client: { username: clientUsername, fullname: clientUsername },
         pickUp: {
           marker: pickUpLocation,
           addressLine1: address,
@@ -181,6 +180,7 @@ export class ServiceService {
                 lat
                 lng
               }
+              lastModificationTimestamp
               state
             }
           }

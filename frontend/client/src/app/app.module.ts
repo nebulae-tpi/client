@@ -31,6 +31,7 @@ import { HttpLinkModule } from 'apollo-angular-link-http';
 import { GatewayService } from './api/gateway.service';
 import { AssignedComponent } from './service/context/assigned/assigned.component';
 import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog-arrived.component';
+import { OnboardComponent } from './service/context/onboard/onboard.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +50,8 @@ import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog
     RequestedComponent,
     RequestedProgressComponent,
     AssignedComponent,
-    DialogArrivedComponent
+    DialogArrivedComponent,
+    OnboardComponent
   ],
   imports: [
     BrowserModule,
