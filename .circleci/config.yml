@@ -22,6 +22,7 @@ jobs:
 
             if [ "$PWA_CLIENT_ANGULAR_ENV_FILE" != "environment.prod.ts" ]; then echo using /tmp/repo/frontend/client/src/environments/$PWA_CLIENT_ANGULAR_ENV_FILE; cp /tmp/repo/frontend/client/src/environments/$PWA_CLIENT_ANGULAR_ENV_FILE /tmp/repo/frontend/client/src/environments/environment.prod.ts; else echo "using original production env file"; fi
             sed -i "s|<base href=\"/\">|<base href=\"$PWA_CLIENT_ANGULAR_BASE_HREF\">|g" /tmp/repo/frontend/client/src/index.html
+            sed -i "s|ngsw-worker.js|"$PWA_CLIENT_ANGULAR_BASE_HREF"ngsw-worker.js|g"  /tmp/repo/frontend/client/src/app/app.module.ts
             npm i
             ng build --base-href "$PWA_CLIENT_ANGULAR_BASE_HREF" --prod
             ls /tmp/repo/frontend/client/dist
