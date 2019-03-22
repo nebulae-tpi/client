@@ -5,7 +5,7 @@ server {
   root /usr/share/nginx/html/client/client;
   
   location / {
-    if ($http_x_forwarded_proto = “http”) {
+    if ($http_x_forwarded_proto = "http") {
       return 301 https://$host$request_uri;
     }
     expires -1;
