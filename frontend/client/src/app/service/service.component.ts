@@ -97,7 +97,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         .pipe(
           mergeMap(user => {
             if (user.clientId) {
-              return defer(() => this.keycloakService.updateToken());
+              return defer(() => this.keycloakService.updateToken(-1));
             } else {
               return of(undefined);
             }

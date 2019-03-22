@@ -91,7 +91,9 @@ export class AddressComponent implements OnInit, OnDestroy {
           center: latlng,
           radius: 50000 // meter
         });
-        this.autocomplete.setOptions({bounds: circle.getBounds()});
+        if (this.autocomplete) {
+          this.autocomplete.setOptions({bounds: circle.getBounds()});
+        }
         /*
         this.mapsAPILoader.load().then(() => {
           const geocoder = new google.maps.Geocoder;
