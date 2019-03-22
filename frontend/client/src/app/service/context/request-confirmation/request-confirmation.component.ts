@@ -6,7 +6,7 @@ import {
 } from '@angular/material';
 import { ServiceService } from '../../service.service';
 import { ServiceState } from '../../service-state';
-import { filter, takeUntil, map } from 'rxjs/operators';
+import { filter, takeUntil, map, tap } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material';
 import { Subject } from 'rxjs';
 
@@ -60,6 +60,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
           this.currentAddress ? this.currentAddress : this.reference,
           this.reference,
           parseInt(this.tipValue, 10)
+      ).pipe(
+        tap(resp => {
+          console.log(resp.errors);
+        })
         )
         .subscribe(res => {
           console.log('Llega resultado: ', res);
