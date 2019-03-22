@@ -382,8 +382,8 @@ export class LocationComponent implements OnInit, OnDestroy {
                 if (this.vehicleMarker) {
                   this.changeMarkerPosition(
                     this.vehicleMarker,
-                    this.currentService.pickUp.marker.lat,
-                    this.currentService.pickUp.marker.lng
+                    this.currentService.location.lat,
+                    this.currentService.location.lng
                   );
                 } else {
                   this.vehicleMarker = new google.maps.Marker({

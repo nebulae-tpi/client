@@ -32,7 +32,8 @@ import {
   forkJoin,
   Observable,
   concat,
-  combineLatest
+  combineLatest,
+  defer
 } from 'rxjs';
 /* #endregion */
 
@@ -93,7 +94,16 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.gateway.checkIfUserLogger()) {
       this.serviceService
         .validateNewClient$()
-        .pipe(mergeMap(() => this.serviceService.getCurrentService$()))
+        .pipe(
+          mergeMap(user => {
+            if (user.clientId) {
+              return defer(() => this.keycloakService.updateToken());
+            } else {
+              return of(undefined);
+            }
+          }),
+          mergeMap(() => this.serviceService.getCurrentService$())
+        )
         .subscribe(service => {
           if (service) {
             console.log('Llega cambio de servicio:', service);
