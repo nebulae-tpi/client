@@ -91,6 +91,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             latitude: (val as any).lat,
             longitude: (val as any).lng
           });
+          /*
           if (this.testMarker2) {
             this.testMarker2.setMap(undefined);
           }
@@ -114,7 +115,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             icon: '../../../assets/icons/location/vehicle_marker.png',
             map: this.map
           });
-
+*/
         }),
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(location => {
