@@ -79,7 +79,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     this.serviceService.addressChange$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(address => {
-        console.log('cambia direccion: ', address);
         this.currentAddress = address;
       });
   }

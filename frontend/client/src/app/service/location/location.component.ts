@@ -58,6 +58,8 @@ export class LocationComponent implements OnInit, OnDestroy {
   index = 0;
   numDeltas = 80;
   delay = 10;
+  testMarker;
+  testMarker2;
   constructor(
     private cdRef: ChangeDetectorRef,
     private serviceService: ServiceService,
@@ -72,7 +74,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.listenLocationChanges();
     this.center$
       .pipe(
-        debounceTime(1000),
+        debounceTime(500),
         filter(val => {
           let toReport = false;
           if (
@@ -89,16 +91,34 @@ export class LocationComponent implements OnInit, OnDestroy {
             latitude: (val as any).lat,
             longitude: (val as any).lng
           });
+          if (this.testMarker2) {
+            this.testMarker2.setMap(undefined);
+          }
+          this.testMarker2 = new google.maps.Marker({
+            position: new google.maps.LatLng(
+              this.map.getCenter().lat(),
+              this.map.getCenter().lng()
+            ),
+            icon: '../../../assets/icons/location/assigned_user_marker.png',
+            map: this.map
+          });
+
+          if (this.testMarker) {
+            this.testMarker.setMap(undefined);
+          }
+          this.testMarker = new google.maps.Marker({
+            position: new google.maps.LatLng(
+              (val as any).lat,
+              (val as any).lng
+            ),
+            icon: '../../../assets/icons/location/vehicle_marker.png',
+            map: this.map
+          });
+
         }),
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(location => {
           return this.getNearbyVehicles$().pipe(
-            tap(() =>
-              console.log(
-                'fromAddress: ',
-                this.serviceService.fromAddressLocation
-              )
-            ),
             filter(() => {
               const temp = !this.serviceService.fromAddressLocation;
               this.serviceService.fromAddressLocation = false;
@@ -169,6 +189,65 @@ export class LocationComponent implements OnInit, OnDestroy {
     }
   }
 
+  initLocation() {
+    const service = this.serviceService.currentService$.getValue();
+    if (
+      this.map !== undefined &&
+      service &&
+      (service.state === ServiceState.REQUESTED ||
+        service.state === ServiceState.ASSIGNED ||
+        service.state === ServiceState.ARRIVED)
+    ) {
+      this.map.setCenter({
+        lat: service.pickUp.marker.lat,
+        lng: service.pickUp.marker.lng
+      });
+      this.map.setZoom(17);
+    } else if (
+      this.map !== undefined &&
+      service &&
+      service.state === ServiceState.ON_BOARD
+    ) {
+      this.map.setCenter({
+        lat: service.location.lat,
+        lng: service.location.lng
+      });
+      this.map.setZoom(17);
+    } else if (navigator.geolocation) {
+      if (
+        this.map !== undefined &&
+        service &&
+        this.serviceService.locationChange$.getValue()
+      ) {
+        this.map.setCenter({
+          lat: this.serviceService.locationChange$.getValue().latitude,
+          lng: this.serviceService.locationChange$.getValue().longitude
+        });
+        this.map.setZoom(17);
+      } else {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            if (this.map) {
+              this.map.setCenter({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              });
+              this.map.setZoom(17);
+              this.serviceService.locationChange$.next({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              });
+            }
+          },
+          error => console.log('LLega error: ', error),
+          { maximumAge: 60000, timeout: 5000, enableHighAccuracy: true }
+        );
+      }
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
+  }
+
   openCancelSheet() {
     this.bottomSheet.open(CancelSheet);
   }
@@ -226,7 +305,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   mapReady(map) {
     this.map = map;
-    this.currentLocation();
+    this.initLocation();
     this.listenServiceChanges();
     this.startNearbyVehicles();
   }
@@ -250,6 +329,8 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
+        console.log('Cambia location: ', location);
+        /*
         if (this.map) {
           this.map.setCenter({
             lat: location.latitude,
@@ -257,6 +338,7 @@ export class LocationComponent implements OnInit, OnDestroy {
           });
           //          this.map.setZoom(17);
         }
+        */
       });
   }
 
@@ -452,7 +534,11 @@ export class LocationComponent implements OnInit, OnDestroy {
       map(result => result.data.NearbyVehicles),
       mergeMap(nearbyVehicles => {
         // Verify if the client have nearbyVehicles and clear all the unnecesary vehicles markers
-        if (nearbyVehicles === undefined || nearbyVehicles.length < 1) {
+        if (
+          nearbyVehicles === undefined ||
+          nearbyVehicles === null ||
+          nearbyVehicles.length < 1
+        ) {
           return from(this.nearbyVehicleList).pipe(
             tap(v => {
               v.marker.setMap(undefined);
