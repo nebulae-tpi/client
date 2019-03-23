@@ -89,7 +89,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-    console.log('Se llama el onInit');
+    console.log('Se llama el onInit.');
     this.listenServiceChanges();
     if (this.gateway.checkIfUserLogger()) {
       this.serviceService
