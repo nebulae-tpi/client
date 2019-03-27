@@ -98,8 +98,11 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
           mergeMap(response => {
             const clientId = response && response.data
             && response.data.ValidateNewClient ? response.data.ValidateNewClient.clientId: undefined;
-
-            if (clientId && this.keycloakService.getKeycloakInstance().authenticated) {
+            const tokenParsed: any = this.keycloakService.getKeycloakInstance().tokenParsed;
+            console.log('tokenParsed => ', tokenParsed.clientId,
+            (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
+            (!tokenParsed.clientId && this.keycloakService.getKeycloakInstance().authenticated));
+            if (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated) {
               return defer(() => this.keycloakService.updateToken(-1));
             }
             return of(undefined);

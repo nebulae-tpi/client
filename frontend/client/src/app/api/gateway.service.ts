@@ -24,18 +24,19 @@ export class GatewayService {
     const http = httpLink.create({ uri: environment.api.gateway.graphql.httpEndPoint });
 
     //#region keycloakEvents$ subscription
-    // this.keycloakService.keycloakEvents$.subscribe(
-    //   evt => {
-    //     switch (evt.type) {
-    //       case KeycloakEventType.OnTokenExpired: {
-    //         this.keycloakService.logout()
-    //           .then(r => console.log('SESIÓN CERRADA', r))
-    //           .catch(error => console.log('Error', error));
-    //         break;
-    //       }
-    //     }
-    //   }
-    // );
+    this.keycloakService.keycloakEvents$.subscribe(
+      evt => {
+        switch (evt.type) {
+          case KeycloakEventType.OnAuthRefreshSuccess: {
+              console.log('OnAuthRefreshSuccess token => ', this.keycloakService.getKeycloakInstance().token);
+              console.log('OnAuthRefreshSuccess refreshToken => ', this.keycloakService.getKeycloakInstance().refreshToken);
+              localStorage.setItem('kc_token', this.keycloakService.getKeycloakInstance().token);
+              localStorage.setItem('kc_refreshToken', this.keycloakService.getKeycloakInstance().refreshToken);
+              break;
+          }
+        }
+      }
+    );
     //#endregion
 
     if (this.checkIfUserLogger()) {
