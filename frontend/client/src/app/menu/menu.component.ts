@@ -40,6 +40,12 @@ export class MenuComponent implements OnInit {
     });
   }
 
+  closeMenu() {
+    if (this.over === 'over') {
+      this.opened = false;
+    }
+  }
+
   async ngOnInit() {
     if (this.gateway.checkIfUserLogger()) {
       this.userDetails = await this.keycloakService.loadUserProfile();

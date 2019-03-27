@@ -49,27 +49,27 @@
       <mat-nav-list>
         <mat-list-item>
           <mat-icon>location_on</mat-icon>
-          <a href="#" mat-list-item class="ml-2">Servicios</a>
+          <a (click)="closeMenu()" href="#" mat-list-item class="ml-2">Servicios</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="false">
           <mat-icon>account_circle</mat-icon>
-          <a mat-list-item class="ml-2" href="#">Profile</a>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" href="#">Profile</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="false">
           <mat-icon>settings</mat-icon>
-          <a mat-list-item class="ml-2" href="#">Settings</a>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" href="#">Settings</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="false">
           <mat-icon>access_time</mat-icon>
-          <a mat-list-item class="ml-2" href="/history">History</a>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" href="/history">History</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="userDetails">
           <mat-icon>exit_to_app</mat-icon>
-          <a mat-list-item class="ml-2" (click)="logout()">Cerrar sesión</a>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" (click)="logout()">Cerrar sesión</a>
         </mat-list-item>
       </mat-nav-list>
 
