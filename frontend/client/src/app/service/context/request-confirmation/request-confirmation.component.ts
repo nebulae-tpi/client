@@ -44,10 +44,15 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     });
   }
 
+  showSnackMessage(message) {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 2000
+    });
+  }
+
   confirmService() {
     console.log('Actual propina: ', this.tipValue);
-    if ((this.reference && this.reference !== '')
-    ) {
+    if (this.reference && this.reference !== '') {
       const pickUpMarker = {
         lat: this.serviceService.locationChange$.getValue().latitude,
         lng: this.serviceService.locationChange$.getValue().longitude
@@ -60,10 +65,60 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
           this.currentAddress ? this.currentAddress : this.reference,
           this.reference,
           parseInt(this.tipValue, 10)
-      ).pipe(
-        tap(resp => {
-          console.log(resp.errors);
-        })
+        )
+        .pipe(
+          tap(resp => {
+            if (
+              resp.errors &&
+              resp.errors.extensions &&
+              resp.errors.extensions.exception &&
+              resp.errors.extensions.exception.code
+            ) {
+              switch (resp.errors.extensions.exception.code) {
+                case 23002:
+                  this.showSnackMessage(
+                    'Usuario no tiene privilegios para crear servicios, solo los usuarios creados desde el app cliente pueden realizar esta acción'
+                  );
+                  break;
+                case 23002:
+                  this.showSnackMessage(
+                    'Datos insuficientes para crear el servicio'
+                  );
+                  break;
+                case 23201:
+                  this.showSnackMessage('Nombre del cliente inválido');
+                  break;
+                case 23202:
+                  this.showSnackMessage('Tipo de propina invalida');
+                  break;
+                case 23203:
+                  this.showSnackMessage('Valor de propina invalida');
+                  break;
+                case 23204:
+                  this.showSnackMessage('Ubicación de recogida indefinida');
+                  break;
+                case 23205:
+                  this.showSnackMessage(
+                    'Dirección de recogida no especificada'
+                  );
+                  break;
+                case 23206:
+                  this.showSnackMessage('Tipo de pago inválido');
+                  break;
+                case 23212:
+                  this.showSnackMessage(
+                    'Actualmente ya se tiene una solicitud pendiente, por favor finalizar la actual para poder solicitar una nueva'
+                  );
+                  break;
+                default:
+                  this.showSnackMessage(
+                    'Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde'
+                  );
+                  break;
+              }
+            }
+            console.log(resp.errors.extensions.exception.code);
+          })
         )
         .subscribe(res => {
           console.log('Llega resultado: ', res);

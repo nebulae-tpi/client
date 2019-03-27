@@ -1,8 +1,8 @@
 {
-  "name": "cliente",
-  "short_name": "cliente",
+  "name": "",
+  "short_name": "",
   "theme_color": "#1976d2",
-  "background_color": "#fafafa",
+  "background_color": "#444444",
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
