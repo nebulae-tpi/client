@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "cliente",
+  "short_name": "cliente",
   "theme_color": "#1976d2",
   "background_color": "#444444",
   "display": "standalone",
