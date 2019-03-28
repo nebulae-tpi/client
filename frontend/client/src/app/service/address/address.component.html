@@ -1,4 +1,4 @@
-<div class="form-group">
+<div *ngIf="showAddress" class="form-group">
   <input
     id="addressInput"
     placeholder="Buscar ubicación"
@@ -14,3 +14,14 @@
     (change)="onBlurAddress()"
   />
 </div>
+
+<div fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
+    <label class="tittle-header" >Solicitando servicio</label>
+    <img
+      class="circle"
+      src="../../../../assets/icons/context/tx_white_car.png"
+      width="23px"
+      height="20px"
+      style="margin-top: -5px; margin-left: 5px"
+    />
+  </div>

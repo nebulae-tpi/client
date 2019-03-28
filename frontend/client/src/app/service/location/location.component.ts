@@ -330,16 +330,13 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        console.log('Cambia location: ', location);
-        /*
         if (this.map) {
           this.map.setCenter({
             lat: location.latitude,
             lng: location.longitude
           });
-          //          this.map.setZoom(17);
+          this.map.setZoom(17);
         }
-        */
       });
   }
 

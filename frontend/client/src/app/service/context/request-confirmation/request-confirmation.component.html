@@ -1,15 +1,40 @@
 <div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
+  <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
+    <label class="tittle-header" >Solicitando servicio</label>
+    <img
+      class="circle"
+      src="../../../../assets/icons/context/tx_white_car.png"
+      width="23px"
+      height="20px"
+      style="margin-top: -5px; margin-left: 5px"
+    />
+  </div>
+
   <div
     fxLayout="row"
-    style="margin-left: 7px"
+    style="margin-left: 7px; margin-top: 10px"
     fxLayoutAlign="start start"
     class="flex-wrap"
   >
-    <mat-form-field fxFlex="100">
+    <mat-form-field class="input-service" fxFlex="100">
+      <input
+        matInput
+        id="addressInput"
+        placeholder="Dirección"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="off"
+        type="text"
+        [(ngModel)]="addressInputValue"
+        #search
+      />
+    </mat-form-field>
+
+    <mat-form-field class="input-service" fxFlex="100">
       <input matInput [(ngModel)]="reference" placeholder="Referencia" />
     </mat-form-field>
 
-    <mat-form-field fxFlex="100">
+    <mat-form-field style="margin-right: 20px" [fxFlex]="fxFlexTip">
       <input
         matInput
         placeholder="Propina"
@@ -17,18 +42,22 @@
         [(ngModel)]="tipValue"
         currencyMask
         style="text-align: left !important"
-        [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }"
+        [options]="{
+          prefix: '$ ',
+          thousands: '.',
+          precision: '0',
+          align: 'left'
+        }"
       />
     </mat-form-field>
 
-    <mat-form-field fxFlex="100">
-      <select matNativeControl placeholder="Método de pago">
-        <option value="volvo">Efectivo</option>
-        <option disabled="true" value="saab">Tarjecta de credito</option>
-      </select>
-    </mat-form-field>
-
-    <button (click)="openBottomSheet()" mat-stroked-button color="warn">
+    <button
+      style="margin-top: 10px; margin-right: 20px"
+      [fxFlex]="fxFlexFilter"
+      (click)="openBottomSheet()"
+      mat-stroked-button
+      color="warn"
+    >
       Aplicar filtros
     </button>
   </div>
@@ -42,14 +71,21 @@
     <button
       mat-raised-button
       style="margin-right: 10px"
-      fxFlex="70"
+      fxFlex="45"
       color="confirm-button-color"
       (click)="confirmService()"
     >
       Confirmar
     </button>
-    <button mat-mini-fab color="warn" (click)="cancel()">
-      <mat-icon>cancel</mat-icon>
+
+    <button
+      mat-raised-button
+      style="margin-right: 10px"
+      fxFlex="45"
+      color="warn"
+      (click)="cancel()"
+    >
+      Cancelar
     </button>
   </div>
 </div>

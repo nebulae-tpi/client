@@ -2,12 +2,12 @@
   color: #444;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
   font-size: 14px;
-  margin-left: 10px
+  margin-left: 10px;
 }
 
 .address-input {
   border: 0;
-  border-bottom: 2px solid #1976D2;
+  border-bottom: 2px solid #1976d2;
   width: 100%;
   font-size: 14px;
   line-height: 35px;
@@ -16,5 +16,18 @@
   padding: 0px;
   margin-top: -14px;
   background: transparent;
-   color: #444;
- }
+  color: #444;
+}
+
+.tittle-content {
+  background-color: #444;
+  width: 100%;
+  height: 100%;
+}
+
+.tittle-header {
+  font-size: 17px;
+  color: white;
+  font-weight: bold;
+  position: relative;
+}

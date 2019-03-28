@@ -89,7 +89,6 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-    console.log('Se llama el onInit');
     this.listenServiceChanges();
     if (this.gateway.checkIfUserLogger()) {
       this.serviceService
@@ -97,7 +96,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         .pipe(
           mergeMap(response => {
             const clientId = response && response.data
-            && response.data.ValidateNewClient ? response.data.ValidateNewClient.clientId: undefined;
+            && response.data.ValidateNewClient ? response.data.ValidateNewClient.clientId : undefined;
             const tokenParsed: any = this.keycloakService.getKeycloakInstance().tokenParsed;
             console.log('tokenParsed => ', tokenParsed.clientId,
             (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
@@ -188,7 +187,6 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.serviceService.currentService$.getValue()) {
       switch (this.serviceService.currentService$.getValue().state) {
         case ServiceState.NO_SERVICE:
-        case ServiceState.REQUEST:
           this.showAddress = true;
           screenHeightWaste = 110;
           break;
@@ -196,6 +194,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         case ServiceState.ASSIGNED:
         case ServiceState.ARRIVED:
         case ServiceState.ON_BOARD:
+        case ServiceState.REQUEST:
           this.showAddress = false;
           screenHeightWaste = 70;
           break;
@@ -208,12 +207,17 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const rowHeight = 10;
     const colWidth = 10;
-    const screenHeight = window.innerHeight - screenHeightWaste;
+    let screenHeight = window.innerHeight - screenHeightWaste;
     const screenWidth = window.innerWidth;
     const onMobile = screenWidth < 820;
     const horizontalLayout = onMobile
       ? screenWidth >= (screenHeight + screenHeightWaste) * 1.5
       : screenWidth >= screenHeight;
+    if (horizontalLayout) {
+      this.showAddress = true;
+      screenHeightWaste = 110;
+      screenHeight = window.innerHeight - screenHeightWaste;
+    }
 
     const screenRows = screenHeight / rowHeight;
     this.screenCols = screenWidth / colWidth;
