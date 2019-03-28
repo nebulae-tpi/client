@@ -25,6 +25,7 @@ export class AddressComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   addressInputValue: String;
   autocomplete: any;
+  showAddress = true;
   constructor(
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
@@ -35,7 +36,9 @@ export class AddressComponent implements OnInit, OnDestroy {
     this.searchControl = new FormControl();
     this.listenServiceChanges();
     this.listenLocationChanges();
-    this.buildPlacesAutoComplete();
+    if (this.showAddress) {
+      this.buildPlacesAutoComplete();
+    }
   }
 
   ngOnDestroy() {
@@ -64,15 +67,14 @@ export class AddressComponent implements OnInit, OnDestroy {
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng()
           });
-          console.log('se setea a true');
           this.serviceService.fromAddressLocation = true;
           this.serviceService.addressChange$.next(this.addressInputValue);
           // set latitude, longitude and zoom
           /*
-          this.latitude = place.geometry.location.lat();
-          this.longitude = place.geometry.location.lng();
-          this.zoom = 12;
-          */
+            this.latitude = place.geometry.location.lat();
+            this.longitude = place.geometry.location.lng();
+            this.zoom = 12;
+            */
         });
       });
     });
@@ -85,13 +87,16 @@ export class AddressComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        const latlng = new google.maps.LatLng(location.latitude, location.longitude);
+        const latlng = new google.maps.LatLng(
+          location.latitude,
+          location.longitude
+        );
         const circle = new google.maps.Circle({
           center: latlng,
           radius: 50000 // meter
         });
         if (this.autocomplete) {
-          this.autocomplete.setOptions({bounds: circle.getBounds()});
+          this.autocomplete.setOptions({ bounds: circle.getBounds() });
         }
         /*
         this.mapsAPILoader.load().then(() => {
@@ -116,15 +121,12 @@ export class AddressComponent implements OnInit, OnDestroy {
       .subscribe(service => {
         if (service) {
           switch (service.state) {
-            case ServiceState.ARRIVED:
-            case ServiceState.ASSIGNED:
-            case ServiceState.ON_BOARD:
-            case ServiceState.REQUESTED:
-            this.searchElementRef.nativeElement.disabled = true;
-            break;
+            case ServiceState.NO_SERVICE:
+              this.showAddress = true;
+              break;
             default:
-            this.searchElementRef.nativeElement.disabled = false;
-            break;
+              this.showAddress = false;
+              break;
           }
         }
       });

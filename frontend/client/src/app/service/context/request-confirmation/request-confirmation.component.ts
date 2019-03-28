@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, NgZone } from '@angular/core';
 import {
   MatIconRegistry,
   MatBottomSheet,
@@ -9,6 +9,7 @@ import { ServiceState } from '../../service-state';
 import { filter, takeUntil, map, tap } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material';
 import { Subject } from 'rxjs';
+import { MapsAPILoader } from '@agm/core';
 
 @Component({
   selector: 'app-request-confirmation',
@@ -19,15 +20,28 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
   tipValue = '0';
   reference = '';
   currentAddress = '';
+  fxFlexTip = 40;
+  fxFlexFilter = 40;
+  addressInputValue: String;
+  autocomplete: any;
+  showHeader = true;
+  @ViewChild('search')
+  public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
   constructor(
     private bottomSheet: MatBottomSheet,
     private serviceService: ServiceService,
+    private mapsAPILoader: MapsAPILoader,
+    private ngZone: NgZone,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
     this.listenAddressChanges();
+    this.listenLayoutCommands();
+    this.listenLocationChanges();
+    this.buildPlacesAutoComplete();
+    this.addressInputValue = this.serviceService.addressChange$.getValue();
   }
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
@@ -51,18 +65,16 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
   }
 
   confirmService() {
-    console.log('Actual propina: ', this.tipValue);
-    if (this.reference && this.reference !== '') {
+    if (this.addressInputValue && this.addressInputValue !== '') {
       const pickUpMarker = {
         lat: this.serviceService.locationChange$.getValue().latitude,
         lng: this.serviceService.locationChange$.getValue().longitude
       };
-      console.log('pickUpMarker: ', pickUpMarker);
       this.serviceService
         .createNewService$(
           this.serviceService.userProfile.username,
           pickUpMarker,
-          this.currentAddress ? this.currentAddress : this.reference,
+          this.addressInputValue,
           this.reference,
           parseInt(this.tipValue, 10)
         )
@@ -117,15 +129,22 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
                   break;
               }
             }
-            console.log(resp.errors.extensions.exception.code);
           })
         )
-        .subscribe(res => {
-          console.log('Llega resultado: ', res);
-        });
+        .subscribe(
+          res => {
+            console.log('Llega resultado: ', res);
+          },
+          error => {
+            this.showSnackMessage(
+              'Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde'
+            );
+            console.log('Error solicitando servicio: ', error);
+          }
+        );
     } else {
       this.snackBar.open(
-        'Por favor ingresar una referencia para el punto de recogida',
+        'Por favor ingresar una dirección para el punto de recogida',
         'Cerrar',
         {
           duration: 2000
@@ -134,11 +153,94 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     }
   }
 
+  buildPlacesAutoComplete() {
+    if (this.searchElementRef) {
+      this.mapsAPILoader.load().then(() => {
+        this.autocomplete = new google.maps.places.Autocomplete(
+          this.searchElementRef.nativeElement,
+          {
+            componentRestrictions: { country: 'co' }
+          }
+        );
+        this.autocomplete.addListener('place_changed', () => {
+          this.ngZone.run(() => {
+            // get the place result
+            const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
+            // verify result
+            if (place.geometry === undefined || place.geometry === null) {
+              return;
+            }
+            this.addressInputValue = place.formatted_address.split(',')[0];
+            this.serviceService.locationChange$.next({
+              latitude: place.geometry.location.lat(),
+              longitude: place.geometry.location.lng()
+            });
+            this.serviceService.fromAddressLocation = true;
+            this.serviceService.addressChange$.next(this.addressInputValue);
+            // set latitude, longitude and zoom
+            /*
+            this.latitude = place.geometry.location.lat();
+            this.longitude = place.geometry.location.lng();
+            this.zoom = 12;
+            */
+          });
+        });
+      });
+    }
+  }
+
   listenAddressChanges() {
     this.serviceService.addressChange$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(address => {
         this.currentAddress = address;
+      });
+  }
+
+  listenLocationChanges() {
+    this.serviceService.locationChange$
+      .pipe(
+        filter(evt => evt),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(location => {
+        if (this.autocomplete) {
+          const latlng = new google.maps.LatLng(
+            location.latitude,
+            location.longitude
+          );
+          const circle = new google.maps.Circle({
+            center: latlng,
+            radius: 50000 // meter
+          });
+          this.autocomplete.setOptions({ bounds: circle.getBounds() });
+        }
+      });
+  }
+
+  listenLayoutCommands() {
+    this.serviceService.layoutChanges$
+      .pipe(
+        filter(e => e && e.layout),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(command => {
+        if (command && command.layout) {
+          if (
+            command.layout.type === 0 ||
+            command.layout.type === 1 ||
+            command.layout.type === 4 ||
+            command.layout.type === 5
+          ) {
+            this.fxFlexTip = 100;
+            this.fxFlexFilter = 100;
+            this.showHeader = false;
+          } else {
+            this.fxFlexTip = 40;
+            this.fxFlexFilter = 40;
+            this.showHeader = true;
+          }
+        }
       });
   }
 }
