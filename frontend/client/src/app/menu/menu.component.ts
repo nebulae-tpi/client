@@ -1,17 +1,18 @@
 import { KeycloakService } from 'keycloak-angular';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ObservableMedia, MediaChange } from '@angular/flex-layout';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
 import { KeycloakProfile } from 'keycloak-js';
 import { ServiceService } from '../service/service.service';
 import { GatewayService } from '../api/gateway.service';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-menu',
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss']
 })
-export class MenuComponent implements OnInit {
+export class MenuComponent implements OnInit, OnDestroy {
   opened = true;
   over = 'side';
   expandHeight = '42px';
@@ -22,6 +23,7 @@ export class MenuComponent implements OnInit {
   userDetails: KeycloakProfile;
 
   watcher: Subscription;
+  private ngUnsubscribe = new Subject();
 
   constructor(
     media: ObservableMedia,
@@ -37,6 +39,16 @@ export class MenuComponent implements OnInit {
         this.opened = true;
         this.over = 'side';
       }
+    });
+    this.listenNavigationBack();
+  }
+
+  listenNavigationBack(){
+    this.serviceService.backNavigation$
+    .pipe(
+      takeUntil(this.ngUnsubscribe)
+    ).subscribe(back => {
+      this.closeMenu();
     });
   }
 
@@ -62,5 +74,10 @@ export class MenuComponent implements OnInit {
     localStorage.removeItem('kc_refreshToken');
     this.keycloakService.clearToken();
     await this.keycloakService.logout();
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

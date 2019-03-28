@@ -44,6 +44,7 @@ import { ServiceState } from './service-state';
 import { KeycloakService } from 'keycloak-angular';
 import { GatewayService } from '../api/gateway.service';
 import { MatSnackBar } from '@angular/material';
+import { LocationStrategy } from '@angular/common';
 
 /* #endregion */
 
@@ -83,9 +84,14 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     protected serviceService: ServiceService,
     private keycloakService: KeycloakService,
     private gateway: GatewayService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private location: LocationStrategy
   ) {
     this.onResize();
+    // location.onPopState(() => {
+    //   alert(window.location);
+    // });
+    console.log('ServiceComponent => listener');
   }
 
   ngOnInit() {
@@ -95,24 +101,13 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         .validateNewClient$()
         .pipe(
           mergeMap(response => {
-            const clientId =
-              response && response.data && response.data.ValidateNewClient
-                ? response.data.ValidateNewClient.clientId
-                : undefined;
-            const tokenParsed: any = this.keycloakService.getKeycloakInstance()
-              .tokenParsed;
-            console.log(
-              'tokenParsed => ',
-              tokenParsed.clientId,
-              tokenParsed.clientId == null &&
-                this.keycloakService.getKeycloakInstance().authenticated,
-              !tokenParsed.clientId &&
-                this.keycloakService.getKeycloakInstance().authenticated
-            );
-            if (
-              tokenParsed.clientId == null &&
-              this.keycloakService.getKeycloakInstance().authenticated
-            ) {
+            const clientId = response && response.data
+            && response.data.ValidateNewClient ? response.data.ValidateNewClient.clientId : undefined;
+            const tokenParsed: any = this.keycloakService.getKeycloakInstance().tokenParsed;
+            // console.log('tokenParsed => ', tokenParsed.clientId,
+            // (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
+            // (!tokenParsed.clientId && this.keycloakService.getKeycloakInstance().authenticated));
+            if (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated) {
               return defer(() => this.keycloakService.updateToken(-1));
             }
             return of(undefined);

@@ -66,7 +66,8 @@ export class LocationComponent implements OnInit, OnDestroy {
     private bottomSheet: MatBottomSheet,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+  }
 
   /* #region ANGULAR NGS */
   ngOnInit() {
@@ -250,7 +251,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   openCancelSheet() {
-    this.bottomSheet.open(CancelSheet);
+    this.bottomSheet.open(CancelSheet, {closeOnNavigation: true});
   }
 
   clearMarkerFromMap(listToClear) {
@@ -601,7 +602,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   templateUrl: 'cancel-sheet.html',
   styleUrls: ['./location.component.scss']
 })
-export class CancelSheet implements OnInit {
+export class CancelSheet implements OnInit, OnDestroy {
   @ViewChild(MatSelectionList) cancelationReasonList: MatSelectionList;
 
   selectedOption;
@@ -642,9 +643,15 @@ export class CancelSheet implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('OnInit');
     this.cancelationReasonList.selectedOptions = new SelectionModel<
       MatListOption
     >(false);
     console.log(this.cancelationReasonList);
+  }
+
+  ngOnDestroy() {
+    console.log('Ondestroy');
+    this.bottomSheetRef.dismiss();
   }
 }

@@ -40,11 +40,17 @@ export class ServiceService {
     state: ServiceState.NO_SERVICE
   });
 
+  backNavigation$ = new BehaviorSubject<any>(undefined);
+
   fromAddressLocation = false;
   userProfile;
   /* #endregion */
 
   constructor(private gateway: GatewayService) {}
+
+  notifyBackNavigation() {
+    this.backNavigation$.next(true);
+  }
 
   /* #region QUERIES */
   getNearbyVehicles() {

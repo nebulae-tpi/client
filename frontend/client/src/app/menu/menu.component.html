@@ -49,7 +49,7 @@
       <mat-nav-list>
         <mat-list-item>
           <mat-icon>location_on</mat-icon>
-          <a (click)="closeMenu()" href="#" mat-list-item class="ml-2">Servicios</a>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['']">Servicios</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="false">
@@ -64,7 +64,7 @@
 
         <mat-list-item *ngIf="false">
           <mat-icon>access_time</mat-icon>
-          <a (click)="closeMenu()" mat-list-item class="ml-2" href="/history">History</a>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['history']">History</a>
         </mat-list-item>
 
         <mat-list-item *ngIf="userDetails">
