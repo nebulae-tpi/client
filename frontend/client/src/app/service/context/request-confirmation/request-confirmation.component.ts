@@ -129,7 +129,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
                   break;
               }
             }
-            console.log(resp.errors.extensions.exception.code);
           })
         )
         .subscribe(
