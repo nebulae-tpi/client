@@ -65,7 +65,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
   }
 
   confirmService() {
-    if (this.reference && this.reference !== '') {
+    if (this.addressInputValue && this.addressInputValue !== '') {
       const pickUpMarker = {
         lat: this.serviceService.locationChange$.getValue().latitude,
         lng: this.serviceService.locationChange$.getValue().longitude
@@ -74,7 +74,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
         .createNewService$(
           this.serviceService.userProfile.username,
           pickUpMarker,
-          this.currentAddress ? this.currentAddress : this.reference,
+          this.addressInputValue,
           this.reference,
           parseInt(this.tipValue, 10)
         )
