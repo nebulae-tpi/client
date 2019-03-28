@@ -9,6 +9,7 @@ import { AppAuthGuard } from './auth/appAuthGuard.service';
 const routes: Routes = [
   {
     path: '', component: MenuComponent, children: [
+      { path: 'service', component: ServiceComponent },
       { path: '', component: ServiceComponent },
       { path: 'history', component: HistoryComponent }
     // { path: '', loadChildren: './transaction/transaction.module#TransactionModule' },

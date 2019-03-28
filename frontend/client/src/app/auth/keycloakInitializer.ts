@@ -8,8 +8,8 @@ export function keycloakInitializer(keycloak: KeycloakService): () => Promise<an
           try {
             const token = localStorage.getItem('kc_token');
             const refreshToken = localStorage.getItem('kc_refreshToken');
-            console.log('Init token => ', token);
-            console.log('Init refreshToken => ', refreshToken);
+            // console.log('Init token => ', token);
+            // console.log('Init refreshToken => ', refreshToken);
             const success = await keycloak.init({
               config: {
                   url: environment.keycloak.url,
@@ -25,8 +25,8 @@ export function keycloakInitializer(keycloak: KeycloakService): () => Promise<an
               bearerExcludedUrls: environment.keycloak.bearerExcludedUrls
           });
             if (success) {
-              console.log('Success token => ', keycloak.getKeycloakInstance().token);
-              console.log('Success refreshToken => ', keycloak.getKeycloakInstance().refreshToken);
+              // console.log('Success token => ', keycloak.getKeycloakInstance().token);
+              // console.log('Success refreshToken => ', keycloak.getKeycloakInstance().refreshToken);
               localStorage.setItem('kc_token', keycloak.getKeycloakInstance().token);
               localStorage.setItem('kc_refreshToken', keycloak.getKeycloakInstance().refreshToken);
             }

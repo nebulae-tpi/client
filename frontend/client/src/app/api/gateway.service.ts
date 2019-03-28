@@ -28,8 +28,8 @@ export class GatewayService {
       evt => {
         switch (evt.type) {
           case KeycloakEventType.OnAuthRefreshSuccess: {
-              console.log('OnAuthRefreshSuccess token => ', this.keycloakService.getKeycloakInstance().token);
-              console.log('OnAuthRefreshSuccess refreshToken => ', this.keycloakService.getKeycloakInstance().refreshToken);
+              // console.log('OnAuthRefreshSuccess token => ', this.keycloakService.getKeycloakInstance().token);
+              // console.log('OnAuthRefreshSuccess refreshToken => ', this.keycloakService.getKeycloakInstance().refreshToken);
               localStorage.setItem('kc_token', this.keycloakService.getKeycloakInstance().token);
               localStorage.setItem('kc_refreshToken', this.keycloakService.getKeycloakInstance().refreshToken);
               break;
