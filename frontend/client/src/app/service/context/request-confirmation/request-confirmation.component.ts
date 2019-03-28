@@ -145,7 +145,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
         );
     } else {
       this.snackBar.open(
-        'Por favor ingresar una referencia para el punto de recogida',
+        'Por favor ingresar una dirección para el punto de recogida',
         'Cerrar',
         {
           duration: 2000
