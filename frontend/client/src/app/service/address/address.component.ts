@@ -26,6 +26,11 @@ export class AddressComponent implements OnInit, OnDestroy {
   addressInputValue: String;
   autocomplete: any;
   showAddress = true;
+  showOfferHeader = false;
+  showAssignedHeader = false;
+  showWithoutService = false;
+  showArrivedHeader = false;
+  showOnBoardHeader = false;
   constructor(
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
@@ -119,13 +124,61 @@ export class AddressComponent implements OnInit, OnDestroy {
     this.serviceService.currentService$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(service => {
+        console.log('Se escucha service: ', service);
         if (service) {
           switch (service.state) {
             case ServiceState.NO_SERVICE:
+            case ServiceState.CANCELLED_CLIENT:
+            case ServiceState.CANCELLED_DRIVER:
+            case ServiceState.CANCELLED_OPERATOR:
+            case ServiceState.CANCELLED_SYSTEM:
+            case ServiceState.DONE:
               this.showAddress = true;
+              this.showOfferHeader = false;
+              this.showAssignedHeader = false;
+              this.showWithoutService = false;
+              this.showArrivedHeader = false;
+              this.showOnBoardHeader = true;
+              break;
+            case ServiceState.REQUESTED:
+              this.showOfferHeader = true;
+              this.showAddress = false;
+              this.showAssignedHeader = false;
+              this.showWithoutService = false;
+              this.showArrivedHeader = false;
+              this.showOnBoardHeader = true;
+              break;
+            case ServiceState.ASSIGNED:
+              this.showAssignedHeader = true;
+              this.showOfferHeader = false;
+              this.showAddress = false;
+              this.showWithoutService = false;
+              this.showArrivedHeader = false;
+              this.showOnBoardHeader = true;
+              break;
+            case ServiceState.ARRIVED:
+              this.showAssignedHeader = false;
+              this.showOfferHeader = false;
+              this.showAddress = false;
+              this.showWithoutService = false;
+              this.showArrivedHeader = true;
+              this.showOnBoardHeader = true;
+              break;
+            case ServiceState.ON_BOARD:
+              this.showAssignedHeader = false;
+              this.showOfferHeader = false;
+              this.showAddress = false;
+              this.showWithoutService = false;
+              this.showArrivedHeader = false;
+              this.showOnBoardHeader = true;
               break;
             default:
+              this.showWithoutService = true;
+              this.showOfferHeader = false;
               this.showAddress = false;
+              this.showAssignedHeader = false;
+              this.showArrivedHeader = false;
+              this.showOnBoardHeader = true;
               break;
           }
         }

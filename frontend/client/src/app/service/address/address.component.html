@@ -15,13 +15,75 @@
   />
 </div>
 
-<div fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
-    <label class="tittle-header" >Solicitando servicio</label>
-    <img
-      class="circle"
-      src="../../../../assets/icons/context/tx_white_car.png"
-      width="23px"
-      height="20px"
-      style="margin-top: -5px; margin-left: 5px"
-    />
-  </div>
+<div
+  *ngIf="showWithoutService"
+  fxLayout="row"
+  fxLayoutAlign="center center"
+  class="tittle-content"
+>
+  <label class="tittle-header">Solicitando servicio</label>
+  <img
+    class="circle"
+    src="../../../../assets/icons/context/tx_white_car.png"
+    width="23px"
+    height="20px"
+    style="margin-top: -5px; margin-left: 5px"
+  />
+</div>
+
+<div
+  *ngIf="showOfferHeader"
+  fxLayout="row"
+  fxLayoutAlign="center center"
+  class="tittle-content"
+>
+  <label class="tittle-header">Ofertando servicio</label>
+  <img
+    class="circle"
+    src="../../../../assets/icons/context/tx_white_car.png"
+    width="23px"
+    height="20px"
+    style="margin-top: -5px; margin-left: 5px"
+  />
+</div>
+
+<div
+*ngIf="showAssignedHeader"
+  fxLayout="row"
+  fxLayoutAlign="start center"
+  class="tittle-content"
+>
+  <label style="margin-left: 20px" class="tittle-header">Viaje en curso</label>
+</div>
+
+<div
+  *ngIf="showArrivedHeader"
+  fxLayout="row"
+  fxLayoutAlign="center center"
+  class="tittle-content"
+>
+  <label class="tittle-header">Su taxi ha llegado</label>
+  <img
+    class="circle"
+    src="../../../../assets/icons/context/tx_white_car.png"
+    width="23px"
+    height="20px"
+    style="margin-top: -5px; margin-left: 5px"
+  />
+</div>
+
+<div
+  *ngIf="showOnBoardHeader"
+  fxLayout="row"
+  fxLayoutAlign="center center"
+  class="tittle-content"
+>
+  <label class="tittle-header">Estás a bordo</label>
+  <img
+    class="circle"
+    src="../../../../assets/icons/context/tx_white_car.png"
+    width="23px"
+    height="20px"
+    style="margin-top: -5px; margin-left: 5px"
+  />
+</div>

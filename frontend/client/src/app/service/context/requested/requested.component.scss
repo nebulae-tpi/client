@@ -26,7 +26,7 @@
   display: inline-block;
   position: relative;
   overflow-x: hidden;
-  height: 290px;
+  height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
   border: 1px solid #e8f8ff;
@@ -34,4 +34,16 @@
 
 .align-left {
   text-align: left !important;
+}
+
+.tittle-content {
+  background-color: #444;
+  width: 100%;
+  height: 40px;
+}
+
+.tittle-header {
+  font-size: 17px;
+  color: white;
+  font-weight: bold;
 }

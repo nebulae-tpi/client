@@ -95,13 +95,24 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         .validateNewClient$()
         .pipe(
           mergeMap(response => {
-            const clientId = response && response.data
-            && response.data.ValidateNewClient ? response.data.ValidateNewClient.clientId : undefined;
-            const tokenParsed: any = this.keycloakService.getKeycloakInstance().tokenParsed;
-            console.log('tokenParsed => ', tokenParsed.clientId,
-            (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
-            (!tokenParsed.clientId && this.keycloakService.getKeycloakInstance().authenticated));
-            if (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated) {
+            const clientId =
+              response && response.data && response.data.ValidateNewClient
+                ? response.data.ValidateNewClient.clientId
+                : undefined;
+            const tokenParsed: any = this.keycloakService.getKeycloakInstance()
+              .tokenParsed;
+            console.log(
+              'tokenParsed => ',
+              tokenParsed.clientId,
+              tokenParsed.clientId == null &&
+                this.keycloakService.getKeycloakInstance().authenticated,
+              !tokenParsed.clientId &&
+                this.keycloakService.getKeycloakInstance().authenticated
+            );
+            if (
+              tokenParsed.clientId == null &&
+              this.keycloakService.getKeycloakInstance().authenticated
+            ) {
               return defer(() => this.keycloakService.updateToken(-1));
             }
             return of(undefined);
@@ -319,32 +330,28 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         this.contextRows = 30;
         break;
       case ServiceState.REQUESTED:
-        this.contextRows = 22;
+        if (
+          this.serviceService.currentService$.getValue().tip &&
+          this.serviceService.currentService$.getValue().pickUp.addressLine2
+        ) {
+          this.contextRows = 15;
+        } else if (
+          this.serviceService.currentService$.getValue().pickUp.addressLine2 ||
+          this.serviceService.currentService$.getValue().tip
+        ) {
+          this.contextRows = 12;
+        } else {
+          this.contextRows = 10;
+        }
         break;
       case ServiceState.ASSIGNED:
       case ServiceState.ARRIVED:
-        if (
-          this.serviceService.currentService$.getValue().pickUp.addressLine1 !==
-          this.serviceService.currentService$.getValue().pickUp.addressLine2
-        ) {
-          if (this.serviceService.currentService$.getValue().tip) {
-            this.contextRows = 37;
-          } else {
-            this.contextRows = 32;
-          }
-        } else if (this.serviceService.currentService$.getValue().tip) {
-          this.contextRows = 30;
-        } else {
-          this.contextRows = 25;
-        }
+        this.contextRows = 20;
+
         break;
       case ServiceState.ON_BOARD:
-        if (this.serviceService.currentService$.getValue().tip) {
-          this.contextRows = 25;
-        } else {
-          this.contextRows = 19;
-        }
-        break;
+          this.contextRows = 17;
+          break;
       default:
         this.contextRows = 4;
         break;

@@ -3,72 +3,97 @@
   fxLayout="column"
   class="scroll-content"
   fxLayoutAlign="start start"
+  style="background-color: #7E7E7E"
 >
   <div
+    *ngIf="showHeader && currentService.state === 'ASSIGNED'"
     fxLayout="row"
-    style="margin-left: 7px; margin-top: 7px"
+    fxLayoutAlign="start center"
+    class="tittle-content"
+  >
+    <label class="tittle-header">Viaje en curso</label>
+  </div>
+
+  <div
+    *ngIf="showHeader  && currentService.state === 'ARRIVED'"
+    fxLayout="row"
+    fxLayoutAlign="center center"
+    class="tittle-content"
+  >
+    <label class="tittle-header">Su taxi ha llegado</label>
+  </div>
+  <div
+    *ngIf="showHeader  && currentService.state === 'ON_BOARD'"
+    fxLayout="row"
+    fxLayoutAlign="center center"
+    class="tittle-content"
+  >
+    <label class="tittle-header">Estás a bordo</label>
+  </div>
+  <div
+    fxLayout="row"
+    style="margin-left: 7px; margin-top: 10px"
     fxLayoutAlign="start start"
     class="flex-wrap"
   >
-    <mat-form-field
-      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1 && currentService.pickUp.addressLine1 !== currentService.pickUp.addressLine2"
+    <div
+      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1"
+      fxLayout="row"
       fxFlex="100"
+      fxLayoutAlign="start center"
+      class="flex-no-wrap"
     >
-      <input
-        matInput
-        placeholder="Dirección"
-        readonly="true"
-        [(ngModel)]="currentService.pickUp.addressLine1"
-      />
-    </mat-form-field>
+      <mat-icon style="margin-right: 10px; color: white">location_on</mat-icon>
+      <label style="color: white">{{
+        currentService.pickUp.addressLine1
+      }}</label>
+    </div>
 
-    <mat-form-field
-      *ngIf="currentService.pickUp && currentService.pickUp.addressLine2"
+    <div
+      fxLayout="row"
       fxFlex="100"
+      fxLayoutAlign="start center"
+      class="flex-no-wrap"
+      style="margin-top: 5px"
     >
-      <input
-        matInput
-        placeholder="Referencia"
-        readonly="true"
-        [(ngModel)]="currentService.pickUp.addressLine2"
-      />
-    </mat-form-field>
-    <mat-form-field
+      <mat-icon style="margin-right: 10px; color: white">face</mat-icon>
+      <label style="color: white">{{ currentService.driver.fullname }}</label>
+    </div>
+
+    <div
+      *ngIf="currentService.vehicle.plate"
+      fxLayout="row"
+      [fxFlex]="fxFlexTip"
+      fxLayoutAlign="start center"
+      class="flex-no-wrap"
+      style="margin-right: 20px; margin-top: 5px"
+    >
+      <mat-icon style="margin-right: 10px; color: white">local_taxi</mat-icon>
+      <label style="color: white">{{ currentService.vehicle.plate }}</label>
+    </div>
+
+    <div
+      *ngIf="currentService.tip"
+      fxLayout="row"
+      [fxFlex]="fxFlexTip"
+      fxLayoutAlign="start center"
+      class="flex-no-wrap"
+      style="margin-right: 20px; margin-top: 5px"
+    >
+      <mat-icon style="margin-right: 10px; color: white"
+        >monetization_on</mat-icon
+      >
+      <label style="color: white">{{ tipValue | currency: 'COP':'' }}</label>
+    </div>
+
+    <button
       fxFlex="100"
-      *ngIf="currentService.vehicle && currentService.vehicle.plate"
+      style="margin-top: 10px; margin-right: 10px"
+      (click)="openCancelSheet()"
+      mat-raised-button
+      color="warn"
+      *ngIf="currentService.state !== 'ON_BOARD'"
     >
-      <input
-        matInput
-        placeholder="Vehículo"
-        readonly="true"
-        [(ngModel)]="currentService.vehicle.plate"
-      />
-    </mat-form-field>
-
-    <mat-form-field
-      fxFlex="100"
-      *ngIf="currentService.driver && currentService.driver.fullname"
-    >
-      <input
-        matInput
-        placeholder="Conductor"
-        readonly="true"
-        [(ngModel)]="currentService.driver.fullname"
-      />
-    </mat-form-field>
-
-    <mat-form-field *ngIf="tipValue" fxFlex="100">
-      <input
-        matInput
-        placeholder="Propina"
-        readonly="true"
-        [(ngModel)]="tipValue"
-        currencyMask
-        [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }"
-      />
-    </mat-form-field>
-
-    <button fxFlex="100" (click)="openCancelSheet()" mat-raised-button color="warn">
       Cancelar servicio
       <img
         class="circle"
@@ -78,5 +103,4 @@
       />
     </button>
   </div>
-
 </div>

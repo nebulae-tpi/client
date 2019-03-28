@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ServiceService } from '../../service.service';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, filter } from 'rxjs/operators';
 import { MatBottomSheet } from '@angular/material';
 import { CancelSheet } from '../../location/location.component';
 
@@ -13,6 +13,9 @@ import { CancelSheet } from '../../location/location.component';
 export class AssignedComponent implements OnInit, OnDestroy {
   tipValue = '';
   currentService;
+  showHeader = true;
+  fxFlexTip = 40;
+  fxFlexPlate = 40;
   private ngUnsubscribe = new Subject();
   constructor(private serviceService: ServiceService, private bottomSheet: MatBottomSheet) {}
 
@@ -23,6 +26,7 @@ export class AssignedComponent implements OnInit, OnDestroy {
         this.currentService = service;
         this.tipValue = service && service.tip ? service.tip : '';
       });
+    this.listenLayoutCommands();
   }
 
   ngOnDestroy(): void {
@@ -32,5 +36,31 @@ export class AssignedComponent implements OnInit, OnDestroy {
 
   openCancelSheet() {
     this.bottomSheet.open(CancelSheet);
+  }
+
+  listenLayoutCommands() {
+    this.serviceService.layoutChanges$
+      .pipe(
+        filter(e => e && e.layout),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(command => {
+        if (command && command.layout) {
+          if (
+            command.layout.type === 0 ||
+            command.layout.type === 1 ||
+            command.layout.type === 4 ||
+            command.layout.type === 5
+          ) {
+            this.fxFlexTip = 100;
+            this.fxFlexPlate = 100;
+            this.showHeader = false;
+          } else {
+            this.fxFlexTip = 40;
+            this.fxFlexPlate = 40;
+            this.showHeader = true;
+          }
+        }
+      });
   }
 }

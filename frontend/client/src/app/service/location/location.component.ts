@@ -418,10 +418,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
               if (this.currentService && this.currentService.location) {
                 if (this.vehicleMarker) {
-                  console.log(
-                    'modifica ubicacion del vehiculo: ',
-                    this.currentService.location
-                  );
                   this.changeMarkerPosition(
                     this.vehicleMarker,
                     this.currentService.location.lat,
