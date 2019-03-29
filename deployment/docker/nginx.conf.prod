@@ -1,7 +1,9 @@
 server {
   gzip on;
-  gzip_comp_level 2;
+  gzip_comp_level 3;
   gzip_min_length 1000;
+  gzip_buffers 16 8k;
+  gzip_proxied any;
   gzip_types
     text/plain
     text/css
