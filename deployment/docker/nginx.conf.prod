@@ -23,8 +23,6 @@ server {
       return 301 https://$host$request_uri;
     }
     expires -1;
-    add_header Pragma "no-cache";
-    add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";    
     try_files $uri$args $uri$args/ /index.html;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
