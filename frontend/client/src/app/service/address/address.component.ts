@@ -100,7 +100,12 @@ export class AddressComponent implements OnInit, OnDestroy {
           center: latlng,
           radius: 50000 // meter
         });
-        if (this.autocomplete) {
+        if (!this.autocomplete) {
+          this.buildPlacesAutoComplete();
+          setTimeout(() => {
+            this.autocomplete.setOptions({ bounds: circle.getBounds() });
+          }, 500);
+        } else {
           this.autocomplete.setOptions({ bounds: circle.getBounds() });
         }
         /*

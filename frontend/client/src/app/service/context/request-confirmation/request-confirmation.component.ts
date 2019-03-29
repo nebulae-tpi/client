@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, NgZone } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+  NgZone
+} from '@angular/core';
 import {
   MatIconRegistry,
   MatBottomSheet,
@@ -204,15 +212,20 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        if (this.autocomplete) {
-          const latlng = new google.maps.LatLng(
-            location.latitude,
-            location.longitude
-          );
-          const circle = new google.maps.Circle({
-            center: latlng,
-            radius: 50000 // meter
-          });
+        const latlng = new google.maps.LatLng(
+          location.latitude,
+          location.longitude
+        );
+        const circle = new google.maps.Circle({
+          center: latlng,
+          radius: 50000 // meter
+        });
+        if (!this.autocomplete) {
+          this.buildPlacesAutoComplete();
+          setTimeout(() => {
+            this.autocomplete.setOptions({ bounds: circle.getBounds() });
+          }, 500);
+        } else {
           this.autocomplete.setOptions({ bounds: circle.getBounds() });
         }
       });
