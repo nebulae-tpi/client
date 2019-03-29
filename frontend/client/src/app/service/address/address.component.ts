@@ -98,7 +98,7 @@ export class AddressComponent implements OnInit, OnDestroy {
         );
         const circle = new google.maps.Circle({
           center: latlng,
-          radius: 50000 // meter
+          radius: 50000 // meters
         });
         if (!this.autocomplete) {
           this.buildPlacesAutoComplete();
