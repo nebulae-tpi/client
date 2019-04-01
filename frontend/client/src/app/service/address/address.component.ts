@@ -41,8 +41,8 @@ export class AddressComponent implements OnInit, OnDestroy {
     this.searchControl = new FormControl();
     this.listenServiceChanges();
     this.listenLocationChanges();
-    if (this.showAddress) {
-      this.buildPlacesAutoComplete();
+    if (this.showAddress === true) {
+        this.buildPlacesAutoComplete();
     }
   }
 
@@ -83,6 +83,7 @@ export class AddressComponent implements OnInit, OnDestroy {
         });
       });
     });
+
   }
 
   listenLocationChanges() {
@@ -100,12 +101,15 @@ export class AddressComponent implements OnInit, OnDestroy {
           center: latlng,
           radius: 50000 // meters
         });
-        if (!this.autocomplete) {
+        if (!this.autocomplete && this.showAddress) {
           this.buildPlacesAutoComplete();
           setTimeout(() => {
-            this.autocomplete.setOptions({ bounds: circle.getBounds() });
-          }, 500);
-        } else {
+            try {
+              this.autocomplete.setOptions({ bounds: circle.getBounds() });
+            } catch (error) {
+            }
+          }, 1000);
+        } else if (this.showAddress) {
           this.autocomplete.setOptions({ bounds: circle.getBounds() });
         }
         /*

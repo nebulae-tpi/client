@@ -1,7 +1,15 @@
-<h1 mat-dialog-title>Atención</h1>
-<div mat-dialog-content>
-  <p>El conductor ha llegado al punto de recogida</p>
+<div fxLayout="column" fxLayoutAlign="center start"  style="width: 100%; ">
+  <img
+    class="circle"
+    src="../../../../assets/icons/icon-192x192.png"
+    width="60px"
+    height="60px"
+    style="position: relative; left: 35%; margin-top: -5px;"
+  />
+  <div mat-dialog-content>
+    <p style="font-size: 18px; font-weight: bold">El conductor ha llegado al punto de recogida</p>
+  </div>
 </div>
 <div mat-dialog-actions>
-  <button mat-button (click)="close()">Ok</button>
+  <button mat-raised-button color="warn" style="width: 60%; position: relative; left: 20%;" (click)="close()">Ok</button>
 </div>

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ServiceService } from '../../service.service';
-import { Subject } from 'rxjs';
-import { takeUntil, filter } from 'rxjs/operators';
+import { Subject, of, interval } from 'rxjs';
+import { takeUntil, filter, debounceTime } from 'rxjs/operators';
 import { MatBottomSheet } from '@angular/material';
 import { CancelSheet } from '../../location/location.component';
 
@@ -16,8 +16,13 @@ export class AssignedComponent implements OnInit, OnDestroy {
   showHeader = true;
   fxFlexTip = 40;
   fxFlexPlate = 40;
+  pickUpETA = 0;
+  timeoutEta;
   private ngUnsubscribe = new Subject();
-  constructor(private serviceService: ServiceService, private bottomSheet: MatBottomSheet) {}
+  constructor(
+    private serviceService: ServiceService,
+    private bottomSheet: MatBottomSheet
+  ) {}
 
   ngOnInit() {
     this.serviceService.currentService$
@@ -25,6 +30,12 @@ export class AssignedComponent implements OnInit, OnDestroy {
       .subscribe(service => {
         this.currentService = service;
         this.tipValue = service && service.tip ? service.tip : '';
+        this.getPickUpETA();
+      });
+    interval(5000)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(val => {
+        this.getPickUpETA();
       });
     this.listenLayoutCommands();
   }
@@ -32,10 +43,23 @@ export class AssignedComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+    if (this.timeoutEta) {
+      clearTimeout(this.timeoutEta);
+    }
   }
 
   openCancelSheet() {
     this.bottomSheet.open(CancelSheet);
+  }
+
+  getPickUpETA() {
+    let pickUpEtaMin = Math.floor(
+      (this.currentService.pickUpETA - new Date().getTime()) / 60000
+    );
+    if (pickUpEtaMin <= 0 || isNaN(pickUpEtaMin)) {
+      pickUpEtaMin = 1;
+    }
+    this.pickUpETA = pickUpEtaMin;
   }
 
   listenLayoutCommands() {

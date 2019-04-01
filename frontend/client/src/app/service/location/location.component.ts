@@ -382,6 +382,7 @@ export class LocationComponent implements OnInit, OnDestroy {
                 this.dialog.closeAll();
                 this.dialog.open(DialogArrivedComponent, {
                   width: '250px',
+                  panelClass: 'my-panel',
                   data: {}
                 });
               }
@@ -485,19 +486,19 @@ export class LocationComponent implements OnInit, OnDestroy {
               }
               break;
             default:
-              if (this.vehicleMarker) {
+            if (this.vehicleMarker) {
                 this.vehicleMarker.setMap(undefined);
                 this.vehicleMarker = undefined;
               }
-              if (this.userMarker) {
+            if (this.userMarker) {
                 this.userMarker.setMap(undefined);
                 this.userMarker = undefined;
               }
-              this.disableMap = false;
-              this.currentService = undefined;
-              this.showCenterMarker = true;
-              this.nearbyVehiclesEnabled = true;
-              break;
+            this.disableMap = false;
+            this.currentService = undefined;
+            this.showCenterMarker = true;
+            this.nearbyVehiclesEnabled = true;
+            break;
           }
           this.lastServiceStateReported = service.state;
         }

@@ -57,6 +57,7 @@ export const CurrentServices = gql`
       }
       lastModificationTimestamp
       state
+      pickUpETA
     }
   }
 `;
