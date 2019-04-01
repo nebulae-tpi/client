@@ -1,0 +1,5 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "co.com.nebulae.tpi.txplus",
+               "sha256_cert_fingerprints": ["32:88:76:D8:25:00:06:6D:7C:C2:1F:F2:4B:D2:CB:3F:01:C0:AF:4D:0B:CE:14:12:20:CE:BF:E6:87:B8:F8:28"] }
+}]
