@@ -73,6 +73,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.listenLayoutCommands();
     this.listenLocationChanges();
+    this.listenOnResume();
     this.center$
       .pipe(
         debounceTime(500),
@@ -303,6 +304,14 @@ export class LocationComponent implements OnInit, OnDestroy {
         this.widthMapContent = command.layout.map.width;
         this.heightMapContent = command.layout.map.height;
       });
+  }
+
+  listenOnResume() {
+    this.serviceService.onResume$.pipe(
+      takeUntil(this.ngUnsubscribe)
+    ).subscribe(() => {
+      this.currentLocation();
+    });
   }
 
   mapReady(map) {

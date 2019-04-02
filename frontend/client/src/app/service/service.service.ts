@@ -36,6 +36,8 @@ export class ServiceService {
 
   addressChange$ = new BehaviorSubject(undefined);
 
+  onResume$ = new BehaviorSubject(undefined);
+
   currentService$ = new BehaviorSubject<any>({
     state: ServiceState.NO_SERVICE
   });

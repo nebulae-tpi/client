@@ -33,7 +33,8 @@ import {
   Observable,
   concat,
   combineLatest,
-  defer
+  defer,
+  interval
 } from 'rxjs';
 /* #endregion */
 
@@ -78,6 +79,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT = 4;
   LAYOUT_DESKTOP_MAP_CONTENT = 5;
   LAYOUT_ADDRESS_MAP_CONTENT = 6;
+  isWindowVisible = true;
   /* #endregion */
 
   constructor(
@@ -149,6 +151,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         });
     }
+    this.buildBackgroundListener();
   }
 
   ngOnDestroy() {
@@ -182,6 +185,17 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
           // this.currentService = service;
         }
       });
+  }
+
+  buildBackgroundListener() {
+    interval(1000).pipe(
+      takeUntil(this.ngUnsubscribe)
+    ).subscribe(() => {
+      if (!document.hidden && !this.isWindowVisible) {
+        this.serviceService.onResume$.next({});
+      }
+      this.isWindowVisible = !document.hidden;
+    });
   }
 
   /**
