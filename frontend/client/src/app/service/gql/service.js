@@ -1,6 +1,18 @@
 import gql from 'graphql-tag';
 
 /* #region  QUERY */
+
+export const BusinessContactInfo = gql`
+  query BusinessContactInfo {
+    BusinessContactInfo{
+      name
+      whatsapp
+      phone
+      businessId
+    }
+  }
+`;
+
 export const NearbyVehicles = gql`
   query NearbyVehicles($clientLocation: PointInput!, $filters: [String]) {
     NearbyVehicles(clientLocation: $clientLocation, filters: $filters) {

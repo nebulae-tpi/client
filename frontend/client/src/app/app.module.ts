@@ -32,6 +32,7 @@ import { GatewayService } from './api/gateway.service';
 import { AssignedComponent } from './service/context/assigned/assigned.component';
 import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog-arrived.component';
 import { OnboardComponent } from './service/context/onboard/onboard.component';
+import { ContactUsComponent } from './contact-us/contact-us.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +52,8 @@ import { OnboardComponent } from './service/context/onboard/onboard.component';
     RequestedProgressComponent,
     AssignedComponent,
     DialogArrivedComponent,
-    OnboardComponent
+    OnboardComponent,
+    ContactUsComponent
   ],
   imports: [
     BrowserModule,
@@ -86,7 +88,7 @@ import { OnboardComponent } from './service/context/onboard/onboard.component';
     },
     GatewayService
   ],
-  entryComponents: [FilterSheet, CancelSheet, DialogArrivedComponent],
+  entryComponents: [FilterSheet, CancelSheet, DialogArrivedComponent, ContactUsComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

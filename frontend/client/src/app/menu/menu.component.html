@@ -67,13 +67,18 @@
           <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['history']">History</a>
         </mat-list-item>
 
+        <mat-list-item>
+          <mat-icon>info</mat-icon>
+          <a (click)="openContactUsDialog()" mat-list-item class="ml-2" >Contactenos</a>
+        </mat-list-item>
+
         <mat-list-item *ngIf="userDetails">
           <mat-icon>exit_to_app</mat-icon>
           <a (click)="closeMenu()" mat-list-item class="ml-2" (click)="logout()">Cerrar sesión</a>
         </mat-list-item>
       </mat-nav-list>
 
-      <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.0.32</h4>
+      <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.0.33</h4>
     </div>
   </mat-sidenav>
 

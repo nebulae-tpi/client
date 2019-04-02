@@ -6,6 +6,8 @@ import { KeycloakProfile } from 'keycloak-js';
 import { ServiceService } from '../service/service.service';
 import { GatewayService } from '../api/gateway.service';
 import { takeUntil } from 'rxjs/operators';
+import { MatDialog } from '@angular/material';
+import { ContactUsComponent } from '../contact-us/contact-us.component';
 
 @Component({
   selector: 'app-menu',
@@ -29,7 +31,8 @@ export class MenuComponent implements OnInit, OnDestroy {
     media: ObservableMedia,
     private keycloakService: KeycloakService,
     private serviceService: ServiceService,
-    private gateway: GatewayService
+    private gateway: GatewayService,
+    private dialog: MatDialog,
   ) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
@@ -43,7 +46,7 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.listenNavigationBack();
   }
 
-  listenNavigationBack(){
+  listenNavigationBack() {
     this.serviceService.backNavigation$
     .pipe(
       takeUntil(this.ngUnsubscribe)
@@ -56,6 +59,14 @@ export class MenuComponent implements OnInit, OnDestroy {
     if (this.over === 'over') {
       this.opened = false;
     }
+  }
+
+  openContactUsDialog() {
+    this.dialog.closeAll();
+    this.dialog.open(ContactUsComponent, {
+      width: '350px',
+      data: {}
+    });
   }
 
   async ngOnInit() {

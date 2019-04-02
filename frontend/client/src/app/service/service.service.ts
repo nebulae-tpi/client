@@ -8,9 +8,10 @@ import {
   ValidateNewClient,
   RequestService,
   CurrentServices,
-  CancelServiceByClient
+  CancelServiceByClient,
+  BusinessContactInfo
 } from './gql/service.js';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +47,7 @@ export class ServiceService {
 
   fromAddressLocation = false;
   userProfile;
+  businessContactInfo;
   /* #endregion */
 
   constructor(private gateway: GatewayService) {}
@@ -95,6 +97,32 @@ export class ServiceService {
           })
         );
     } else {
+      return of(undefined);
+    }
+  }
+
+  getBusinessContactInfo$() {
+    if (this.userProfile) {
+      return this.gateway.apollo
+        .query<any>({
+          query: BusinessContactInfo,
+          fetchPolicy: 'network-only',
+          errorPolicy: 'all'
+        })
+        .pipe(
+          map(result => {
+            if (result.data && result.data.BusinessContactInfo) {
+              return result.data.BusinessContactInfo;
+            } else {
+              return undefined;
+            }
+          }),
+          tap(business => {
+            this.businessContactInfo = business;
+          })
+        );
+    } else {
+      console.log('se retorna undefined: ');
       return of(undefined);
     }
   }

@@ -345,7 +345,6 @@ export class LocationComponent implements OnInit, OnDestroy {
             lat: location.latitude,
             lng: location.longitude
           });
-          this.map.setZoom(17);
         }
       });
   }

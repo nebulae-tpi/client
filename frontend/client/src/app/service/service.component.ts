@@ -114,6 +114,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
             }
             return of(undefined);
           }),
+          mergeMap(() => this.serviceService.getBusinessContactInfo$()),
           mergeMap(() => this.serviceService.getCurrentService$())
         )
         .subscribe(service => {
