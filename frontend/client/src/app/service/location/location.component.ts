@@ -645,7 +645,7 @@ export class CancelSheet implements OnInit, OnDestroy {
 
   onNgModelChange($event) {
     this.serviceService
-      .cancelService$($event[0])
+      .cancelService$($event)
       .subscribe(res => console.log('Cancela servicio: ', res));
     this.bottomSheetRef.dismiss();
     event.preventDefault();
@@ -653,10 +653,6 @@ export class CancelSheet implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('OnInit');
-    this.cancelationReasonList.selectedOptions = new SelectionModel<
-      MatListOption
-    >(false);
-    console.log(this.cancelationReasonList);
   }
 
   ngOnDestroy() {

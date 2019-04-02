@@ -9,3 +9,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   background-color:rgba(68, 68, 68, 0.733);
   color: white;
 }
+
+.mat-bottom-sheet-container {
+  overflow: hidden;
+  border-radius: 5px;
+  padding: 5px;
+  background-color:rgb(68, 68, 68);
+  color: white;
+}
+
+.mat-radio-outer-circle {
+  border-color: white;
+  }

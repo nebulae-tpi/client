@@ -1,15 +1,24 @@
 <div fxLayout="column" fxLayoutAlign="start start" class="flex-wrap">
   <div fxLayout="row" fxLayoutAlign="start start">
-    <h4 class="filter-txt">Por favor dinos la razon de cancelación:</h4>
+    <h4 style="color: white" class="filter-txt">Por favor cuentanos la razón de cancelación:</h4>
   </div>
 
-  <mat-selection-list
-    #cancelationReasonList
+  <mat-radio-group
+    fxLayout="column"
+    fxLayoutAlign=" none"
+    style="width: 100%; color: white; margin-bottom: 20px"
+    aria-labelledby="example-radio-group-label"
     [(ngModel)]="selectedOption"
     (ngModelChange)="onNgModelChange($event)"
   >
-    <mat-list-option class="select-item" *ngFor="let crl of cancelReasonList" [value]="crl.value">
+    <mat-radio-button
+      class="example-radio-button"
+      *ngFor="let crl of cancelReasonList"
+      [value]="crl.value"
+      color="warn"
+      style="margin-bottom: 10px"
+    >
       {{ crl.text }}
-    </mat-list-option>
-  </mat-selection-list>
+    </mat-radio-button>
+  </mat-radio-group>
 </div>
