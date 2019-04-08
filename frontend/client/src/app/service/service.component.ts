@@ -98,6 +98,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     this.listenServiceChanges();
+    this.listenSubscriptionReconnection();
     if (this.gateway.checkIfUserLogger()) {
       this.serviceService
         .validateNewClient$()
@@ -184,6 +185,28 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
         if (service) {
           this.recalculateLayout();
           // this.currentService = service;
+        }
+      });
+  }
+
+  /**
+   * If a reconnected event is received from the graphql subscriptions then
+   * we have to request the current service to update the  info
+   */
+  listenSubscriptionReconnection() {
+    this.gateway.onSubscriptionClientEvent$
+      .pipe(
+        filter(subscriptionConnectionEvent => subscriptionConnectionEvent === 'reconnected'),
+        mergeMap(() => this.serviceService.getCurrentService$()),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(service => {
+        if (!service && this.serviceService.currentService$.getValue().state !== ServiceState.REQUEST) {
+          this.serviceService.currentService$.next({
+            state: ServiceState.NO_SERVICE
+          });
+        } else {
+          this.serviceService.publishServiceChanges(service);
         }
       });
   }

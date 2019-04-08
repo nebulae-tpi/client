@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, of, Observable } from 'rxjs';
+import { BehaviorSubject, of, Observable, iif, throwError } from 'rxjs';
 import { ServiceState } from './service-state';
 import { GatewayService } from '../api/gateway.service';
 import gql from 'graphql-tag';
@@ -11,7 +11,7 @@ import {
   CancelServiceByClient,
   BusinessContactInfo
 } from './gql/service.js';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, retryWhen, concatMap, delay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -94,7 +94,21 @@ export class ServiceService {
             } else {
               return undefined;
             }
-          })
+          }),
+          retryWhen(errors =>
+            errors.pipe(
+              concatMap((e, i) =>
+                // Executes a conditional Observable depending on the result
+                // of the first argument
+                iif(() => i > 3,
+                  // If the condition is true we throw the error (the last error)
+                  throwError(e),
+                  // Otherwise we pipe this back into our stream and delay the retry
+                  of(e).pipe(delay(500))
+                )
+              )
+            )
+          )
         );
     } else {
       return of(undefined);

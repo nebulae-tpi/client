@@ -1,3 +1,4 @@
+import { BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { KeycloakEventType, KeycloakService } from 'keycloak-angular';
 import { environment } from 'src/environments/environment';
@@ -13,6 +14,8 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
   providedIn: 'root'
 })
 export class GatewayService {
+
+  onSubscriptionClientEvent$ = new BehaviorSubject(undefined);
 
   constructor(
     public apollo: Apollo,
@@ -49,17 +52,43 @@ export class GatewayService {
         }));
 
         // Create a WebSocket link:
-        const ws = new WebSocketLink({
+        const ws: any = new WebSocketLink({
           uri: environment.api.gateway.graphql.wsEndPoint,
           options: {
             reconnect: true,
+            // lazy: true,
             connectionParams: {
               authToken: token,
             },
           }
         });
 
+        ws.subscriptionClient.onConnecting(() => {
+          //console.log("Subscription client connecting...");
+          this.onSubscriptionClientEvent$.next('connecting');
+        });
 
+        ws.subscriptionClient.onConnected(() => {
+          console.log("Subscription client connected");
+          this.onSubscriptionClientEvent$.next('connected');
+        });
+
+        ws.subscriptionClient.onReconnecting(() => {
+          //console.log("Subscription client reconnecting...");
+          this.onSubscriptionClientEvent$.next('reconnecting');
+        });
+
+        ws.subscriptionClient.onReconnected(() => {
+          console.log("Subscription client reconnected");
+          this.onSubscriptionClientEvent$.next('reconnected');
+        });
+
+        ws.subscriptionClient.onDisconnected(() => {
+          console.log("Subscription client disconnected");
+          this.onSubscriptionClientEvent$.next('disconnected');
+        });
+
+        // ws.subscriptionClient.maxConnectTimeGenerator.duration = () => ws.subscriptionClient.maxConnectTimeGenerator.max;
 
         // using the ability to split links, you can send data to each link
         // depending on what kind of operation is being sent
