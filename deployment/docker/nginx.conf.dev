@@ -1,21 +1,55 @@
+#server {
+#  listen 80;
+#  charset utf-8;
+#  sendfile on;
+#  root /usr/share/nginx/html;
+#  
+#  location / {
+#    rewrite ^ /app/ permanent;
+#  }
+#
+#  location /app/ {
+#    expires -1;
+#    add_header Pragma "no-cache";
+#    add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+#    alias /usr/share/nginx/html/app/;
+#    try_files $uri$args $uri$args/ /client/index.html;
+#    proxy_set_header X-Real-IP $remote_addr;
+#    proxy_set_header X-Forwarded-Proto $scheme;
+#    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#  }
+#}
+#
 server {
+  gzip on;
+  gzip_comp_level 3;
+  gzip_min_length 1000;
+  gzip_buffers 16 8k;
+  gzip_proxied any;
+  gzip_types
+    text/plain
+    text/css
+    text/js
+    text/xml
+    text/javascript
+    application/javascript
+    application/json
+    application/xml
+    application/rss+xml
+    image/svg+xml;
   listen 80;
   charset utf-8;
   sendfile on;
-  root /usr/share/nginx/html;
-  
-  location / {
-    rewrite ^ /app/ permanent;
-  }
+  root /usr/share/nginx/html/client/client;
 
-  location /app/ {
-    expires -1;
-    add_header Pragma "no-cache";
-    add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-    alias /usr/share/nginx/html/app/;
-    try_files $uri$args $uri$args/ /client/index.html;
+  location / {
+    if ($http_x_forwarded_proto = "http") {
+      return 301 https://$host$request_uri;
+    }
+    try_files $uri$args $uri$args/ /index.html;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 }
+
