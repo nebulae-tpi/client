@@ -51,6 +51,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     this.buildPlacesAutoComplete();
     this.addressInputValue = this.serviceService.addressChange$.getValue();
   }
+
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
