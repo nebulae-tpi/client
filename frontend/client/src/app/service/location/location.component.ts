@@ -31,6 +31,62 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.component';
 
 @Component({
+  selector: 'app-cancel-sheet',
+  templateUrl: 'cancel-sheet.html',
+  styleUrls: ['./location.component.scss']
+})
+export class CancelSheetComponent implements OnInit, OnDestroy {
+  @ViewChild(MatSelectionList) cancelationReasonList: MatSelectionList;
+
+  selectedOption;
+  cancelReasonList = [
+    {
+      text: 'Placa no corresponde',
+      value: 'PLATE_DOESNT_MATCH'
+    },
+    {
+      text: 'No es el conductor',
+      value: 'IS_NOT_THE_DRIVER'
+    },
+    {
+      text: 'Se demora mucho',
+      value: 'IT_TAKES_TOO_MUCH_TIME'
+    },
+    {
+      text: 'Ya no se requiere',
+      value: 'DOESNT_REQUIRED'
+    }
+  ];
+  constructor(
+    private bottomSheetRef: MatBottomSheetRef<CancelSheetComponent>,
+    private serviceService: ServiceService
+  ) {}
+
+  openLink(event: MouseEvent): void {
+    this.bottomSheetRef.dismiss();
+    event.preventDefault();
+  }
+
+  onNgModelChange($event) {
+    this.serviceService
+      .cancelService$($event)
+      .subscribe(res => console.log('Cancela servicio: ', res));
+    this.bottomSheetRef.dismiss();
+    console.log({$event});
+    // event.preventDefault();
+  }
+
+  ngOnInit(): void {
+    console.log('OnInit');
+  }
+
+  ngOnDestroy() {
+    console.log('Ondestroy');
+    this.bottomSheetRef.dismiss();
+  }
+}
+
+@Component({
   selector: 'app-location',
   templateUrl: './location.component.html',
   styleUrls: ['./location.component.scss']
@@ -252,7 +308,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   openCancelSheet() {
-    this.bottomSheet.open(CancelSheet, {closeOnNavigation: true});
+    this.bottomSheet.open(CancelSheetComponent, {closeOnNavigation: true});
   }
 
   clearMarkerFromMap(listToClear) {
@@ -314,8 +370,8 @@ export class LocationComponent implements OnInit, OnDestroy {
     });
   }
 
-  mapReady(map) {
-    this.map = map;
+  mapReady(mapRef) {
+    this.map = mapRef;
     this.initLocation();
     this.listenServiceChanges();
     this.startNearbyVehicles();
@@ -604,59 +660,4 @@ export class LocationComponent implements OnInit, OnDestroy {
     );
   }
   /* #endregion */
-}
-
-@Component({
-  selector: 'app-cancel-sheet',
-  templateUrl: 'cancel-sheet.html',
-  styleUrls: ['./location.component.scss']
-})
-export class CancelSheet implements OnInit, OnDestroy {
-  @ViewChild(MatSelectionList) cancelationReasonList: MatSelectionList;
-
-  selectedOption;
-  cancelReasonList = [
-    {
-      text: 'Placa no corresponde',
-      value: 'PLATE_DOESNT_MATCH'
-    },
-    {
-      text: 'No es el conductor',
-      value: 'IS_NOT_THE_DRIVER'
-    },
-    {
-      text: 'Se demora mucho',
-      value: 'IT_TAKES_TOO_MUCH_TIME'
-    },
-    {
-      text: 'Ya no se requiere',
-      value: 'DOESNT_REQUIRED'
-    }
-  ];
-  constructor(
-    private bottomSheetRef: MatBottomSheetRef<CancelSheet>,
-    private serviceService: ServiceService
-  ) {}
-
-  openLink(event: MouseEvent): void {
-    this.bottomSheetRef.dismiss();
-    event.preventDefault();
-  }
-
-  onNgModelChange($event) {
-    this.serviceService
-      .cancelService$($event)
-      .subscribe(res => console.log('Cancela servicio: ', res));
-    this.bottomSheetRef.dismiss();
-    event.preventDefault();
-  }
-
-  ngOnInit(): void {
-    console.log('OnInit');
-  }
-
-  ngOnDestroy() {
-    console.log('Ondestroy');
-    this.bottomSheetRef.dismiss();
-  }
 }

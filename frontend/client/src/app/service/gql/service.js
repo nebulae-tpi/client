@@ -76,17 +76,6 @@ export const CurrentServices = gql`
 /* #endregion */
 
 /* #region  MUTATION */
-
-export const ValidateNewClient = gql`
-  mutation ValidateNewClient {
-    ValidateNewClient {
-      clientId
-      name
-      username
-    }
-  }
-`;
-
 export const CancelServiceByClient = gql`
   mutation CancelServiceByClient($id: String!, $reason: String!, $notes: String){
   CancelServiceByClient(id: $id, reason: $reason, notes: $notes){

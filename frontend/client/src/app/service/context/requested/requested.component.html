@@ -1,69 +1,30 @@
-<div
-  *ngIf="currentService"
-  fxLayout="column"
-  class="scroll-content"
-  fxLayoutAlign="start start"
-  style="background-color: #7E7E7E"
->
-  <div
-    *ngIf="showHeader"
-    fxLayout="row"
-    fxLayoutAlign="center center"
-    class="tittle-content"
-  >
+<div *ngIf="currentService" fxLayout="column" class="scroll-content" fxLayoutAlign="start start"
+  style="background-color: #7E7E7E">
+  <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
     <label class="tittle-header">Ofertando servicio</label>
-    <img
-      class="circle"
-      src="../../../../assets/icons/context/tx_white_car.png"
-      width="23px"
-      height="20px"
-      style="margin-top: -5px; margin-left: 5px"
-    />
+    <img class="circle" src="../../../../assets/icons/context/tx_white_car.png" width="23px" height="20px"
+      style="margin-top: -5px; margin-left: 5px" />
   </div>
-  <div
-    fxLayout="row"
-    style="margin-left: 7px; margin-top: 10px"
-    fxLayoutAlign="start start"
-    class="flex-wrap"
-  >
-    <div
-      *ngIf="currentService.pickUp && currentService.pickUp.addressLine1"
-      fxLayout="row"
-      fxFlex="100"
-      fxLayoutAlign="start center"
-      class="flex-no-wrap"
-    >
+  <div fxLayout="row" style="margin-left: 7px; margin-top: 10px" fxLayoutAlign="start start" class="flex-wrap">
+    <div *ngIf="currentService.pickUp && currentService.pickUp.addressLine1" fxLayout="row" fxFlex="100"
+      fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px; color: white">location_on</mat-icon>
       <label style="color: white">{{
         currentService.pickUp.addressLine1
       }}</label>
     </div>
 
-    <div
-      *ngIf="currentService.pickUp && currentService.pickUp.addressLine2"
-      fxLayout="row"
-      fxFlex="100"
-      fxLayoutAlign="start center"
-      class="flex-no-wrap"
-      style="margin-top: 5px"
-    >
+    <div *ngIf="currentService.pickUp && currentService.pickUp.addressLine2" fxLayout="row" fxFlex="100"
+      fxLayoutAlign="start center" class="flex-no-wrap" style="margin-top: 5px">
       <mat-icon style="margin-right: 10px; color: white">business</mat-icon>
       <label style="color: white">{{
         currentService.pickUp.addressLine2
       }}</label>
     </div>
 
-    <div
-      *ngIf="currentService.tip"
-      fxLayout="row"
-      [fxFlex]="fxFlexTip"
-      fxLayoutAlign="start center"
-      class="flex-no-wrap"
-      style="margin-right: 20px; margin-top: 5px"
-    >
-      <mat-icon style="margin-right: 10px; color: white"
-        >monetization_on</mat-icon
-      >
+    <div *ngIf="currentService.tip" fxLayout="row" [fxFlex]="fxFlexTip" fxLayoutAlign="start center"
+      class="flex-no-wrap" style="margin-right: 20px; margin-top: 5px">
+      <mat-icon style="margin-right: 10px; color: white">monetization_on</mat-icon>
       <label style="color: white">{{ tipValue | currency: 'COP':'' }}</label>
     </div>
   </div>

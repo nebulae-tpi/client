@@ -8,12 +8,14 @@ import { ServiceService } from '../service/service.service';
   styleUrls: ['./contact-us.component.scss']
 })
 export class ContactUsComponent implements OnInit {
-
   businessContactInfo = {
     phone: 3004832728,
     whatsapp: 573004832728
   };
-  constructor(public dialogRef: MatDialogRef<ContactUsComponent>, private serviceService: ServiceService) { }
+  constructor(
+    public dialogRef: MatDialogRef<ContactUsComponent>,
+    private serviceService: ServiceService
+  ) {}
 
   ngOnInit() {
     if (this.serviceService.businessContactInfo) {

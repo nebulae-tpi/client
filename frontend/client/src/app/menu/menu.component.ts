@@ -1,13 +1,14 @@
 import { KeycloakService } from 'keycloak-angular';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ObservableMedia, MediaChange } from '@angular/flex-layout';
-import { Subscription, Subject } from 'rxjs';
+import { Subscription, Subject, of } from 'rxjs';
 import { KeycloakProfile } from 'keycloak-js';
 import { ServiceService } from '../service/service.service';
 import { GatewayService } from '../api/gateway.service';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, mergeMap, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material';
 import { ContactUsComponent } from '../contact-us/contact-us.component';
+import { MenuService } from './menu.service';
 
 @Component({
   selector: 'app-menu',
@@ -27,12 +28,15 @@ export class MenuComponent implements OnInit, OnDestroy {
   watcher: Subscription;
   private ngUnsubscribe = new Subject();
 
+  selectedSatellite: any;
+
   constructor(
     media: ObservableMedia,
     private keycloakService: KeycloakService,
     private serviceService: ServiceService,
     private gateway: GatewayService,
     private dialog: MatDialog,
+    private menuService: MenuService
   ) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
@@ -48,11 +52,10 @@ export class MenuComponent implements OnInit, OnDestroy {
 
   listenNavigationBack() {
     this.serviceService.backNavigation$
-    .pipe(
-      takeUntil(this.ngUnsubscribe)
-    ).subscribe(back => {
-      this.closeMenu();
-    });
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(back => {
+        this.closeMenu();
+      });
   }
 
   closeMenu() {
@@ -73,7 +76,34 @@ export class MenuComponent implements OnInit, OnDestroy {
     if (this.gateway.checkIfUserLogger()) {
       this.userDetails = await this.keycloakService.loadUserProfile();
       this.serviceService.userProfile = this.userDetails;
+
+      this.menuService.validateNewClient$()
+      .pipe(
+        tap(response => {
+          const clientId = response && response.data && response.data.ValidateNewClient
+            ? response.data.ValidateNewClient.clientId
+            : undefined;
+        }),
+        mergeMap(() => this.menuService.loadClientProfile$()),
+        map(r => (r && r.data && r.data.ClientProfile) ? r.data.ClientProfile : null ),
+        tap((clientProfile: any) => this.menuService.currentUserProfile$.next(clientProfile)),
+        mergeMap(cp => cp.satelliteId ? this.menuService.loadSatelliteLinked$(cp.satelliteId) : of(null)),
+        map(resp => ((resp || {}).data || {}).ClientLinkedSatellite),
+        tap(ls => this.menuService.currentLinkedSatellite$.next(ls))
+      )
+      .subscribe(r => {}, e => console.log(e), () => {});
     }
+
+    this.listenSatelliteChanges();
+
+  }
+
+  listenSatelliteChanges() {
+    this.menuService.currentLinkedSatellite$
+    .pipe(
+      tap(satellite => this.selectedSatellite =  satellite )
+    )
+    .subscribe();
   }
 
   async login() {

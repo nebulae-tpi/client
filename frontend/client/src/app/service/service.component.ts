@@ -3,8 +3,6 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  ViewChild,
-  ElementRef,
   HostListener,
   AfterViewInit
 } from '@angular/core';
@@ -12,27 +10,14 @@ import {
 
 /* #region IMPORTS RXJS */
 import {
-  map,
   mergeMap,
-  switchMap,
-  toArray,
   filter,
-  tap,
-  takeUntil,
-  startWith,
-  debounceTime,
-  distinctUntilChanged,
-  take
+  takeUntil
 } from 'rxjs/operators';
 
 import {
   Subject,
-  fromEvent,
   of,
-  forkJoin,
-  Observable,
-  concat,
-  combineLatest,
   defer,
   interval
 } from 'rxjs';
@@ -93,43 +78,37 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     // location.onPopState(() => {
     //   alert(window.location);
     // });
-    console.log('ServiceComponent => listener');
   }
 
   ngOnInit() {
     this.listenServiceChanges();
     this.listenSubscriptionReconnection();
     if (this.gateway.checkIfUserLogger()) {
-      this.serviceService
-        .validateNewClient$()
+      of(this.keycloakService.getKeycloakInstance().tokenParsed)
         .pipe(
-          mergeMap(response => {
-            const clientId = response && response.data
-            && response.data.ValidateNewClient ? response.data.ValidateNewClient.clientId : undefined;
-            const tokenParsed: any = this.keycloakService.getKeycloakInstance().tokenParsed;
+          mergeMap((tokenParsed: any) => {
             // console.log('tokenParsed => ', tokenParsed.clientId,
             // (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
             // (!tokenParsed.clientId && this.keycloakService.getKeycloakInstance().authenticated));
-            if (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated) {
-              return defer(() => this.keycloakService.updateToken(-1));
-            }
-            return of(undefined);
+            return (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated)
+              ? defer(() => this.keycloakService.updateToken(-1))
+              : of(undefined);
           }),
           mergeMap(() => this.serviceService.getBusinessContactInfo$()),
           mergeMap(() => this.serviceService.getCurrentService$())
         )
         .subscribe(service => {
           if (service) {
-            console.log('Llega cambio de servicio:', service);
+            // console.log('Llega cambio de servicio:', service);
             this.serviceService.currentService$.next(service);
           }
         });
-      this.serviceService
-        .subscribeToClientServiceUpdatedSubscription$()
+
+      this.serviceService.subscribeToClientServiceUpdatedSubscription$()
         .pipe(takeUntil(this.ngUnsubscribe))
         .subscribe(service => {
           if (service) {
-            console.log('Llega cambio de servicio:', service);
+            // console.log('Llega cambio de servicio:', service);
             if (service.state === ServiceState.CANCELLED_DRIVER) {
               this.showSnackBar('El conductor ha cancelado el servicio');
               this.serviceService.currentService$.next({
@@ -153,6 +132,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         });
     }
+
     this.buildBackgroundListener();
   }
 
@@ -196,12 +176,19 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   listenSubscriptionReconnection() {
     this.gateway.onSubscriptionClientEvent$
       .pipe(
-        filter(subscriptionConnectionEvent => subscriptionConnectionEvent === 'reconnected'),
+        filter(
+          subscriptionConnectionEvent =>
+            subscriptionConnectionEvent === 'reconnected'
+        ),
         mergeMap(() => this.serviceService.getCurrentService$()),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
-        if (!service && this.serviceService.currentService$.getValue().state !== ServiceState.REQUEST) {
+        if (
+          !service &&
+          this.serviceService.currentService$.getValue().state !==
+            ServiceState.REQUEST
+        ) {
           this.serviceService.currentService$.next({
             state: ServiceState.NO_SERVICE
           });
@@ -212,14 +199,14 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   buildBackgroundListener() {
-    interval(1000).pipe(
-      takeUntil(this.ngUnsubscribe)
-    ).subscribe(() => {
-      if (!document.hidden && !this.isWindowVisible) {
-        this.serviceService.onResume$.next({});
-      }
-      this.isWindowVisible = !document.hidden;
-    });
+    interval(1000)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(() => {
+        if (!document.hidden && !this.isWindowVisible) {
+          this.serviceService.onResume$.next({});
+        }
+        this.isWindowVisible = !document.hidden;
+      });
   }
 
   /**
@@ -383,8 +370,8 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
         break;
       case ServiceState.ON_BOARD:
-          this.contextRows = 17;
-          break;
+        this.contextRows = 17;
+        break;
       default:
         this.contextRows = 4;
         break;

@@ -23,7 +23,7 @@ export class AddressComponent implements OnInit, OnDestroy {
   @ViewChild('search')
   public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
-  addressInputValue: String;
+  addressInputValue = '';
   autocomplete: any;
   showAddress = true;
   showOfferHeader = false;
@@ -67,7 +67,14 @@ export class AddressComponent implements OnInit, OnDestroy {
           if (place.geometry === undefined || place.geometry === null) {
             return;
           }
-          this.addressInputValue = place.formatted_address.split(',')[0];
+          const { address_components, name, formatted_address } = place;
+
+          console.log('PLACE ==> ', {name, formatted_address, address_components});
+          const stringsToRemove = [', Antioquia', ', Valle del Cauca', ', Colombia'];
+          this.addressInputValue = `${place.name}, ${place.formatted_address.split(',').slice(1)}`;
+          stringsToRemove.forEach(s => this.addressInputValue = this.addressInputValue.replace(s, ''));
+          // place.formatted_address.split(',')[0];
+
           this.serviceService.locationChange$.next({
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng()
@@ -99,18 +106,18 @@ export class AddressComponent implements OnInit, OnDestroy {
         );
         const circle = new google.maps.Circle({
           center: latlng,
-          radius: 50000 // meters
+          radius: 20000 // meters
         });
         if (!this.autocomplete && this.showAddress) {
           this.buildPlacesAutoComplete();
           setTimeout(() => {
             try {
-              this.autocomplete.setOptions({ bounds: circle.getBounds() });
+              this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
             } catch (error) {
             }
           }, 1000);
         } else if (this.showAddress) {
-          this.autocomplete.setOptions({ bounds: circle.getBounds() });
+          this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
         /*
         this.mapsAPILoader.load().then(() => {

@@ -1,0 +1,50 @@
+<!-- PHONES LAYOUT  xs media query -->
+<!-- DESKTOP LAYOUT gt-xs media query -->
+
+<div ngClass.xs="xs-content" ngClass.gt-xs="gt-xs-content" fxFlex="100" fxLayout="row wrap">
+  <div style="padding-bottom: 15px;" ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="30" fxLayoutAlign="center center">
+    <img class="circle" src="../../assets/icons/menu/profile_icon.svg" width="100" />
+  </div>
+  <div *ngIf="userProfile" fxFlex.xs="100" fxFlex.gt-xs="70" fxLayout="column">
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Nombre</mat-placeholder>
+      <input matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" [value]="userProfile.name">
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Teléfono</mat-placeholder>
+      <input matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" [value]="userProfile.phone">
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Correo</mat-placeholder>
+      <input matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" class="xs-mff-input" [value]="userProfile.email">
+    </mat-form-field>
+
+
+    <div ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxLayoutAlign="center center">
+        <!-- SAVE BUTTON -->
+        <button mat-stroked-button ngClass.xs="xs-action-btn" ngClass.gt-xs="gt-xs-action-btn" color="primary" (click)="updateProfile()">
+          <mat-icon>done</mat-icon> Guargar
+        </button>
+        <!-- SAVE BUTTON -->
+
+        <!-- VIEW OR SETUP BUTTON -->
+        <button *ngIf="userProfile && !userProfile.satelliteId" mat-stroked-button
+          ngClass.xs="xs-action-btn" ngClass.gt-xs="gt-xs-action-btn"
+          color="primary"
+          [routerLink]="['/profile/satellite', 'new']"
+          routerLinkActive="router-link-active">
+          <mat-icon>settings</mat-icon> Configurar satélite
+        </button>
+
+        <button *ngIf="userProfile && userProfile.satelliteId" mat-stroked-button color="primary"
+          ngClass.xs="xs-action-btn" ngClass.gt-xs="gt-xs-action-btn"
+          [routerLink]="['/profile/satellite', 'view']" routerLinkActive="router-link-active">
+          <mat-icon>visibility</mat-icon> Ver satélite
+        </button>
+        <!-- VIEW OR SETUP BUTTON -->
+      </div>
+
+  </div>
+</div>

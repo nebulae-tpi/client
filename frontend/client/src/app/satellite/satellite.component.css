@@ -1,0 +1,18 @@
+:host /deep/ .mat-input-placeholder {
+  font-size: 20px;
+}
+
+.xs-placeholder{
+    font-size: 20px;
+}
+/* xs style fot mat form field */
+.xs-mff{
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+.xs-mff-input{
+  font-size: 18px;
+}

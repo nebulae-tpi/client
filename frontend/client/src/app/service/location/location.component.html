@@ -1,35 +1,15 @@
 <div style="padding: 0px; margin: 0px">
-  <agm-map
-    [ngStyle]="{ 'height.px': heightMapContent }"
-    (mapReady)="mapReady($event)"
-    [clickableIcons]="false"
-    [disableDefaultUI]="true"
-    [streetViewControl]="false"
-    [latitude]="lat"
-    [longitude]="lng"
-    [zoom]="zoom"
-    (centerChange)="onCenterChange($event)"
-  >
+  <agm-map [ngStyle]="{ 'height.px': heightMapContent }" (mapReady)="mapReady($event)" [clickableIcons]="false"
+    [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="lat" [longitude]="lng" [zoom]="zoom"
+    (centerChange)="onCenterChange($event)">
   </agm-map>
-  <img
-    *ngIf="showCenterMarker"
-    src="../../assets/icons/location/assigned_user_marker.png"
-    class="vertical-center"
-    alt="image"
-  />
-  <button
-    mat-mini-fab
-    [color]="'location-button-color'"
-    (click)="currentLocation()"
-    class="location-button"
-  >
+  <img *ngIf="showCenterMarker" src="../../assets/icons/location/assigned_user_marker.png" class="vertical-center"
+    alt="image" />
+  <button mat-mini-fab [color]="'location-button-color'" (click)="currentLocation()" class="location-button">
     <mat-icon #icontest>gps_fixed</mat-icon>
   </button>
-  <div
-    *ngIf="disableMap"
-    [ngStyle]="{ 'width.px': widthMapContent, 'height.px': heightMapContent }"
-    style=" position: absolute; top: 0"
-  >
+  <div *ngIf="disableMap" [ngStyle]="{ 'width.px': widthMapContent, 'height.px': heightMapContent }"
+    style=" position: absolute; top: 0">
     <app-requested-progress (click)="openCancelSheet()"></app-requested-progress>
   </div>
 </div>

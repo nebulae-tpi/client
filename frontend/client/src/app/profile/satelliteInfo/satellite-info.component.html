@@ -1,0 +1,102 @@
+<!-- PHONES LAYOUT  xs media query -->
+<!-- DESKTOP LAYOUT gt-xs media query -->
+<div ngClass.xs="xs-content" ngClass.gt-xs="gt-xs-content" fxFlex="100" fxLayout="row wrap">
+
+  <!-- BASIC INFO ABOUT SATELLITE LINKED TO USER -->
+  <div fxLayout="row wrap" *ngIf="userProfile && userProfile.satelliteId && linkedSatellite && !triedToLinkSatellite">
+
+    <div  ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" style="padding-bottom: 10px" fxFlex="100" fxLayoutAlign="start center">
+      <mat-icon fxHide.gt-xs style="padding-right: 10px" [routerLink]="['/profile']">arrow_back_ios</mat-icon>
+      <div fxFlex>
+        <div style="font-size: 25px;" fxLayoutAlign="center center">Información de Satélite</div>
+      </div>
+    </div>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Nombre</mat-placeholder>
+      <input readonly matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" [value]="linkedSatellite.name">
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Ciudad</mat-placeholder>
+      <input readonly matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input"  [value]="linkedSatellite.city">
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Barrio</mat-placeholder>
+      <input readonly matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" [value]="linkedSatellite.neighborhood">
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Dirección</mat-placeholder>
+      <input readonly matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" [value]="linkedSatellite.addressLine1">
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Teléfono</mat-placeholder>
+      <input readonly matInput ngClass.xs="xs-mff-input" ngClass.gt-xs="gt-xs-mff-input" [value]="linkedSatellite.phone">
+    </mat-form-field>
+
+    <div ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex="100" fxLayoutAlign="center center">
+      <button mat-stroked-button color="primary" (click)="unlinkSatellite()">
+        <mat-icon>link_off</mat-icon>Desvincular Satélite
+      </button>
+    </div>
+
+  </div>
+  <!-- BASIC INFO ABOUT SATELLITE LINKED TO USER -->
+
+  <!-- OVERVIEW ABOUT SATELLITE SELECTED WITH AUTOCOMPLETE -->
+  <div *ngIf="userProfile && !userProfile.satelliteId && !triedToLinkSatellite" style="padding-top: 20px" fxFlex="100"
+    fxLayout="row wrap">
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex="100">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Seleccione Satélite</mat-placeholder>
+      <input matInput [matAutocomplete]="auto" [formControl]="satelliteCtrl"
+        [value]="selectedSatellite ? selectedSatellite.name : ''" >
+      <button *ngIf="selectedSatellite && selectedSatellite.name" mat-button matSuffix mat-icon-button
+        (click)="removeSelectedSatellite()">
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)='onSelectSatelliteEvent($event.option.value)'
+        [displayWith]="displayFn">
+        <mat-option *ngFor="let sat of satellitesFiltered$ | async" [value]="sat">
+          {{ sat.name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-divider *ngIf="selectedSatellite" class="mat-divider-custom" fxFlex="100"></mat-divider>
+
+    <mat-form-field *ngIf="selectedSatellite" ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Ciudad</mat-placeholder>
+      <input matInput readonly [value]="selectedSatellite.city">
+    </mat-form-field>
+
+    <mat-form-field *ngIf="selectedSatellite" ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Barrio</mat-placeholder>
+      <input matInput readonly [value]="selectedSatellite.neighborhood">
+    </mat-form-field>
+
+    <mat-form-field *ngIf="selectedSatellite" ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="50">
+      <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Dirección</mat-placeholder>
+      <input matInput readonly [value]="selectedSatellite.addressLine1">
+    </mat-form-field>
+
+    <div ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex="100" fxLayoutAlign="center center">
+      <button [disabled]="!selectedSatellite" mat-stroked-button color="primary" (click)="linkSatellite()">
+        <mat-icon>link</mat-icon>Vincular Satélite
+      </button>
+    </div>
+  </div>
+  <!-- OVERVIEW ABOUT SATELLITE SELECTED WITH AUTOCOMPLETE -->
+
+  <!-- MESSAGE TO NOTIFY ERROR LINKING SATELLITE -->
+  <div *ngIf="triedToLinkSatellite">
+
+  </div>
+  <!-- MESSAGE TO NOTIFY ERROR LINKING SATELLITE -->
+
+</div>
+

@@ -3,7 +3,7 @@ import { ServiceService } from '../../service.service';
 import { Subject, of, interval } from 'rxjs';
 import { takeUntil, filter, debounceTime } from 'rxjs/operators';
 import { MatBottomSheet } from '@angular/material';
-import { CancelSheet } from '../../location/location.component';
+import { CancelSheetComponent } from '../../location/location.component';
 
 @Component({
   selector: 'app-assigned',
@@ -49,7 +49,7 @@ export class AssignedComponent implements OnInit, OnDestroy {
   }
 
   openCancelSheet() {
-    this.bottomSheet.open(CancelSheet);
+    this.bottomSheet.open(CancelSheetComponent);
   }
 
   getPickUpETA() {

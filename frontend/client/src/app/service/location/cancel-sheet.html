@@ -3,22 +3,12 @@
     <h4 style="color: white" class="filter-txt">Por favor cuentanos la razón de cancelación:</h4>
   </div>
 
-  <mat-radio-group
-    fxLayout="column"
-    fxLayoutAlign=" none"
-    style="width: 100%; color: white; margin-bottom: 20px"
-    aria-labelledby="example-radio-group-label"
-    [(ngModel)]="selectedOption"
-    (ngModelChange)="onNgModelChange($event)"
-  >
-    <mat-radio-button
-      class="example-radio-button"
-      *ngFor="let crl of cancelReasonList"
-      [value]="crl.value"
-      color="warn"
-      style="margin-bottom: 10px"
-    >
-      {{ crl.text }}
-    </mat-radio-button>
+  <mat-radio-group fxLayout="column" fxLayoutAlign=" none" style="width: 100%; color: white; margin-bottom: 20px"
+    aria-labelledby="example-radio-group-label" [(ngModel)]="selectedOption" (ngModelChange)="onNgModelChange($event)">
+    <div *ngFor="let crl of cancelReasonList">
+      <mat-radio-button class="example-radio-button" [value]="crl.value" color="warn" style="margin-bottom: 10px">
+        {{ crl.text }}
+      </mat-radio-button>
+    </div>
   </mat-radio-group>
 </div>

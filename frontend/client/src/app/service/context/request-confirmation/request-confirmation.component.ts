@@ -19,6 +19,109 @@ import { MatSnackBar } from '@angular/material';
 import { Subject } from 'rxjs';
 import { MapsAPILoader } from '@agm/core';
 
+
+@Component({
+  selector: 'app-filter-sheet',
+  templateUrl: 'filter-sheet.html',
+  styleUrls: ['./request-confirmation.component.scss']
+})
+export class FilterSheetComponent implements OnInit {
+  imgVip = '../../../../assets/icons/context/icon_vip.png';
+  imgAc = '../../../../assets/icons/context/icon_grill.png';
+  imgGrill;
+  imgTrunk;
+  constructor(
+    private bottomSheetRef: MatBottomSheetRef<FilterSheetComponent>,
+    private serviceService: ServiceService,
+    private cdRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.imgVip = this.findRequestFeature('VIP')
+      ? '../../../../assets/icons/context/icon_vip_active.png'
+      : '../../../../assets/icons/context/icon_vip.png';
+
+    this.imgAc = this.findRequestFeature('AC')
+      ? '../../../../assets/icons/context/icon_air_active.png'
+      : '../../../../assets/icons/context/icon_air.png';
+
+    this.imgGrill = this.findRequestFeature('ROOF_RACK')
+      ? '../../../../assets/icons/context/icon_grill_active.png'
+      : '../../../../assets/icons/context/icon_grill.png';
+
+    this.imgTrunk = this.findRequestFeature('TRUNK')
+      ? '../../../../assets/icons/context/icon_trunk_active.png'
+      : '../../../../assets/icons/context/icon_trunk.png';
+
+    this.cdRef.detectChanges();
+  }
+
+  openLink(event: MouseEvent): void {
+    this.bottomSheetRef.dismiss();
+    event.preventDefault();
+  }
+
+  enableDisableVip() {
+    this.imgVip = this.addRemoveRequestFeature('VIP')
+      ? '../../../../assets/icons/context/icon_vip_active.png'
+      : '../../../../assets/icons/context/icon_vip.png';
+    this.cdRef.detectChanges();
+  }
+
+  enableDisableAc() {
+    this.imgAc = this.addRemoveRequestFeature('AC')
+      ? '../../../../assets/icons/context/icon_air_active.png'
+      : '../../../../assets/icons/context/icon_air.png';
+    this.cdRef.detectChanges();
+  }
+
+  enableDisableGrill() {
+    this.imgGrill = this.addRemoveRequestFeature('ROOF_RACK')
+      ? '../../../../assets/icons/context/icon_grill_active.png'
+      : '../../../../assets/icons/context/icon_grill.png';
+    this.cdRef.detectChanges();
+  }
+
+  enableDisableTrunk() {
+    this.imgTrunk = this.addRemoveRequestFeature('TRUNK')
+      ? '../../../../assets/icons/context/icon_trunk_active.png'
+      : '../../../../assets/icons/context/icon_trunk.png';
+    this.cdRef.detectChanges();
+  }
+
+  private addRemoveRequestFeature(requestFeature) {
+    let enabled = false;
+    const currentService = this.serviceService.currentService$.getValue();
+    if (!currentService.requestedFeatures) {
+      currentService.requestedFeatures = [];
+    }
+    const found = currentService.requestedFeatures.findIndex(element => {
+      return element === requestFeature;
+    });
+    if (found >= 0) {
+      currentService.requestedFeatures.splice(found, 1);
+    } else {
+      enabled = true;
+      currentService.requestedFeatures.push(requestFeature);
+    }
+    this.serviceService.publishServiceChanges(currentService);
+    return enabled;
+  }
+
+  private findRequestFeature(requestFeature) {
+    const currentService = this.serviceService.currentService$.getValue();
+    if (!currentService.requestedFeatures) {
+      currentService.requestedFeatures = [];
+    }
+    const found = currentService.requestedFeatures.findIndex(element => {
+      return element === requestFeature;
+    });
+
+    return found >= 0;
+  }
+}
+
+
 @Component({
   selector: 'app-request-confirmation',
   templateUrl: './request-confirmation.component.html',
@@ -30,7 +133,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
   currentAddress = '';
   fxFlexTip = 40;
   fxFlexFilter = 40;
-  addressInputValue: String;
+  addressInputValue: string;
   autocomplete: any;
   showHeader = true;
   @ViewChild('search')
@@ -58,7 +161,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
   }
 
   openBottomSheet(): void {
-    this.bottomSheet.open(FilterSheet);
+    this.bottomSheet.open(FilterSheetComponent);
   }
 
   cancel() {
@@ -97,9 +200,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
             ) {
               switch (resp.errors.extensions.exception.code) {
                 case 23002:
-                  this.showSnackMessage(
-                    'Usuario no tiene privilegios para crear servicios, solo los usuarios creados desde el app cliente pueden realizar esta acción'
-                  );
+                  this.showSnackMessage(`Usuario no tiene privilegios para crear servicios, solo los usuarios
+                  creados desde el app cliente pueden realizar esta acción`);
                   break;
                 case 23002:
                   this.showSnackMessage(
@@ -256,106 +358,5 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
           }
         }
       });
-  }
-}
-
-@Component({
-  selector: 'app-filter-sheet',
-  templateUrl: 'filter-sheet.html',
-  styleUrls: ['./request-confirmation.component.scss']
-})
-export class FilterSheet implements OnInit {
-  imgVip = '../../../../assets/icons/context/icon_vip.png';
-  imgAc = '../../../../assets/icons/context/icon_grill.png';
-  imgGrill;
-  imgTrunk;
-  constructor(
-    private bottomSheetRef: MatBottomSheetRef<FilterSheet>,
-    private serviceService: ServiceService,
-    private cdRef: ChangeDetectorRef
-  ) {}
-
-  ngOnInit(): void {
-    this.imgVip = this.findRequestFeature('VIP')
-      ? '../../../../assets/icons/context/icon_vip_active.png'
-      : '../../../../assets/icons/context/icon_vip.png';
-
-    this.imgAc = this.findRequestFeature('AC')
-      ? '../../../../assets/icons/context/icon_air_active.png'
-      : '../../../../assets/icons/context/icon_air.png';
-
-    this.imgGrill = this.findRequestFeature('ROOF_RACK')
-      ? '../../../../assets/icons/context/icon_grill_active.png'
-      : '../../../../assets/icons/context/icon_grill.png';
-
-    this.imgTrunk = this.findRequestFeature('TRUNK')
-      ? '../../../../assets/icons/context/icon_trunk_active.png'
-      : '../../../../assets/icons/context/icon_trunk.png';
-
-    this.cdRef.detectChanges();
-  }
-
-  openLink(event: MouseEvent): void {
-    this.bottomSheetRef.dismiss();
-    event.preventDefault();
-  }
-
-  enableDisableVip() {
-    this.imgVip = this.addRemoveRequestFeature('VIP')
-      ? '../../../../assets/icons/context/icon_vip_active.png'
-      : '../../../../assets/icons/context/icon_vip.png';
-    this.cdRef.detectChanges();
-  }
-
-  enableDisableAc() {
-    this.imgAc = this.addRemoveRequestFeature('AC')
-      ? '../../../../assets/icons/context/icon_air_active.png'
-      : '../../../../assets/icons/context/icon_air.png';
-    this.cdRef.detectChanges();
-  }
-
-  enableDisableGrill() {
-    this.imgGrill = this.addRemoveRequestFeature('ROOF_RACK')
-      ? '../../../../assets/icons/context/icon_grill_active.png'
-      : '../../../../assets/icons/context/icon_grill.png';
-    this.cdRef.detectChanges();
-  }
-
-  enableDisableTrunk() {
-    this.imgTrunk = this.addRemoveRequestFeature('TRUNK')
-      ? '../../../../assets/icons/context/icon_trunk_active.png'
-      : '../../../../assets/icons/context/icon_trunk.png';
-    this.cdRef.detectChanges();
-  }
-
-  private addRemoveRequestFeature(requestFeature) {
-    let enabled = false;
-    const currentService = this.serviceService.currentService$.getValue();
-    if (!currentService.requestedFeatures) {
-      currentService.requestedFeatures = [];
-    }
-    const found = currentService.requestedFeatures.findIndex(element => {
-      return element === requestFeature;
-    });
-    if (found >= 0) {
-      currentService.requestedFeatures.splice(found, 1);
-    } else {
-      enabled = true;
-      currentService.requestedFeatures.push(requestFeature);
-    }
-    this.serviceService.publishServiceChanges(currentService);
-    return enabled;
-  }
-
-  private findRequestFeature(requestFeature) {
-    const currentService = this.serviceService.currentService$.getValue();
-    if (!currentService.requestedFeatures) {
-      currentService.requestedFeatures = [];
-    }
-    const found = currentService.requestedFeatures.findIndex(element => {
-      return element === requestFeature;
-    });
-
-    return found >= 0;
   }
 }

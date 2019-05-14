@@ -14,14 +14,14 @@ import { NgProgressRouterModule } from '@ngx-progressbar/router';
 import { MenuComponent } from './menu/menu.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { LocationComponent, CancelSheet } from './service/location/location.component';
+import { LocationComponent, CancelSheetComponent } from './service/location/location.component';
 import { HistoryComponent } from './history/history.component';
 import { keycloakInitializer } from './auth/keycloakInitializer';
 import { ServiceComponent } from './service/service.component';
 import { ContextComponent } from './service/context/context.component';
 import { AddressComponent } from './service/address/address.component';
 import { RequestButtonComponent } from './service/context/request-button/request-button.component';
-import { RequestConfirmationComponent, FilterSheet } from './service/context/request-confirmation/request-confirmation.component';
+import { RequestConfirmationComponent, FilterSheetComponent } from './service/context/request-confirmation/request-confirmation.component';
 import { RequestedComponent } from './service/context/requested/requested.component';
 import { RequestedProgressComponent } from './service/location/requested-progress/requested-progress.component';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
@@ -33,6 +33,7 @@ import { AssignedComponent } from './service/context/assigned/assigned.component
 import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog-arrived.component';
 import { OnboardComponent } from './service/context/onboard/onboard.component';
 import { ContactUsComponent } from './contact-us/contact-us.component';
+import { MenuService } from './menu/menu.service';
 
 @NgModule({
   declarations: [
@@ -46,14 +47,14 @@ import { ContactUsComponent } from './contact-us/contact-us.component';
     AddressComponent,
     RequestButtonComponent,
     RequestConfirmationComponent,
-    FilterSheet,
-    CancelSheet,
+    FilterSheetComponent,
+    CancelSheetComponent,
     RequestedComponent,
     RequestedProgressComponent,
     AssignedComponent,
     DialogArrivedComponent,
     OnboardComponent,
-    ContactUsComponent
+    ContactUsComponent,
   ],
   imports: [
     BrowserModule,
@@ -86,9 +87,10 @@ import { ContactUsComponent } from './contact-us/contact-us.component';
       multi: true,
       deps: [KeycloakService]
     },
-    GatewayService
+    GatewayService,
+    MenuService
   ],
-  entryComponents: [FilterSheet, CancelSheet, DialogArrivedComponent, ContactUsComponent],
+  entryComponents: [FilterSheetComponent, CancelSheetComponent, DialogArrivedComponent, ContactUsComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -1,13 +1,6 @@
 <div class="page-layout blank p-24" fusePerfectScrollbar>
-  <mat-grid-list
-    *ngIf="
-      layoutType === LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT ||
-      layoutType === LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT
-    "
-    [cols]="[screenCols]"
-    rowHeight="10px"
-    gutterSize="0px"
-  >
+  <mat-grid-list *ngIf="layoutType === LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT || layoutType === LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT"
+    [cols]="[screenCols]" rowHeight="10px" gutterSize="0px">
     <mat-grid-tile [colspan]="[addressCols]" [rowspan]="[addressRows]">
       <app-address class="container"></app-address>
     </mat-grid-tile>
@@ -19,29 +12,18 @@
     </mat-grid-tile>
   </mat-grid-list>
 
-  <mat-grid-list
-    *ngIf="
-      layoutType === LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT ||
-      layoutType === LAYOUT_DESKTOP_MAP_CONTENT
-    "
-    [cols]="[screenCols]"
-    rowHeight="10px"
-    gutterSize="0px"
-  >
-  <mat-grid-tile [colspan]="[contextCols]" [rowspan]="[contextRows]">
-    <app-context class="container"></app-context>
-  </mat-grid-tile>
+  <mat-grid-list *ngIf=" layoutType === LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT ||layoutType === LAYOUT_DESKTOP_MAP_CONTENT"
+    [cols]="[screenCols]" rowHeight="10px" gutterSize="0px">
+    <mat-grid-tile [colspan]="[contextCols]" [rowspan]="[contextRows]">
+      <app-context class="container"></app-context>
+    </mat-grid-tile>
     <mat-grid-tile [colspan]="[mapCols]" [rowspan]="[mapRows]">
       <app-location class="container"></app-location>
     </mat-grid-tile>
   </mat-grid-list>
 
-  <mat-grid-list
-    *ngIf="layoutType === LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT"
-    [cols]="[screenCols]"
-    rowHeight="10px"
-    gutterSize="0px"
-  >
+  <mat-grid-list *ngIf="layoutType === LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT" [cols]="[screenCols]"
+    rowHeight="10px" gutterSize="0px">
     <mat-grid-tile [colspan]="[addressCols]" [rowspan]="[addressRows]">
       <app-address class="container"></app-address>
     </mat-grid-tile>
@@ -55,12 +37,8 @@
     </mat-grid-tile>
   </mat-grid-list>
 
-  <mat-grid-list
-    *ngIf="layoutType === LAYOUT_MOBILE_VERTICAL_MAP_CONTENT"
-    [cols]="[screenCols]"
-    rowHeight="10px"
-    gutterSize="0px"
-  >
+  <mat-grid-list *ngIf="layoutType === LAYOUT_MOBILE_VERTICAL_MAP_CONTENT" [cols]="[screenCols]" rowHeight="10px"
+    gutterSize="0px">
     <mat-grid-tile [colspan]="[mapCols]" [rowspan]="[mapRows]">
       <app-location class="container"></app-location>
     </mat-grid-tile>
@@ -70,16 +48,12 @@
     </mat-grid-tile>
   </mat-grid-list>
 
-  <mat-grid-list
-    *ngIf="layoutType === LAYOUT_ADDRESS_MAP_CONTENT"
-    [cols]="[screenCols]"
-    rowHeight="10px"
-    gutterSize="0px"
-  >
+  <mat-grid-list *ngIf="layoutType === LAYOUT_ADDRESS_MAP_CONTENT" [cols]="[screenCols]" rowHeight="10px"
+    gutterSize="0px">
     <mat-grid-tile [colspan]="[addressCols]" [rowspan]="[addressRows]">
-      <div fxLayout="row" fxLayoutAlign="start center"  style="width: 100%; height: 100%;">
-          <app-address fxFlex="70" class="container"></app-address>
-          <app-context fxFlex="30" class="container"></app-context>
+      <div fxLayout="row" fxLayoutAlign="start center" style="width: 100%; height: 100%;">
+        <app-address fxFlex="70" class="container"></app-address>
+        <app-context fxFlex="30" class="container"></app-context>
       </div>
 
     </mat-grid-tile>

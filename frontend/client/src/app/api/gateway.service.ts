@@ -64,27 +64,27 @@ export class GatewayService {
         });
 
         ws.subscriptionClient.onConnecting(() => {
-          //console.log("Subscription client connecting...");
+          // console.log("Subscription client connecting...");
           this.onSubscriptionClientEvent$.next('connecting');
         });
 
         ws.subscriptionClient.onConnected(() => {
-          console.log("Subscription client connected");
+          console.log('Subscription client connected');
           this.onSubscriptionClientEvent$.next('connected');
         });
 
         ws.subscriptionClient.onReconnecting(() => {
-          //console.log("Subscription client reconnecting...");
+          // console.log("Subscription client reconnecting...");
           this.onSubscriptionClientEvent$.next('reconnecting');
         });
 
         ws.subscriptionClient.onReconnected(() => {
-          console.log("Subscription client reconnected");
+          console.log('Subscription client reconnected');
           this.onSubscriptionClientEvent$.next('reconnected');
         });
 
         ws.subscriptionClient.onDisconnected(() => {
-          console.log("Subscription client disconnected");
+          console.log('Subscription client disconnected');
           this.onSubscriptionClientEvent$.next('disconnected');
         });
 

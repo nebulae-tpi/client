@@ -1,0 +1,68 @@
+
+/* STYLE FOR XS LAYOUT MEDIA QUERY */
+.xs-content {
+  padding-top: 20px;
+}
+
+.xs-placeholder {
+  font-size: 20px;
+}
+
+.xs-mff {
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+.xs-mff-input {
+  font-size: 22px;
+}
+
+.xs-action-btn {
+  margin: 10px;
+}
+
+
+.xs-placeholder {
+  font-size: 20px;
+}
+
+/* mat-form-field */
+.xs-mff {
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-right: 20px;
+  padding-left: 20px;
+}
+.xs-mff-input {
+  font-size: 18px;
+}
+/* STYLE FOR XS LAYOUT MEDIA QUERY */
+
+/* STYLE FOR GT-XS LAYOUT MEDIA QUERY */
+
+
+.gt-xs-content {
+  padding: 50px;
+}
+
+.gt-xs-content {
+  padding: 50px;
+}
+.gt-xs-mff {
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-right: 20px;
+  padding-left: 20px;
+}
+.gt-xs-mff-input {
+  font-size: 18px;
+}
+
+.gt-xs-action-btn{
+  margin: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* STYLE FOR GT-XS LAYOUT MEDIA QUERY */

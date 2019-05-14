@@ -37,10 +37,10 @@ export class AppComponent {
             window.history.pushState({ exit: true }, '');
           }, 2000);
           this.lastBack = new Date();
-          this.showSnackMessage('Pulsa atrás otra vez para salir');
+          this.showSnackMessage('Pulsa atrás de nuevo para salir');
         }
       }
-    })
+    });
   }
 
   showSnackMessage(message) {

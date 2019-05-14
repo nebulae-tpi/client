@@ -7,11 +7,9 @@ import { MatDialogRef } from '@angular/material';
   styleUrls: ['./dialog-arrived.component.scss']
 })
 export class DialogArrivedComponent implements OnInit {
+  constructor(public dialogRef: MatDialogRef<DialogArrivedComponent>) {}
 
-  constructor(public dialogRef: MatDialogRef<DialogArrivedComponent>) { }
-
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   close(): void {
     this.dialogRef.close();

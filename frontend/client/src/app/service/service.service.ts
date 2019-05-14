@@ -136,20 +136,13 @@ export class ServiceService {
           })
         );
     } else {
-      console.log('se retorna undefined: ');
+      // console.log('se retorna undefined: ');
       return of(undefined);
     }
   }
   /* #endregion */
 
   /* #region  MUTATIONS */
-  validateNewClient$() {
-    return this.gateway.apollo.mutate<any>({
-      mutation: ValidateNewClient,
-      errorPolicy: 'all'
-    });
-  }
-
   cancelService$(reason) {
     return this.gateway.apollo.mutate<any>({
       mutation: CancelServiceByClient,
@@ -161,13 +154,7 @@ export class ServiceService {
     });
   }
 
-  createNewService$(
-    clientUsername: String,
-    pickUpLocation,
-    address: String,
-    reference: String,
-    serviceTip
-  ) {
+  createNewService$(clientUsername: string, pickUpLocation, address: string, reference: string, serviceTip) {
     return this.gateway.apollo.mutate<any>({
       mutation: RequestService,
       variables: {
