@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { MenuService } from '../menu/menu.service';
+import { combineLatest } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-satellite',
@@ -6,7 +9,30 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./satellite.component.css']
 })
 export class SatelliteComponent implements OnInit {
-  constructor() {}
+  userProfile: any;
+  satellite: any;
+  servicesAtQueued: any[];
 
-  ngOnInit() {}
+  constructor(
+    private menuService: MenuService
+  ) {}
+
+  ngOnInit() {
+    this.loadSatelliteAndUserProfile();
+  }
+
+
+  loadSatelliteAndUserProfile(){
+   combineLatest(     
+     this.menuService.currentUserProfile$,
+     this.menuService.currentLinkedSatellite$,
+   )
+   .pipe(
+     tap(([userProfile, satellite]) => {
+       this.userProfile = userProfile;
+       this.satellite = satellite
+     })
+   )
+   .subscribe();
+  }
 }

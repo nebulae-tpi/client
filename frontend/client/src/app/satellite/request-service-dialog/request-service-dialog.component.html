@@ -1,0 +1,85 @@
+<form [formGroup]="form" (ngSubmit)="submit(form)">
+    <div class="nav" fxLayout="column">
+        <mat-dialog-content *ngIf="data.type == 0" fxLayout="column" fxLayoutAlign="start" fxFlex="100">
+            <div fxLayout="column" fxLayoutAlign="space-between center" fxFlex="100">
+                <div fxLayout="row wrap" fxLayoutAlign="space-between center" fxFlex="100">
+
+                    <h2 mat-dialog-title fxFlex="100">Solicitud De Servicio</h2>
+
+                    <mat-dialog-actions fxFlex="100" fxLayoutAlign="center center">
+                        <button fxFlex="80" mat-raised-button color="primary" type="submit">
+                            Solicitar
+                        </button>
+                    </mat-dialog-actions>
+                    <!-- </div> -->
+
+                    <mat-divider style="visibility:  hidden; height: 20px;" fxFlex="100"></mat-divider>
+
+                    <div fxFlex="95" fxLayout="row" fxLayoutAlign="space-between center">
+                        <div class="h2 secondary-text" fxLayoutAlign="left center" fxFlex="20">
+                            <mat-icon class="icon s-40 mr-16">local_taxi</mat-icon>
+                            <span>{{form.controls['quantity'].value}}</span>
+                        </div>
+                        <mat-slider max="5" min="1" step="1" thumbLabel="true" tickInterval="1"
+                            formControlName="quantity" fxFlex="70">
+                        </mat-slider>
+                    </div>
+
+                    <mat-divider style="visibility:  hidden; height: 10px;" fxFlex="100"></mat-divider>
+                    <div fxFlex="100" fxLayout="row" fxLayoutAlign="end center">
+                        <mat-button-toggle-group name="featureOptionsGroup" formControlName="featureOptionsGroup"
+                            multiple="true">
+                            <mat-button-toggle value="AC">
+                                <mat-icon
+                                    [ngClass]="{'icon_white': form.get('featureOptionsGroup').value.includes('AC') }">
+                                    ac_unit</mat-icon>
+                            </mat-button-toggle>
+                            <mat-button-toggle value="TRUNK">
+                                <mat-icon
+                                    [ngClass]="{'icon_white': form.get('featureOptionsGroup').value.includes('TRUNK') }">
+                                    work</mat-icon>
+                            </mat-button-toggle>
+                            <mat-button-toggle value="ROOF_RACK">
+                                <mat-icon
+                                    [ngClass]="{'icon_white': form.get('featureOptionsGroup').value.includes('ROOF_RACK') }">
+                                    grid_on</mat-icon>
+                            </mat-button-toggle>
+                            <mat-button-toggle value="PETS">
+                                <mat-icon
+                                    [ngClass]="{'icon_white': form.get('featureOptionsGroup').value.includes('PETS') }">
+                                    pets</mat-icon>
+                            </mat-button-toggle>
+                            <mat-button-toggle value="BIKE_RACK">
+                                <mat-icon
+                                    [ngClass]="{'icon_white': form.get('featureOptionsGroup').value.includes('BIKE_RACK') }">
+                                    motorcycle</mat-icon>
+                            </mat-button-toggle>
+                        </mat-button-toggle-group>
+                    </div>
+
+                    <mat-divider style="visibility:  hidden; height: 10px;" fxFlex="100"></mat-divider>
+
+                    <div fxFlex="100" fxLayout="row" fxLayoutAlign="space-between center">
+                        <div class="h2 secondary-text" fxLayoutAlign="left center" fxFlex="20">
+                            <mat-icon class="icon s-40 mr-16">attach_money</mat-icon>
+                        </div>
+                        <span fxFlex></span>
+                        <mat-button-toggle-group name="destinationOptionsGroup"
+                            formControlName="destinationOptionsGroup">
+                            <mat-button-toggle value="DEFAULT" selec class="text-bold">
+                                $ {{clientDefaultTip | number}}
+                            </mat-button-toggle>
+                            <mat-button-toggle value="5000" class="text-bold">
+                                $ 5,000
+                            </mat-button-toggle>
+                            <mat-button-toggle value="10000" class="text-bold">
+                                $ 10,000
+                            </mat-button-toggle>
+                        </mat-button-toggle-group>
+                    </div>
+
+                </div>
+            </div>
+        </mat-dialog-content>
+    </div>
+</form>

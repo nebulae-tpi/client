@@ -12,7 +12,8 @@ const routes: Routes = [
       { path: 'service', component: ServiceComponent },
       { path: '', component: ServiceComponent},
       { path: 'history', component: HistoryComponent },
-      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canActivate: [ AppAuthGuard ] }
+      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canActivate: [ AppAuthGuard ] },
+      { path: 'satellite', loadChildren: './satellite/satellite.module#SatelliteModule' }
     // { path: '', loadChildren: './transaction/transaction.module#TransactionModule' },
     // { path: 'a', loadChildren: './account/account.module#AccountModule' },
        // canActivate: [

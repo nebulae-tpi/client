@@ -1,0 +1,30 @@
+.mat-button-toggle-checked {
+  // background-color: #3F51B5;
+  background-color: #3C4252;
+  color: white;
+}
+
+.icon_white { color: #FFFFFF; }
+
+.text-bold{
+  font-weight: bold;  
+}
+
+.tip-with-border{
+  border: 2px solid grey;
+  border-radius: 5px;
+  height: 35px;
+  text-align: left !important
+}
+
+
+::ng-deep .mat-accent .mat-slider-thumb {
+  background-color: #3C4252;
+} 
+::ng-deep .mat-accent .mat-slider-thumb-label {
+  background-color: #3C4252;
+} 
+::ng-deep .mat-accent .mat-slider-track-fill {
+  background-color: #3C4252;
+} 
+

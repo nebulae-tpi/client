@@ -1,8 +1,18 @@
-<!-- PHONES LAYOUT -->
-<div fxHide.gt-xs style="padding-top: 20px" fxFlex="100" fxLayout="row wrap">
+<!-- PHONES LAYOUT  xs media query -->
+<!-- DESKTOP LAYOUT gt-xs media query -->
+<div ngClass.xs="xs-content" ngClass.gt-xs="gt-xs-content" fxFlex="100" fxLayout="column">
 
-</div>
-<!-- DESKTOP LAYOUT -->
-<div fxHide fxShow.gt-xs fxFlex="100" fxLayout="row wrap">
+    <!-- TOOLBAR -->
+    <div class="toolbar" ngClass.xs="xs-toolbar" ngClass.gt-xs="gt-xs-toolbar" fxLayout="column">
 
+    </div>
+    <!-- TOOLBAR -->
+
+    <!-- DATA TABLE -->
+    <div class="service-table" ngClass.xs="xs-service-table" ngClass.gt-xs="gt-xs-service-table" fxLayout="column">
+        <div *ngFor="let service of servicesAtQueued" ngClass.xs="xs-service-item" ngClass.gt-xs="gt-xs-service-item">
+            
+        </div>        
+    </div>
+    <!-- DATA TABLE -->
 </div>
