@@ -42,6 +42,11 @@
           <a (click)="closeMenu()" mat-list-item class="ml-2" href="#">Profile</a>
         </mat-list-item>
 
+        <mat-list-item>
+          <mat-icon>assignment</mat-icon>
+          <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['/satellite']">Satélite</a>
+        </mat-list-item>
+
         <mat-list-item *ngIf="false">
           <mat-icon>settings</mat-icon>
           <a (click)="closeMenu()" mat-list-item class="ml-2" href="#">Settings</a>
@@ -72,7 +77,8 @@
       <button mat-icon-button (click)="sidenav.toggle()" fxShow.sm="true" fxShow.gt-sm="false">
         <mat-icon>menu</mat-icon>
       </button>
-      <div *ngIf="selectedSatellite && selectedSatellite.tipType == 'VIRTUAL_WALLET'" style="width: 100%; color: white" fxLayoutAlign="center center">
+      <!-- *ngIf="selectedSatellite && selectedSatellite.tipType == 'VIRTUAL_WALLET'" -->
+      <div  style="width: 100%; color: white" fxLayoutAlign="center center">
         <div style="font-size: 25px">
           $125.000
         </div>

@@ -1,0 +1,57 @@
+/* [START] xs media query styles */
+.xs-content {
+  padding: 5px;
+}
+.xs-service-item{
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+.xs-toolbar{
+  height: 60px;
+  .toolbar-buttons{
+    height: 100%;
+  }
+}
+/* [END]   xs media query styles */
+
+/* [START] gt-xs media query styles */
+.gt-xs-content {
+  padding: 10px;
+}
+
+/* [END]   gtxsxs media query styles */
+.toolbar {
+  background-color: #3c4252 !important;
+}
+
+.border{
+  /* margin-top: 5px;
+  padding-top: 10px; */
+  border-style: solid;
+  border-radius: 10px;
+}
+
+.service-table {
+  background: whitesmoke;
+  overflow: auto;
+}
+
+.td-container {
+  position: relative;
+}
+.td-content {
+  position: absolute;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.mat-request-service-dialog {
+  overflow: hidden;
+  border-radius: 5px;
+  padding: 5px;
+  background-color: rgba(68, 68, 68, 0.933) !important;
+  color: white;
+}

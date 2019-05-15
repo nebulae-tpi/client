@@ -2,17 +2,116 @@
 <!-- DESKTOP LAYOUT gt-xs media query -->
 <div ngClass.xs="xs-content" ngClass.gt-xs="gt-xs-content" fxFlex="100" fxLayout="column">
 
-    <!-- TOOLBAR -->
-    <div class="toolbar" ngClass.xs="xs-toolbar" ngClass.gt-xs="gt-xs-toolbar" fxLayout="column">
+  <!-- TOOLBAR -->
+  <div class="toolbar" ngClass.xs="xs-toolbar" ngClass.gt-xs="gt-xs-toolbar" fxLayoutAlign="start none">
+    <button class="toolbar-buttons" mat-button (click)="updateTable()">
+      <mat-icon fxHide fxShow.xs fxFill ngStyle.xs="font-size: 40px">refresh</mat-icon>
+      <mat-icon fxHide.xs ngStyle.xs="font-size: 40px">refresh</mat-icon>
+      <span fxHide.xs> Actualizar </span>
+    </button>
+    <span fxFlex></span>
+    <button mat-button (click)="requestService()">
+      <mat-icon span ngStyle.xs="font-size: 40px">add_box</mat-icon> <span fxHide.xs>Solicitar</span>
+    </button>
 
-    </div>
-    <!-- TOOLBAR -->
+  </div>
+  <!-- TOOLBAR -->
 
-    <!-- DATA TABLE -->
-    <div class="service-table" ngClass.xs="xs-service-table" ngClass.gt-xs="gt-xs-service-table" fxLayout="column">
-        <div *ngFor="let service of servicesAtQueued" ngClass.xs="xs-service-item" ngClass.gt-xs="gt-xs-service-item">
-            
-        </div>        
-    </div>
-    <!-- DATA TABLE -->
+  <!-- DATA TABLE -->
+  <div class="service-table" ngClass.xs="xs-service-table" ngClass.gt-xs="gt-xs-service-table" fxLayout="column" >
+    <table mat-table [dataSource]="servicesAtQueued">
+
+      <ng-container matColumnDef="state">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let service"
+          [class.bg-red]="service.style.state.bgColor == 'red'"
+          [class.bg-yellow]="service.style.state.bgColor == 'yellow'"
+          [class.bg-green]="service.style.state.bgColor == 'green'"
+          [class.bg-white]="service.style.state.bgColor == 'white'">
+          <div class="td-container" [class.font-black]="service.style.state.fontColor == 'black'"
+            [class.font-white]="service.style.state.fontColor == 'white'"
+            [class.font-yellow]="service.style.state.fontColor == 'yellow'"
+            [class.font-red]="service.style.state.fontColor == 'red'" [class.font-bold]="service.style.state.fontBold">
+            <div>{{ service.state }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="creation_timestamp">
+        <th *matHeaderCellDef mat-header-cell fxHide.xs> Hora </th>
+        <td *matCellDef="let service" mat-cell fxHide.xs>
+          <div class="td-container">
+            <div> {{service.creation_timestamp | date: "HH:mm:ss" }} </div>
+          </div>
+        </td>
+      </ng-container>
+
+
+      <ng-container matColumnDef="vehicle_plate">
+        <th mat-header-cell *matHeaderCellDef>Placa</th>
+        <td mat-cell *matCellDef="let service">
+          <div class="td-container">
+            <div>{{service.vehicle_plate}}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="eta">
+        <th mat-header-cell *matHeaderCellDef>ETA</th>
+        <td mat-cell *matCellDef="let service">
+          <div class="td-container">
+            <div>{{service.eta}}</div>
+          </div>
+        </td>
+      </ng-container>
+
+
+      <ng-container matColumnDef="actions">
+          <th *matHeaderCellDef mat-header-cell >Acciones</th>
+          <td *matCellDef="let service" mat-cell (click)="$event.stopPropagation()" >
+              <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{serviceId: service.id}">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+          </td>
+        </ng-container>
+
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: false"></tr>
+      <tr mat-row class="item" *matRowDef="let row; columns: displayedColumns;"
+        [ngClass]="{'mat-row-selected': row.selected == '>'}" (click)="onRowSelected(row)">
+      </tr>
+
+
+      <!-- <div *ngFor="let service of servicesAtQueued" class="border" ngClass.xs="xs-service-item" ngClass.gt-xs="gt-xs-service-item"
+        fxLayout="row" fxLayoutAlign="start center">
+        <div> {{service.state}} </div>
+        <div> {{service.time}} </div>
+        <div> {{service.plate}} </div>
+        <div> {{service.eta}} </div>
+
+
+        <div fxFlex></div>
+        <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{serviceId: service.id}">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+      </div> -->
+    </table>
+  </div>
+
+
+  <!-- DATA TABLE -->
+
+  <mat-menu #menu="matMenu">
+    <ng-template matMenuContent let-serviceId="serviceId">
+      <button mat-menu-item (click)="cancelService(serviceId)">
+        <mat-icon>cancel</mat-icon>
+        <span>Cancelar</span>
+      </button>
+      <button mat-menu-item disabled>
+        <mat-icon>visibility</mat-icon>
+        <span>Detalles</span>
+      </button>
+    </ng-template>
+  </mat-menu>
+
 </div>

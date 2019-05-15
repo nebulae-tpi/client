@@ -1,26 +1,27 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import {
-  IOERequestService, IOEServices, IOECancelService, IOEServiceSubscription
+  RequestService, CurrentServices, CancelServiceByClient, IOEServiceSubscription
 } from './gql/satellite.js';
-import { GatewayService } from '../api/gateway.service.js';
+import { GatewayService } from '../api/gateway.service';
 
 
 @Injectable()
 export class SatelliteService {
 
 
-  constructor(private gateway: GatewayService) {
+  constructor(
+    private gateway: GatewayService
+    ) {
   }
 
   /**
    * send a request service command to the server
-   * @param IOERequest
    */
   requestService$(IOERequest: any) {
     return this.gateway.apollo
       .mutate<any>({
-        mutation: IOERequestService,
+        mutation: RequestService,
         variables: {
           client: IOERequest.client,
           pickUp: IOERequest.pickUp,
@@ -39,12 +40,11 @@ export class SatelliteService {
 
   /**
    * send a cancel service command to the server
-   * @param IOECommand
    */
   cancelService$(IOECommand: any) {
     return this.gateway.apollo
       .mutate<any>({
-        mutation: IOECancelService,
+        mutation: CancelServiceByClient,
         variables: {
           id: IOECommand.id,
           reason: IOECommand.reason,
@@ -58,15 +58,11 @@ export class SatelliteService {
 
   /**
    * Query all services filtered
-   * @param IOERequest
    */
-  queryServices$(serviceStatesFilter, serviceChannelsFilter, viewAllOperators, businessId, page, pageCount, monthsToAdd, projections) {
+  queryServices$() {
     return this.gateway.apollo
       .query<any>({
-        query: IOEServices,
-        variables: {
-          serviceStatesFilter, serviceChannelsFilter, viewAllOperators, businessId, page, pageCount, monthsToAdd, projections
-        },
+        query: CurrentServices,
         fetchPolicy: 'network-only',
         errorPolicy: 'all'
       });
