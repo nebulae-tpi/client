@@ -382,7 +382,7 @@ export class SatelliteComponent implements OnInit, OnDestroy {
 
 
   appendService$(service) {
-    const FINAL_STATES = ['ON_BOARD', 'COMPLETED'];
+    const FINAL_STATES = ['ON_BOARD', 'COMPLETED', 'DONE'];
     console.log('appendService$ ===> ');
     return of(this.partialData.findIndex(raw => raw.id === service._id))
     .pipe(
