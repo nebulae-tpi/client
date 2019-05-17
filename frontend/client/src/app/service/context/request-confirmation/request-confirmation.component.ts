@@ -16,7 +16,7 @@ import { ServiceService } from '../../service.service';
 import { ServiceState } from '../../service-state';
 import { filter, takeUntil, map, tap } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material';
-import { Subject } from 'rxjs';
+import { Subject, fromEvent } from 'rxjs';
 import { MapsAPILoader } from '@agm/core';
 
 
@@ -30,11 +30,12 @@ export class FilterSheetComponent implements OnInit {
   imgAc = '../../../../assets/icons/context/icon_grill.png';
   imgGrill;
   imgTrunk;
+
   constructor(
     private bottomSheetRef: MatBottomSheetRef<FilterSheetComponent>,
     private serviceService: ServiceService,
     private cdRef: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.imgVip = this.findRequestFeature('VIP')
@@ -139,13 +140,22 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
   @ViewChild('search')
   public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
+
+
+
+
+  // Selected place
+  selectedPlace: any = {};
+
+
+
   constructor(
     private bottomSheet: MatBottomSheet,
     private serviceService: ServiceService,
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.listenAddressChanges();
@@ -153,6 +163,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     this.listenLocationChanges();
     this.buildPlacesAutoComplete();
     this.addressInputValue = this.serviceService.addressChange$.getValue();
+
+    this.listenChangesOnSearch();
   }
 
   ngOnDestroy(): void {
@@ -174,6 +186,31 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     this.snackBar.open(message, 'Cerrar', {
       duration: 2000
     });
+  }
+
+  searchFavoritePlacesWithMatch(filterText) {
+    return [
+      {
+        name: 'Casa de mi tia',
+        location: {
+          lat: 1,
+          lng: 2
+        }
+      },
+      {
+        name: 'Universidad',
+        location: {
+          lat: 1,
+          lng: 2
+        }
+      },
+    ].filter(e => {
+      const eName = e.name.replace(/\./g,'').trim().toLowerCase();
+      const filterTextFixed = `${filterText}`
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // remove accents
+            .toLowerCase();
+      return eName.includes(filterTextFixed);
+    })
   }
 
   confirmService() {
@@ -264,6 +301,67 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     }
   }
 
+  listenChangesOnSearch() {
+    fromEvent(this.searchElementRef.nativeElement, 'keyup')
+      .pipe(
+        map(() => this.searchElementRef.nativeElement.value),
+        tap(inputValue => {
+
+          const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(inputValue);
+          console.log('ITEMS PARA AÑADIR', itemsToAutocomplete);
+          const s = document.getElementsByClassName("pac-container pac-logo");
+          let items = Array.from(s);
+
+
+          items.forEach(optionsParent => {
+            // remove all previuos favorite options
+            let itemsToRemove = optionsParent.getElementsByClassName('favorite-place');
+            while (itemsToRemove[0]) {
+              itemsToRemove[0].parentNode.removeChild(itemsToRemove[0])
+            }
+
+            itemsToAutocomplete.forEach(e => {
+
+              const node = document.createElement('div');
+              node.setAttribute('class', 'pac-item');
+              node.setAttribute('class', 'pac-item favorite-place');
+              node.innerHTML = `
+              <span class="pac-icon pac-icon-marker"></span>
+              <span class="pac-item-query">
+              <span class="pac-matched">${e.name}</span></span>
+              `;
+
+              // <span>03, Providencia and Santa Catalina Islands, San Andrés and Providencia, Colombia</span>
+
+              optionsParent.insertBefore(node, optionsParent.firstChild);
+
+            })
+
+
+
+            // const node = document.createElement('div');
+            // node.setAttribute('class', 'pac-item');
+            // node.setAttribute('class', 'pac-item favorite-place');
+            // node.innerHTML = `
+            // <span class="pac-icon pac-icon-marker"></span>
+            // <span class="pac-item-query">
+            // <span class="pac-matched">Felipe</span> Diving Center</span>
+            // <span>03, Providencia and Santa Catalina Islands, San Andrés and Providencia, Colombia</span>
+            // `;
+
+            // optionsParent.insertBefore(node, optionsParent.firstChild);
+
+
+          });
+
+
+
+        }),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe()
+  }
+
   buildPlacesAutoComplete() {
     if (this.searchElementRef) {
       this.mapsAPILoader.load().then(() => {
@@ -273,6 +371,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
             componentRestrictions: { country: 'co' }
           }
         );
+
         this.autocomplete.addListener('place_changed', () => {
           this.ngZone.run(() => {
             // get the place result
@@ -281,7 +380,13 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
             if (!place || place.geometry === undefined || place.geometry === null) {
               return;
             }
-            this.addressInputValue = place.formatted_address.split(',')[0];
+            // this.addressInputValue = place.formatted_address.split(',')[0];
+
+            const { address_components, name, formatted_address } = place;
+            const stringsToRemove = [', Antioquia', ', Valle del Cauca', ', Colombia'];
+            this.addressInputValue = `${name}, ${formatted_address.split(',').slice(1)}`;
+            stringsToRemove.forEach(s => this.addressInputValue = this.addressInputValue.replace(s, ''));
+
             this.serviceService.locationChange$.next({
               latitude: place.geometry.location.lat(),
               longitude: place.geometry.location.lng()
@@ -302,7 +407,13 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
 
   listenAddressChanges() {
     this.serviceService.addressChange$
-      .pipe(takeUntil(this.ngUnsubscribe))
+      .pipe(
+        tap(addressUpdated => {
+          console.log('ADDRESS UPDATED ==> ', addressUpdated);
+          this.selectedPlace.name = addressUpdated;
+        }),
+        takeUntil(this.ngUnsubscribe)
+      )
       .subscribe(address => {
         this.currentAddress = address;
       });
@@ -312,6 +423,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     this.serviceService.locationChange$
       .pipe(
         filter(evt => evt),
+        tap(locationUpdated => {
+          console.log('LOCATION UPDATED ==> ', locationUpdated);
+          this.selectedPlace.location = locationUpdated;
+        }),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
@@ -321,15 +436,15 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
         );
         const circle = new google.maps.Circle({
           center: latlng,
-          radius: 50000 // meter
+          radius: 20000 // meter
         });
         if (!this.autocomplete) {
           this.buildPlacesAutoComplete();
           setTimeout(() => {
-            this.autocomplete.setOptions({ bounds: circle.getBounds() });
+            this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
           }, 500);
         } else {
-          this.autocomplete.setOptions({ bounds: circle.getBounds() });
+          this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
       });
   }
@@ -358,5 +473,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  saveFavoritePlace() {
+    console.log('saveFavoritePlace', this.selectedPlace);
+    this.selectedPlace.favorite = !this.selectedPlace.favorite;
   }
 }

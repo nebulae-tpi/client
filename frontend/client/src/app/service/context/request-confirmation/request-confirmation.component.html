@@ -1,16 +1,22 @@
 <div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
   <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
+    <button *ngIf="selectedPlace.name && selectedPlace.location" mat-icon-button (click)="saveFavoritePlace()">
+      <mat-icon [ngClass]="{'icon_white': !selectedPlace.favorite, 'icon_yelow': selectedPlace.favorite  }">
+        star_rate
+      </mat-icon>
+    </button>
     <label class="tittle-header">Solicitando servicio</label>
-    <img class="circle" src="../../../../assets/icons/context/tx_white_car.png" width="23px" height="20px"
-      style="margin-top: -5px; margin-left: 5px" />
+    <!-- <img class="circle" src="../../../../assets/icons/context/tx_white_car.png" width="23px" height="20px"
+      style="margin-top: -5px; margin-left: 5px" /> -->
   </div>
 
   <div fxLayout="row" style="margin-left: 7px; margin-top: 10px" fxLayoutAlign="start start" class="flex-wrap">
     <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">location_on</mat-icon>
+
       <mat-form-field class="input-service" fxFlex="100">
-        <input matInput id="addressInput" placeholder="Dirección" autocorrect="off" autocapitalize="off"
-          spellcheck="off" type="text" [(ngModel)]="addressInputValue" #search />
+        <input #search matInput id="addressInput" placeholder="Dirección" autocorrect="off" autocapitalize="off"
+          spellcheck="off" type="text" [(ngModel)]="addressInputValue"/>
       </mat-form-field>
       <!-- <button mat-icon-button>
         <mat-icon>star_rate</mat-icon>
@@ -50,3 +56,13 @@
     </button>
   </div>
 </div>
+
+
+
+
+<!-- <div class="pac-item">
+  <span class="pac-icon pac-icon-marker"></span>
+  <span class="pac-item-query">
+  <span class="pac-matched">Felipe</span> Diving Center</span>
+  <span>03, Providencia and Santa Catalina Islands, San Andrés and Providencia, Colombia</span>
+</div> -->

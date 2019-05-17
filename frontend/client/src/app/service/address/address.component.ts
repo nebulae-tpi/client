@@ -68,8 +68,6 @@ export class AddressComponent implements OnInit, OnDestroy {
             return;
           }
           const { address_components, name, formatted_address } = place;
-
-          console.log('PLACE ==> ', {name, formatted_address, address_components});
           const stringsToRemove = [', Antioquia', ', Valle del Cauca', ', Colombia'];
           this.addressInputValue = `${place.name}, ${place.formatted_address.split(',').slice(1)}`;
           stringsToRemove.forEach(s => this.addressInputValue = this.addressInputValue.replace(s, ''));
