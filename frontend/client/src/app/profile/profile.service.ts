@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GatewayService } from '../api/gateway.service';
-import { linkSatellite, ClientSatellites, unlinkSatellite } from './gql/profile.js';
+import { linkSatellite, ClientSatellites, unlinkSatellite, RemoveFavoritePlace } from './gql/profile.js';
 
 @Injectable({
   providedIn: 'root'
@@ -34,11 +34,13 @@ export class ProfileService {
       variables: { filterText },
       errorPolicy: 'all'
     });
-    // return of([
-    //   { name: 'Felipe' },
-    //   { name: 'Raul' },
-    //   { name: 'Armando' },
-    //   { name: 'Cristian' },
-    // ]);
+  }
+
+  removeMainFavorite$(id) {
+    return this.gateway.apollo.mutate<any>({
+      mutation: RemoveFavoritePlace,
+      variables: { id },
+      errorPolicy: 'all'
+    });
   }
 }

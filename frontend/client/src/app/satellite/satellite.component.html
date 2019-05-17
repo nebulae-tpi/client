@@ -5,21 +5,36 @@
   <!-- TOOLBAR -->
   <div class="toolbar" ngClass.xs="xs-toolbar" ngClass.gt-xs="gt-xs-toolbar" fxLayoutAlign="start none">
     <button class="toolbar-buttons" mat-button (click)="updateTable()">
-      <mat-icon fxHide fxShow.xs fxFill ngStyle.xs="font-size: 40px">refresh</mat-icon>
-      <mat-icon fxHide.xs ngStyle.xs="font-size: 40px">refresh</mat-icon>
-      <span fxHide.xs> Actualizar </span>
+      <mat-icon class="toolbar-icon" fxHide fxShow.xs fxFill ngStyle.xs="font-size: 40px; padding-top: 10px;">refresh</mat-icon>
+      <mat-icon class="toolbar-icon" fxHide.xs ngStyle.xs="font-size: 40px">refresh</mat-icon>
+      <span style="color: white" fxHide.xs> Actualizar </span>
     </button>
+
+    <button class="toolbar-buttons" mat-button (click)="requestService()">
+      <mat-icon class="toolbar-icon" fxHide fxShow.xs fxFill ngStyle.xs="font-size: 40px; padding-top: 10px;">add_box</mat-icon>
+      <mat-icon class="toolbar-icon" fxHide.xs ngStyle.xs="font-size: 40px">add_box</mat-icon>
+      <span style="color: white" fxHide.xs> Solicitar </span>
+    </button>
+
     <span fxFlex></span>
-    <button mat-button (click)="requestService()">
-      <mat-icon span ngStyle.xs="font-size: 40px">add_box</mat-icon> <span fxHide.xs>Solicitar</span>
+
+    <button class="toolbar-buttons" mat-button>
+      <mat-icon class="toolbar-icon" fxHide fxShow.xs fxFill ngStyle.xs="font-size: 40px; padding-top: 10px;">chevron_left</mat-icon>
+      <mat-icon class="toolbar-icon" fxHide.xs ngStyle.xs="font-size: 40px">chevron_left</mat-icon>
     </button>
+
+    <button class="toolbar-buttons" mat-button>
+      <mat-icon class="toolbar-icon" fxHide fxShow.xs fxFill ngStyle.xs="font-size: 40px; padding-top: 10px;">chevron_right</mat-icon>
+      <mat-icon class="toolbar-icon" fxHide.xs ngStyle.xs="font-size: 40px">chevron_right</mat-icon>
+    </button>
+
 
   </div>
   <!-- TOOLBAR -->
 
   <!-- DATA TABLE -->
   <div class="service-table" ngClass.xs="xs-service-table" ngClass.gt-xs="gt-xs-service-table" fxLayout="column" >
-    <table mat-table [dataSource]="servicesAtQueued">
+    <table mat-table [dataSource]="partialData">
 
       <ng-container matColumnDef="state">
         <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -32,7 +47,7 @@
             [class.font-white]="service.style.state.fontColor == 'white'"
             [class.font-yellow]="service.style.state.fontColor == 'yellow'"
             [class.font-red]="service.style.state.fontColor == 'red'" [class.font-bold]="service.style.state.fontBold">
-            <div>{{ service.state }}</div>
+            <div>{{ SERVICES_STATES[service.state] }}</div>
           </div>
         </td>
       </ng-container>
@@ -65,11 +80,12 @@
         </td>
       </ng-container>
 
+      <span fxFlex></span>
 
       <ng-container matColumnDef="actions">
-          <th *matHeaderCellDef mat-header-cell >Acciones</th>
-          <td *matCellDef="let service" mat-cell (click)="$event.stopPropagation()" >
-              <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{serviceId: service.id}">
+          <th *matHeaderCellDef ngClass.xs="pr-0" mat-header-cell >Acciones</th>
+          <td *matCellDef="let service" ngClass.xs="pr-0" mat-cell (click)="$event.stopPropagation()" >
+              <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{serviceId: service.id, state: service.state}">
                 <mat-icon>more_vert</mat-icon>
               </button>
           </td>
@@ -77,24 +93,9 @@
 
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: false"></tr>
-      <tr mat-row class="item" *matRowDef="let row; columns: displayedColumns;"
+      <tr mat-row class="item border" *matRowDef="let row; columns: displayedColumns;"
         [ngClass]="{'mat-row-selected': row.selected == '>'}" (click)="onRowSelected(row)">
       </tr>
-
-
-      <!-- <div *ngFor="let service of servicesAtQueued" class="border" ngClass.xs="xs-service-item" ngClass.gt-xs="gt-xs-service-item"
-        fxLayout="row" fxLayoutAlign="start center">
-        <div> {{service.state}} </div>
-        <div> {{service.time}} </div>
-        <div> {{service.plate}} </div>
-        <div> {{service.eta}} </div>
-
-
-        <div fxFlex></div>
-        <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{serviceId: service.id}">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-      </div> -->
     </table>
   </div>
 
@@ -102,8 +103,8 @@
   <!-- DATA TABLE -->
 
   <mat-menu #menu="matMenu">
-    <ng-template matMenuContent let-serviceId="serviceId">
-      <button mat-menu-item (click)="cancelService(serviceId)">
+    <ng-template matMenuContent let-serviceId="serviceId" let-state="state" >
+      <button [disabled]="state.includes('CANCELLED')" mat-menu-item (click)="cancelService(serviceId)">
         <mat-icon>cancel</mat-icon>
         <span>Cancelar</span>
       </button>

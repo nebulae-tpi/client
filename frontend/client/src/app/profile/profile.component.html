@@ -5,6 +5,7 @@
   <div style="padding-bottom: 15px;" ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex.xs="100" fxFlex.gt-xs="30" fxLayoutAlign="center center">
     <img class="circle" src="../../assets/icons/menu/profile_icon.svg" width="100" />
   </div>
+
   <div *ngIf="userProfile" fxFlex.xs="100" fxFlex.gt-xs="70" fxLayout="column">
     <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff">
       <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Nombre</mat-placeholder>
@@ -47,4 +48,37 @@
       </div>
 
   </div>
+
+
+  <!-- <mat-divider fxFlex="100"></mat-divider> -->
+  <!-- FAVORITES LIST -->
+
+  <div *ngIf="userProfile && mainFavorites" ngClass="xs-favorites-title">Favoritos</div>
+
+  <div *ngIf="userProfile && mainFavorites"  fxFlex="100" fxLayout="column">
+
+    <div *ngFor="let favorite of mainFavorites" ngClass.xs="xs-fav-item">
+      <div fxLayout="row" fxLayoutAlign="start center">
+        <mat-icon style="padding-right: 10px;">{{ favorite.type }}</mat-icon>
+        <div fxLayout="column">
+          <div style="font-size: 18px">{{ favorite.name }}</div>
+          <div  style="font-size: 14px"> {{ favorite.address }} </div>
+          <div *ngIf="!favorite.name && !favorite.address"> Agregar {{ FAVORITE_TYPES[favorite.type] }} </div>
+        </div>
+
+        <div fxFlex></div>
+        <button mat-icon-button (click)="deleteFavoritePlace(favorite)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div ngStyle.xs="padding-top: 15px;" class="xs-fav-item" [routerLink]="['/profile/favorites']">Más favoritos</div>
+
+    <!-- <a mat-button routerLink="/profile/favorites">Más Favoritos</a> -->
+
+  </div>
+  <!-- FAVORITES LIST -->
+
+
 </div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import {
-  RequestService, CurrentServices, CancelServiceByClient, IOEServiceSubscription
+  RequestService, CurrentServices, CancelServiceByClient, ClientServiceUpdatedSubscription
 } from './gql/satellite.js';
 import { GatewayService } from '../api/gateway.service';
 
@@ -38,21 +38,13 @@ export class SatelliteService {
       });
   }
 
-  /**
-   * send a cancel service command to the server
-   */
-  cancelService$(IOECommand: any) {
-    return this.gateway.apollo
-      .mutate<any>({
-        mutation: CancelServiceByClient,
-        variables: {
-          id: IOECommand.id,
-          reason: IOECommand.reason,
-          authorType: IOECommand.authorType,
-          notes: IOECommand.notes,
-        },
-        errorPolicy: 'all'
-      });
+  /* #region  MUTATIONS */
+  cancelService$(id, reason) {
+    return this.gateway.apollo.mutate<any>({
+      mutation: CancelServiceByClient,
+      variables: { id, reason },
+      errorPolicy: 'all'
+    });
   }
 
 
@@ -71,13 +63,10 @@ export class SatelliteService {
   /**
    * Event triggered when a business is created, updated or deleted.
    */
-  listenIOEService$(businessId, operatorId, statesFilter, channelsFilter): Observable<any> {
+  listenServiceUpdates$(): Observable<any> {
     return this.gateway.apollo
       .subscribe({
-        query: IOEServiceSubscription,
-        variables: {
-          businessId, operatorId, statesFilter, channelsFilter
-        }
+        query: ClientServiceUpdatedSubscription
       });
   }
 

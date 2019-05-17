@@ -5,11 +5,15 @@ import { CustomMaterialModule } from '../material.module';
 import { SatelliteInfoComponent } from './satelliteInfo/satellite-info.component';
 import { MatAutocompleteModule } from '@angular/material';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ClientFavoritesComponent } from './favorites/client-favorites.component';
+import { ClientFavoritesDetailComponent } from './favorites/favorite-detail/favorite-detail.component';
 
 const routes: Routes = [
   { path: '', component: ProfileComponent },
   { path: 'satellite', component: SatelliteInfoComponent},
   { path: 'satellite/:id', component: SatelliteInfoComponent },
+  { path: 'favorites', component: ClientFavoritesComponent },
+  { path: 'favorites:id', component: ClientFavoritesDetailComponent },
   { path: '**', redirectTo: '' },
 ];
 
@@ -22,7 +26,9 @@ const routes: Routes = [
   ],
   declarations: [
     ProfileComponent,
-    SatelliteInfoComponent
+    SatelliteInfoComponent,
+    ClientFavoritesComponent,
+    ClientFavoritesDetailComponent
   ],
   entryComponents: [],
   providers: [ ]

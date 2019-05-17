@@ -37,6 +37,20 @@
 .xs-mff-input {
   font-size: 18px;
 }
+.xs-fav-item{
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.xs-favorites-title{
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 24px;
+}
 /* STYLE FOR XS LAYOUT MEDIA QUERY */
 
 /* STYLE FOR GT-XS LAYOUT MEDIA QUERY */

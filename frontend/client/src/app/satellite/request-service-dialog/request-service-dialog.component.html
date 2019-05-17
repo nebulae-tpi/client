@@ -18,7 +18,7 @@
 
           <mat-divider style="visibility:  hidden; height: 20px;" fxFlex="100"></mat-divider>
 
-          <div fxFlex="100" fxLayout="row" fxLayoutAlign="space-between center">
+          <div fxFlex="100" fxLayout="row" fxLayoutAlign.xs="center center" fxLayoutAlign="space-between center">
             <div class="h2 secondary-text" fxLayoutAlign="left center" fxFlex="20">
               <mat-icon class="icon s-40 mr-16">local_taxi</mat-icon>
               <span>{{form.controls['quantity'].value}}</span>
@@ -30,8 +30,8 @@
 
           <mat-divider style="visibility:  hidden; height: 10px;" fxFlex="100"></mat-divider>
 
-          <div fxFlex="100" fxLayoutAlign="end center">
-            <mat-button-toggle-group name="featureOptionsGroup" formControlName="featureOptionsGroup" multiple="true">
+          <div fxFlex="100" fxLayoutAlign="center center">
+            <mat-button-toggle-group  name="featureOptionsGroup" formControlName="featureOptionsGroup" multiple="true">
               <mat-button-toggle value="AC">
                 <mat-icon [ngClass]="{'icon_white': form.get('featureOptionsGroup').value.includes('AC') }">
                   ac_unit</mat-icon>
@@ -57,9 +57,9 @@
 
           <mat-divider style="visibility:  hidden; height: 10px;" fxFlex="100"></mat-divider>
 
-          <div fxFlex="100" fxLayout="row" fxLayoutAlign="space-between center">
-            <div class="h2 secondary-text" fxLayoutAlign="left center" fxFlex="20">
-              <mat-icon class="icon s-40 mr-16">attach_money</mat-icon>
+          <!-- <div fxFlex="100" fxLayout="row" fxLayoutAlign="space-between center">
+            <div fxLayoutAlign="left center" fxFlex="10">
+              <mat-icon class="icon">attach_money</mat-icon>
             </div>
             <span fxFlex></span>
             <mat-button-toggle-group name="destinationOptionsGroup" formControlName="destinationOptionsGroup">
@@ -73,7 +73,7 @@
                 $ 10,000
               </mat-button-toggle>
             </mat-button-toggle-group>
-          </div>
+          </div> -->
 
         </div>
     </mat-dialog-content>

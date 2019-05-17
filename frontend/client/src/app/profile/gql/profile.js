@@ -55,4 +55,15 @@ export const ClientSatellites = gql`
   }
 `;
 
+export const RemoveFavoritePlace = gql`
+  mutation RemoveFavoritePlace($id: String) {
+    RemoveFavoritePlace(id: $id) {
+      code
+      message
+    }
+  }
+`;
+
+
+
 /* #endregion */

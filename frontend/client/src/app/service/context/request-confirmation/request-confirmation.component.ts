@@ -278,7 +278,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
             // get the place result
             const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
             // verify result
-            if (place.geometry === undefined || place.geometry === null) {
+            if (!place || place.geometry === undefined || place.geometry === null) {
               return;
             }
             this.addressInputValue = place.formatted_address.split(',')[0];

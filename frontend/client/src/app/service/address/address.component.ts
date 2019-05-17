@@ -64,7 +64,7 @@ export class AddressComponent implements OnInit, OnDestroy {
           // get the place result
           const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
           // verify result
-          if (place.geometry === undefined || place.geometry === null) {
+          if (!place || place.geometry === undefined || place.geometry === null) {
             return;
           }
           const { address_components, name, formatted_address } = place;

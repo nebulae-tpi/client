@@ -10,6 +10,7 @@
   height: 60px;
   .toolbar-buttons{
     height: 100%;
+    color: white;
   }
 }
 /* [END]   xs media query styles */
@@ -22,6 +23,9 @@
 /* [END]   gtxsxs media query styles */
 .toolbar {
   background-color: #3c4252 !important;
+  .toolbar-icon{
+    color: white;
+  }
 }
 
 .border{
@@ -33,7 +37,6 @@
 
 .service-table {
   background: whitesmoke;
-  overflow: auto;
 }
 
 .td-container {
@@ -55,3 +58,41 @@
   background-color: rgba(68, 68, 68, 0.933) !important;
   color: white;
 }
+
+.pr-0{
+  padding-right: 0px !important;
+}
+
+
+.bg-red{
+  background: #FFCECE;
+}
+.bg-yellow{
+  background: #FFFBCC;
+}
+.bg-green{
+  background: #D5FFCE;
+}
+.bg-white{
+  background: #FFFFFF;
+}
+.font-black{
+  color: #000000;
+}
+.font-yellow{
+  color: #FFCE14;
+}
+.font-red{
+  color: #BF0025;
+}
+.font-white{
+  color: #FFFFFF;
+}
+.font-bold{
+  font-weight: bold;
+}
+
+
+// .mat-row-selected {
+//   background: rgb(209, 209, 209);
+// }

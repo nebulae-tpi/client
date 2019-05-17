@@ -87,7 +87,7 @@ export class MenuComponent implements OnInit, OnDestroy {
         mergeMap(() => this.menuService.loadClientProfile$()),
         map(r => (r && r.data && r.data.ClientProfile) ? r.data.ClientProfile : null ),
         tap((clientProfile: any) => this.menuService.currentUserProfile$.next(clientProfile)),
-        mergeMap(cp => cp.satelliteId ? this.menuService.loadSatelliteLinked$(cp.satelliteId) : of(null)),
+        mergeMap(cp => (cp && cp.satelliteId) ? this.menuService.loadSatelliteLinked$(cp.satelliteId) : of(null)),
         map(resp => ((resp || {}).data || {}).ClientLinkedSatellite),
         tap(ls => this.menuService.currentLinkedSatellite$.next(ls))
       )

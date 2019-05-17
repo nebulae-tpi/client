@@ -42,7 +42,7 @@
           <a (click)="closeMenu()" mat-list-item class="ml-2" href="#">Profile</a>
         </mat-list-item>
 
-        <mat-list-item>
+        <mat-list-item *ngIf="selectedSatellite">
           <mat-icon>assignment</mat-icon>
           <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['/satellite']">Satélite</a>
         </mat-list-item>
