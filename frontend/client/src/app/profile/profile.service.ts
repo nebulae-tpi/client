@@ -36,10 +36,10 @@ export class ProfileService {
     });
   }
 
-  removeMainFavorite$(id) {
+  removeFavoritePlace$(id, name ) {
     return this.gateway.apollo.mutate<any>({
       mutation: RemoveFavoritePlace,
-      variables: { id },
+      variables: { id, name },
       errorPolicy: 'all'
     });
   }

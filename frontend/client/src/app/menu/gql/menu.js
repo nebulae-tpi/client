@@ -11,6 +11,16 @@ export const ClientProfile = gql`
       email
       active
       satelliteId
+      favoritePlaces{
+        id
+        type
+        name
+        referenceName
+        location{
+          lat
+          lng
+        }
+      }
     }
   }
 `;

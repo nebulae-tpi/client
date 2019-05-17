@@ -56,8 +56,8 @@ export const ClientSatellites = gql`
 `;
 
 export const RemoveFavoritePlace = gql`
-  mutation RemoveFavoritePlace($id: String) {
-    RemoveFavoritePlace(id: $id) {
+  mutation RemoveFavoritePlace($id: String, $name: String) {
+    RemoveFavoritePlace(id: $id, name: $name ) {
       code
       message
     }

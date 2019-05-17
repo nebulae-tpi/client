@@ -13,10 +13,10 @@ export class ProfileComponent implements OnInit {
   userProfile: any;
   mainFavorites: any [] = [];
 
-  FAVORITE_TYPES= {
+  FAVORITE_TYPES = {
     work: 'Trabajo',
     home: 'Casa'
-  }
+  };
 
   constructor(
     private menuService: MenuService,
@@ -33,23 +33,9 @@ export class ProfileComponent implements OnInit {
         filter(profile => profile && true),
         tap(r => {
           this.userProfile = r;
-
-          this.userProfile.favoritePlaces = [
-            {type: 'home', name: 'Casa', address: 'Cra 50 # 55-22', location: {lat: 1, lng: 2.35}},
-            {type: 'work', name: 'Trabajo', address: 'autopista sur # 40 sur', location: {lat: 1, lng: 2.35}},
-            {type: 'other', name: 'Casa de mi tia', address: 'la floresta', location: {lat: 1, lng: 2.35}},
-          ];
-
-          this.userProfile.favoritePlaces.forEach(
-            (favorite: any) => {
-              // console.log(favorite);
-              if (favorite.type === 'home' || favorite.type === 'work') {
-                console.log(favorite);
-                this.mainFavorites.push(favorite);
-              }
-            }
-          );
-          console.log(this.mainFavorites);
+          const homeFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'home') || { type: 'home' };
+          const workFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'work') || { type: 'work' };
+          this.mainFavorites = [homeFavoritePlace, workFavoritePlace];
         })
       )
       .subscribe(ev => {}, e => console.log(e), () => {});
@@ -61,18 +47,17 @@ export class ProfileComponent implements OnInit {
 
   deleteFavoritePlace(favorite) {
     console.log('REMOVING ==> ', favorite);
-    this.profileService.removeMainFavorite$(favorite.id)
+    this.profileService.removeFavoritePlace$(favorite.id, favorite.name)
     .pipe(
       map((response: any) => ((response || {}).data || {}).RemoveFavoritePlace),
-      tap(result => {
-        if(result && result.code == 200 ){
-          const index = this.mainFavorites.findIndex(f => f.type == favorite.type);
-
+      tap((result: any) => {
+        if (result && result.code === 200) {
+          const index = this.mainFavorites.findIndex(f => f.type === favorite.type);
           // this.mainFavorites = this.mainFavorites.filter(f => f.type != favorite.type);
           this.mainFavorites[index] = { type: favorite.type, name: null, address: null, location: null  };
         }
       })
     )
-    .subscribe(() => {}, e => {}, () => {} )
+    .subscribe(() => {}, e => {}, () => {} );
   }
 }

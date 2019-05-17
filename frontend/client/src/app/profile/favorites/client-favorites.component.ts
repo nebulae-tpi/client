@@ -63,100 +63,35 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
         filter(profile => profile && true),
         tap(r => {
           this.userProfile = r;
-
-          this.userProfile.favoritePlaces = [
-            {
-              id: '1',
-              type: 'home',
-              name: 'Casa',
-              address: 'Cra 50 # 55-22',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '2',
-              type: 'work',
-              name: 'Trabajo',
-              address: 'autopista sur # 40 sur',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '3',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '4',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '5',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '6',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '7',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '8',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            },
-            {
-              id: '9',
-              type: 'other',
-              name: 'Casa de mi tia',
-              address: 'la floresta',
-              location: { lat: 1, lng: 2.35 }
-            }
-          ];
-
           this.userProfile.favoritePlaces.forEach((favorite: any) => {
-            // console.log(favorite);
-            if (favorite.type === 'home' || favorite.type === 'work') {
-              console.log(favorite);
-              this.mainFavorites.push(favorite);
-            } else {
+            if (favorite.type === 'other') {
               this.othersFavorites.push(favorite);
             }
           });
-          console.log(this.mainFavorites);
+          const homeFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'home') || { type: 'home' };
+          const workFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'work') || { type: 'work' };
+          this.mainFavorites = [homeFavoritePlace, workFavoritePlace];
         })
       )
       .subscribe(ev => {}, e => console.log(e), () => {});
   }
 
-  deleteFavoritePlace(favoriteId) {
-    const isMainFavorite = this.mainFavorites.findIndex(f => f.id === favoriteId) !== -1;
+  deleteFavoritePlace(favoriteId, type ) {
+
+    console.log(favoriteId, type);
+
+    const mainFavorite = this.mainFavorites.find(f => f.id === favoriteId );
     let oldOtherFavorite = null;
-    if (!isMainFavorite) {
-      oldOtherFavorite = this.othersFavorites.find(f => f.id === favoriteId);
+
+    if (!mainFavorite) {
+      oldOtherFavorite = this.othersFavorites.find(f => ( (f.id === favoriteId) || ( f.name === favoriteId ) ) );
       this.othersFavorites = this.othersFavorites.filter(f => f.id !== favoriteId);
     }
-    this.profileService.removeMainFavorite$(favoriteId)
+    this.profileService.removeFavoritePlace$(favoriteId, oldOtherFavorite.name )
       .pipe(
         map((response: any) => ((response || {}).data || {}).RemoveFavoritePlace),
         tap(result => {
-          if (isMainFavorite) {
+          if (mainFavorite) {
             if (result && result.code === 200) {
               const index = this.mainFavorites.findIndex(f => f.id === favoriteId);
               const oldFavorite = this.mainFavorites[index];
@@ -172,6 +107,10 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
               this.othersFavorites.push(oldOtherFavorite);
             }
           }
+
+          // this.userProfile.favoritePlaces = [...this.mainFavorites, ...this.othersFavorites];
+          // this.menuService.currentUserProfile$.next(this.userProfile);
+
         })
       )
       .subscribe(() => {}, e => {}, () => {});

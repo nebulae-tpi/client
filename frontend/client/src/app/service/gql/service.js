@@ -104,4 +104,22 @@ export const RequestService = gql`
   }
 `;
 
+export const AddFavoritePlace = gql`
+  mutation AddFavoritePlace($favoritePlace: FavoritePlaceInput) {
+    AddFavoritePlace(favoritePlace: $favoritePlace) {
+      code
+      message
+    }
+  }
+`;
+
+export const RemoveFavoritePlace = gql`
+  mutation RemoveFavoritePlace($id: String, $name: String) {
+    RemoveFavoritePlace(id: $id, name: $name) {
+      code
+      message
+    }
+  }
+`;
+
 /* #endregion */

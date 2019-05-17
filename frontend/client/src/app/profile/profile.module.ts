@@ -13,7 +13,7 @@ const routes: Routes = [
   { path: 'satellite', component: SatelliteInfoComponent},
   { path: 'satellite/:id', component: SatelliteInfoComponent },
   { path: 'favorites', component: ClientFavoritesComponent },
-  { path: 'favorites:id', component: ClientFavoritesDetailComponent },
+  { path: 'favorite/:id', component: ClientFavoritesDetailComponent },
   { path: '**', redirectTo: '' },
 ];
 

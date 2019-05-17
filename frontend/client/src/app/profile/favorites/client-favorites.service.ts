@@ -24,10 +24,10 @@ export class ClienFavoriteService {
    *
    * @param satelliteId satellite to link to client
    */
-  removeFavoritePlace$(id: string) {
+  removeFavoritePlace$(id: string, name: string) {
     return this.gateway.apollo.mutate<any>({
       mutation: RemoveFavoritePlace,
-      variables: { id },
+      variables: { id, name },
       errorPolicy: 'all'
     });
   }
