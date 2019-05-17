@@ -108,6 +108,7 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
             }
           }
 
+
           // this.userProfile.favoritePlaces = [...this.mainFavorites, ...this.othersFavorites];
           // this.menuService.currentUserProfile$.next(this.userProfile);
 
