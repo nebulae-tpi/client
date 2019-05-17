@@ -9,6 +9,7 @@ import { takeUntil, mergeMap, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material';
 import { ContactUsComponent } from '../contact-us/contact-us.component';
 import { MenuService } from './menu.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-menu',
@@ -36,7 +37,8 @@ export class MenuComponent implements OnInit, OnDestroy {
     private serviceService: ServiceService,
     private gateway: GatewayService,
     private dialog: MatDialog,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private router: Router
   ) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
@@ -78,32 +80,39 @@ export class MenuComponent implements OnInit, OnDestroy {
       this.serviceService.userProfile = this.userDetails;
 
       this.menuService.validateNewClient$()
-      .pipe(
-        tap(response => {
-          const clientId = response && response.data && response.data.ValidateNewClient
-            ? response.data.ValidateNewClient.clientId
-            : undefined;
-        }),
-        mergeMap(() => this.menuService.loadClientProfile$()),
-        map(r => (r && r.data && r.data.ClientProfile) ? r.data.ClientProfile : null ),
-        tap((clientProfile: any) => this.menuService.currentUserProfile$.next(clientProfile)),
-        mergeMap(cp => (cp && cp.satelliteId) ? this.menuService.loadSatelliteLinked$(cp.satelliteId) : of(null)),
-        map(resp => ((resp || {}).data || {}).ClientLinkedSatellite),
-        tap(ls => this.menuService.currentLinkedSatellite$.next(ls))
-      )
-      .subscribe(r => {}, e => console.log(e), () => {});
+        .pipe(
+          tap(response => {
+            const clientId =
+              response && response.data && response.data.ValidateNewClient
+                ? response.data.ValidateNewClient.clientId
+                : undefined;
+          }),
+          mergeMap(() => this.menuService.loadClientProfile$()),
+          map(r => r && r.data && r.data.ClientProfile ? r.data.ClientProfile : null),
+          tap((clientProfile: any) => {
+            this.menuService.currentUserProfile$.next(clientProfile);
+            if (clientProfile.satelliteId) {
+              this.router.navigate(['/satellite']);
+            }
+          }),
+          mergeMap(cp =>
+            cp && cp.satelliteId
+              ? this.menuService.loadSatelliteLinked$(cp.satelliteId)
+              : of(null)
+          ),
+          map(resp => ((resp || {}).data || {}).ClientLinkedSatellite),
+          tap(ls => this.menuService.currentLinkedSatellite$.next(ls))
+        )
+        .subscribe(r => {}, e => console.log(e), () => {});
     }
 
     this.listenSatelliteChanges();
-
   }
 
   listenSatelliteChanges() {
     this.menuService.currentLinkedSatellite$
-    .pipe(
-      tap(satellite => this.selectedSatellite =  satellite )
-    )
-    .subscribe();
+      .pipe(tap(satellite => (this.selectedSatellite = satellite)))
+      .subscribe();
   }
 
   async login() {
