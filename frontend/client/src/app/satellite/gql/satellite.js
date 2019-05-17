@@ -250,6 +250,7 @@ export const ClientServiceUpdatedSubscription = gql`
       }
       lastModificationTimestamp
       state
+      closed
     }
   }
 `;
