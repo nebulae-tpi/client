@@ -139,9 +139,10 @@ export class RequestServiceDialogComponent implements OnInit, OnDestroy {
     return range(1, quantity || 1)
       .pipe(
         filter(() => client && this.data.user),
+        // tap(() => console.log({ satellite: this.data.client, user: this.data.user })),
         map(requestNumber => ({
           client: {
-            id: client._id,
+            id: this.data.user.id,
             fullname: client.name.toUpperCase(),
             username: client.auth ? client.auth.username : null, // todo
             tip: client.tip,
