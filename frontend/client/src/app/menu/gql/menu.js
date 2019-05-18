@@ -46,6 +46,8 @@ export const ClientLinkedSatellite = gql`
       }
       tipType
       tip
+      offerMinDistance
+      offerMaxDistance
     }
   }
 `;
