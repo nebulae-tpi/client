@@ -68,7 +68,7 @@
         </mat-list-item>
       </mat-nav-list>
 
-      <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.1.1</h4>
+      <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.1.2</h4>
     </div>
   </mat-sidenav>
 
@@ -78,11 +78,10 @@
         <mat-icon>menu</mat-icon>
       </button>
 
-      <!-- *ngIf="selectedSatellite && selectedSatellite.tipType == 'VIRTUAL_WALLET'" -->
-      <div  style="width: 100%; color: white" fxLayoutAlign="center center">
-        <!-- <div style="font-size: 25px">
-          $125.000
-        </div> -->
+      <div *ngIf="userWallet && userWallet.pockets"  style="width: 100%; color: white" fxLayoutAlign="center center">
+        <div style="font-size: 25px">
+          {{ userWallet.pockets.main | currency }}
+        </div>
       </div>
     </mat-toolbar>
     <router-outlet></router-outlet>

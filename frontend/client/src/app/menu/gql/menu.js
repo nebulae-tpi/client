@@ -52,6 +52,23 @@ export const ClientLinkedSatellite = gql`
   }
 `;
 
+export const ClientWallet = gql`
+  query ClientWallet {
+    ClientWallet{
+      _id
+      fullname
+      documentId
+      type
+      pockets{
+        main
+        bonus
+      }
+      spendingState
+      businessId
+    }
+  }
+`;
+
 // MUTATION SECTION
 export const ValidateNewClient = gql`
   mutation ValidateNewClient {
@@ -65,8 +82,8 @@ export const ValidateNewClient = gql`
 
 // SUBSCRIPTION SECTION
 export const ClientWalletUpdates = gql`
-  subscription ClientWalletUpdates($walletId: String!) {
-    ClientWalletUpdates(walletId: $walletId) {
+  subscription ClientWalletUpdates {
+    ClientWalletUpdates{
       _id
       documentId
       type
@@ -80,3 +97,5 @@ export const ClientWalletUpdates = gql`
     }
   }
 `;
+
+

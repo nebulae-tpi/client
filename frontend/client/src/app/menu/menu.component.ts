@@ -5,7 +5,7 @@ import { Subscription, Subject, of } from 'rxjs';
 import { KeycloakProfile } from 'keycloak-js';
 import { ServiceService } from '../service/service.service';
 import { GatewayService } from '../api/gateway.service';
-import { takeUntil, mergeMap, map, tap } from 'rxjs/operators';
+import { takeUntil, mergeMap, map, tap, merge, filter } from 'rxjs/operators';
 import { MatDialog } from '@angular/material';
 import { ContactUsComponent } from '../contact-us/contact-us.component';
 import { MenuService } from './menu.service';
@@ -25,11 +25,12 @@ export class MenuComponent implements OnInit, OnDestroy {
   // overlap = false;
 
   userDetails: KeycloakProfile;
-
   watcher: Subscription;
   private ngUnsubscribe = new Subject();
 
   selectedSatellite: any;
+  // userWallet: any;
+  userWallet: any;
 
   constructor(
     media: ObservableMedia,
@@ -91,13 +92,13 @@ export class MenuComponent implements OnInit, OnDestroy {
           map(r => r && r.data && r.data.ClientProfile ? r.data.ClientProfile : null),
           tap((clientProfile: any) => {
             this.menuService.currentUserProfile$.next(clientProfile);
-            if (clientProfile.satelliteId) {
+            if ( clientProfile && clientProfile.satelliteId) {
               this.router.navigate(['/satellite']);
             }
           }),
-          mergeMap(cp =>
-            cp && cp.satelliteId
-              ? this.menuService.loadSatelliteLinked$(cp.satelliteId)
+          mergeMap(clientProfile =>
+            clientProfile && clientProfile.satelliteId
+              ? this.menuService.loadSatelliteLinked$(clientProfile.satelliteId)
               : of(null)
           ),
           map(resp => ((resp || {}).data || {}).ClientLinkedSatellite),
@@ -111,8 +112,32 @@ export class MenuComponent implements OnInit, OnDestroy {
 
   listenSatelliteChanges() {
     this.menuService.currentLinkedSatellite$
-      .pipe(tap(satellite => (this.selectedSatellite = satellite)))
+      .pipe(
+        filter(satellite => satellite != null),
+        tap(satellite => this.selectedSatellite = satellite),
+        mergeMap((satellite: any) => satellite.tipType === 'VIRTUAL_WALLET'
+          ? this.menuService.loadUserWallet$()
+          : of({})
+        ),
+        map((userWallet: any) => ((userWallet || {}).data || {}).ClientWallet),
+        tap((userWallet: any) => {
+          if (userWallet) {
+            this.userWallet = userWallet;
+            this.listenWalletUpdates();
+          }
+        })
+        )
       .subscribe();
+  }
+
+  listenWalletUpdates() {
+    this.menuService.listenWalletUpdates$()
+    .pipe(
+      map(response => ((response || {}).data || {}).ClientWalletUpdates ),
+      tap(walletUpdate => this.userWallet = walletUpdate),
+      takeUntil(this.ngUnsubscribe)
+    )
+    .subscribe();
   }
 
   async login() {

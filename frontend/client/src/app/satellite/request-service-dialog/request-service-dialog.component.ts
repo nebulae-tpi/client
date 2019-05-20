@@ -177,7 +177,7 @@ export class RequestServiceDialogComponent implements OnInit, OnDestroy {
           //   destChannel: 'DRIVER_APP'
           // }
         })),
-        tap(rqst => console.log('Enviando REQUEST ==> ', rqst)),
+        // tap(rqst => console.log('Enviando REQUEST ==> ', rqst)),
         mergeMap(clientRequest => this.satelliteService.requestService$(clientRequest)),
         takeUntil(this.ngUnsubscribe)
       );

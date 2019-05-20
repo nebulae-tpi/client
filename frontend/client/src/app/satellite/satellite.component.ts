@@ -373,7 +373,6 @@ export class SatelliteComponent implements OnInit, OnDestroy {
     .pipe(
       // tap(r => console.log(r) ),
       map(update => ((update || {}).data || {}).ClientServiceUpdatedSubscription ),
-      tap(service => console.log('listenServicesUpdates ==> ', service)),
       filter(s => s),
       mergeMap(service => this.appendService$(service))
     )
@@ -383,11 +382,9 @@ export class SatelliteComponent implements OnInit, OnDestroy {
 
   appendService$(service) {
     const FINAL_STATES = ['ON_BOARD', 'COMPLETED', 'DONE'];
-    console.log('appendService$ ===> ');
     return of(this.partialData.findIndex(raw => raw.id === service._id))
     .pipe(
       map(oldDataIndex => {
-        console.log({oldDataIndex});
         if (service.closed || FINAL_STATES.includes(service.state)) {
           if (oldDataIndex >= 0) {
             this.partialData.splice(oldDataIndex, 1); // DELETE THE SERVICE ITEM FROM LIST
