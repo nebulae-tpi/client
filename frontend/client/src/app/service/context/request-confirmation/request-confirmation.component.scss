@@ -60,3 +60,25 @@
 .icon_red {
   color: #D1312C;
 }
+
+// ::ng-deep .pac-item {
+//   background: #ffffff;
+// }
+
+::ng-deep .pac-icon-marker-fav{
+  padding: 0px !important;
+  margin: 3px !important;
+  margin-top: 7px !important;
+  margin-right: 6px !important;
+  background: url(../../../../assets/icons/fav.svg) !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px 16px !important;
+  background-position: center !important; 
+}
+
+
+::ng-deep .pac-item-query {
+  font-size: 15px;
+  padding-right: 3px;
+  color: #000;
+}

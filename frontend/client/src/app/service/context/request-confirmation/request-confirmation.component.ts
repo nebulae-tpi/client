@@ -326,7 +326,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
               node.addEventListener('mousedown', () => this.onFavoriteResultClick(e));
               node.setAttribute('class', 'pac-item favorite-place');
               node.innerHTML = `
-              <span class="pac-icon pac-icon-marker"></span>
+              <span class="pac-icon pac-icon-marker-fav"></span>
               <span class="pac-item-query">
               <span class="pac-matched">${e.name}</span></span>
               `;
