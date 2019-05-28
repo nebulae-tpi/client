@@ -4,7 +4,10 @@
 
   <div ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" style="padding-bottom: 10px" fxFlex="100"
     fxLayoutAlign="start center">
-    <mat-icon fxHide.gt-xs style="padding-right: 10px" [routerLink]="['/profile']">arrow_back_ios</mat-icon>
+    <!-- [routerLink]="['/profile']" -->
+    <button mat-icon-button fxHide.gt-xs style="margin-right: 5px" fxlayoutAlign="center center" >
+      <mat-icon>arrow_back_ios</mat-icon>
+    </button>
     <div fxFlex>
       <div style="font-size: 25px;" fxLayoutAlign="start center">Favoritos</div>
     </div>

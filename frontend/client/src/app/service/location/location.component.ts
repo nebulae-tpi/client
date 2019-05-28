@@ -540,8 +540,9 @@ export class LocationComponent implements OnInit, OnDestroy {
               }
               this.showCenterMarker = false;
               if (this.lastServiceStateReported !== service.state) {
+                // TODO read farediscount
                 this.snackBar.open(
-                  'Recuerde que tiene 10% de dcto sobre el valor total del servicio',
+                  'Recuerde que tiene 15% de dcto sobre el valor total del servicio',
                   'Cerrar',
                   {
                     duration: 10000
