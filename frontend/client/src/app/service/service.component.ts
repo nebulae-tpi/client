@@ -12,14 +12,18 @@ import {
 import {
   mergeMap,
   filter,
-  takeUntil
+  takeUntil,
+  debounce,
+  debounceTime,
+  tap
 } from 'rxjs/operators';
 
 import {
   Subject,
   of,
   defer,
-  interval
+  interval,
+  fromEvent
 } from 'rxjs';
 /* #endregion */
 
@@ -74,7 +78,8 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     private snackBar: MatSnackBar,
     private location: LocationStrategy
   ) {
-    this.onResize();
+    // this.onResize();
+    this.listenResizeEvent();
     // location.onPopState(() => {
     //   alert(window.location);
     // });
@@ -145,9 +150,18 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('afterViewInit');
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event?) {
-    this.recalculateLayout();
+  // @HostListener('window:resize', ['$event'])
+  // onResize(event?) {
+  //   this.recalculateLayout();
+  // }
+
+
+  listenResizeEvent() {
+    fromEvent(window, 'resize')
+    .pipe(
+      debounceTime(100),
+      tap(() => this.recalculateLayout())
+    ).subscribe();
   }
 
   showSnackBar(message) {

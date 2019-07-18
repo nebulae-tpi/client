@@ -9,9 +9,10 @@ import {
 import { FormControl } from '@angular/forms';
 import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
-import { filter, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { filter, takeUntil, tap, map } from 'rxjs/operators';
+import { Subject, fromEvent } from 'rxjs';
 import { ServiceState } from '../service-state';
+import { MenuService } from 'src/app/menu/menu.service';
 
 @Component({
   selector: 'app-address',
@@ -19,11 +20,12 @@ import { ServiceState } from '../service-state';
   styleUrls: ['./address.component.scss']
 })
 export class AddressComponent implements OnInit, OnDestroy {
-  public searchControl: FormControl;
+  public searchControl = new FormControl();
+
   @ViewChild('search')
   public searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
-  addressInputValue = '';
+  // addressInputValue = '';
   autocomplete: any;
   showAddress = true;
   showOfferHeader = false;
@@ -31,19 +33,23 @@ export class AddressComponent implements OnInit, OnDestroy {
   showWithoutService = false;
   showArrivedHeader = false;
   showOnBoardHeader = false;
+
+  userProfile: any; // User profile
+  selectedPlace: any = {}; // selected place.
+
   constructor(
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
-    private serviceService: ServiceService
-  ) {}
+    private serviceService: ServiceService,
+    private menuService: MenuService
+  ) { }
 
   ngOnInit() {
-    this.searchControl = new FormControl();
     this.listenServiceChanges();
     this.listenLocationChanges();
-    if (this.showAddress === true) {
-        this.buildPlacesAutoComplete();
-    }
+    this.buildPlacesAutoComplete();
+    this.loadUserProfile();
+    this.listenChangesOnAddressSearchInput();
   }
 
   ngOnDestroy() {
@@ -51,14 +57,32 @@ export class AddressComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-  buildPlacesAutoComplete() {
+  /**
+   * Load user profile from menu service
+   */
+  loadUserProfile() {
+    this.menuService.currentUserProfile$
+      .pipe(
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(userProfile => this.userProfile = userProfile,
+        e => console.log(e),
+        () => { }
+      );
+
+  }
+
+  /**
+   * Initialize the google autocomplete
+   */
+  buildPlacesAutoComplete(circle?) {
+    if (!this.showAddress) { return; }
     this.mapsAPILoader.load().then(() => {
       this.autocomplete = new google.maps.places.Autocomplete(
         this.searchElementRef.nativeElement,
-        {
-          componentRestrictions: { country: 'co' }
-        }
+        { componentRestrictions: { country: 'co' } }
       );
+
       this.autocomplete.addListener('place_changed', () => {
         this.ngZone.run(() => {
           // get the place result
@@ -69,16 +93,31 @@ export class AddressComponent implements OnInit, OnDestroy {
           }
           const { address_components, name, formatted_address } = place;
           const stringsToRemove = [', Antioquia', ', Valle del Cauca', ', Colombia'];
-          this.addressInputValue = `${place.name}, ${place.formatted_address.split(',').slice(1)}`;
-          stringsToRemove.forEach(s => this.addressInputValue = this.addressInputValue.replace(s, ''));
+          // this.searchControl.setValue(`${place.name}, ${place.formatted_address.split(',').slice(1)}`);
+
+          if (this.selectedPlace.favorite) {
+            this.searchControl.setValue(`${name}`.trim());
+          } else {
+            this.searchControl.setValue(`${name}, ${formatted_address.split(',').slice(1)}`.trim());
+          }
+
+          stringsToRemove.forEach(s => this.searchControl.setValue(this.searchControl.value.replace(s, '')));
           // place.formatted_address.split(',')[0];
 
-          this.serviceService.locationChange$.next({
-            latitude: place.geometry.location.lat(),
-            longitude: place.geometry.location.lng()
+          // this.serviceService.locationChange$.next({
+          //   latitude: place.geometry.location.lat(),
+          //   longitude: place.geometry.location.lng()
+          // });
+          // this.serviceService.fromAddressLocation = true;
+          // this.serviceService.addressChange$.next(this.searchControl.value);
+
+          this.serviceService.originPlaceSelected$.next({
+            name: this.searchControl.value,
+            coords: {
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng()
+            }
           });
-          this.serviceService.fromAddressLocation = true;
-          this.serviceService.addressChange$.next(this.addressInputValue);
           // set latitude, longitude and zoom
           /*
             this.latitude = place.geometry.location.lat();
@@ -87,10 +126,17 @@ export class AddressComponent implements OnInit, OnDestroy {
             */
         });
       });
-    });
 
+      if (circle) {
+        this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+      }
+
+    });
   }
 
+  /**
+   * listen the marker position changes
+   */
   listenLocationChanges() {
     this.serviceService.locationChange$
       .pipe(
@@ -98,6 +144,7 @@ export class AddressComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
+        console.log('this.serviceService.locationChange$ ==>', location);
         const latlng = new google.maps.LatLng(
           location.latitude,
           location.longitude
@@ -106,31 +153,11 @@ export class AddressComponent implements OnInit, OnDestroy {
           center: latlng,
           radius: 20000 // meters
         });
-        if (!this.autocomplete && this.showAddress) {
-          this.buildPlacesAutoComplete();
-          setTimeout(() => {
-            try {
-              this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
-            } catch (error) {
-            }
-          }, 1000);
+        if (!this.autocomplete) {
+          this.buildPlacesAutoComplete(circle);
         } else if (this.showAddress) {
           this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
-        /*
-        this.mapsAPILoader.load().then(() => {
-          const geocoder = new google.maps.Geocoder;
-          const latlng = {lat: location.latitude, lng: location.longitude};
-          geocoder.geocode({location: latlng}, function(results) {
-              if (results[0]) {
-                // that.currentLocation = results[0].formatted_address;
-                console.log(results[0]);
-              } else {
-                console.log('No results found');
-              }
-          });
-        });
-        */
       });
   }
 
@@ -138,7 +165,7 @@ export class AddressComponent implements OnInit, OnDestroy {
     this.serviceService.currentService$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(service => {
-        console.log('Se escucha service: ', service);
+        // console.log('Se escucha service: ', service);
         if (service) {
           switch (service.state) {
             case ServiceState.NO_SERVICE:
@@ -202,4 +229,74 @@ export class AddressComponent implements OnInit, OnDestroy {
   onBlurAddress() {
     // this.serviceService.addressChange$.next(this.addressInputValue);
   }
+
+  /**
+   * search favorite places using the filter text
+   * @param filterText filter to search in favorite places
+   */
+  searchFavoritePlacesWithMatch(filterText: string) {
+    return (this.userProfile && this.userProfile.favoritePlaces)
+      ? this.userProfile.favoritePlaces.filter(e => {
+        const eName = e.name.replace(/\./g, '').trim().toLowerCase();
+        const filterTextFixed = `${filterText}`
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+          .toLowerCase();
+        return eName.includes(filterTextFixed);
+      })
+      : [];
+  }
+
+  listenChangesOnAddressSearchInput() {
+    if (!this.showAddress) { return; }
+    fromEvent(this.searchElementRef.nativeElement, 'keyup')
+      .pipe(
+        map(() => this.searchElementRef.nativeElement.value),
+        tap(inputValue => {
+          const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(inputValue);
+          // console.log('ITEMS PARA AÑADIR', itemsToAutocomplete);
+          const s = document.getElementsByClassName('pac-container pac-logo');
+          const items = Array.from(s);
+
+          items.forEach(optionsParent => {
+            // remove all previuos favorite options
+            const itemsToRemove = optionsParent.getElementsByClassName('favorite-place');
+            while (itemsToRemove[0]) {
+              itemsToRemove[0].parentNode.removeChild(itemsToRemove[0]);
+            }
+
+            itemsToAutocomplete.forEach(e => {
+              const node = document.createElement('div');
+              node.setAttribute('class', 'pac-item');
+              node.addEventListener('mousedown', () => this.onFavoriteResultClick(e));
+              node.setAttribute('class', 'pac-item favorite-place');
+              node.innerHTML = `
+              <span class="pac-icon pac-icon-marker-fav"></span>
+              <span class="pac-item-query">
+              <span class="pac-matched">${e.name}</span></span>
+              `;
+              optionsParent.insertBefore(node, optionsParent.firstChild);
+            });
+          });
+        }),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe();
+  }
+
+  onFavoriteResultClick(favoriteSelected) {
+    this.selectedPlace.favorite = true;
+
+    this.autocomplete.set('place', {
+      name: favoriteSelected.name,
+      formatted_address: '[FAVORITE]', // todo check
+      geometry: {
+        location: {
+          lat: () => favoriteSelected.location.lat,
+          lng: () => favoriteSelected.location.lng
+        }
+      }
+    });
+  }
+
+
 }

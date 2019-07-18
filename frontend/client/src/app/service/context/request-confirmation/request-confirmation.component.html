@@ -1,14 +1,19 @@
 <div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
-  <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content" (click)="toggleFavoritePlace()">
-    <label *ngIf="!selectedPlace.name || !selectedPlace.location" class="tittle-header">Solicitando Servicio</label>
+
+    <!-- (click)="toggleFavoritePlace()" -->
+  <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
+
+    <!-- <label *ngIf="!selectedPlace.name || !selectedPlace.location" class="tittle-header">Solicitando Servicio</label>
     <label *ngIf="selectedPlace.name && selectedPlace.location" class="tittle-header">Agregar Favorito</label>
     <button *ngIf="selectedPlace.name && selectedPlace.location" mat-icon-button>
       <mat-icon [ngClass]="{'icon_white': !selectedPlace.favorite, 'icon_red': selectedPlace.favorite  }">
         star_rate
       </mat-icon>
-    </button>
-    <!-- <img class="circle" src="../../../../assets/icons/context/tx_white_car.png" width="23px" height="20px"
-      style="margin-top: -5px; margin-left: 5px" /> -->
+    </button> -->
+
+    <label class="tittle-header">Solicitando Servicio</label>
+    <img class="circle" src="../../../../assets/icons/context/tx_white_car.png" width="23px" height="20px"
+      style="margin-top: -5px; margin-left: 5px" />
   </div>
 
   <div fxLayout="row" style="margin-left: 7px; margin-top: 10px" fxLayoutAlign="start start" class="flex-wrap">
@@ -17,7 +22,7 @@
 
       <mat-form-field class="input-service" fxFlex="100">
         <input #search matInput id="addressInput" placeholder="Dirección" autocorrect="off" autocapitalize="off"
-          spellcheck="off" type="text" [(ngModel)]="addressInputValue"/>
+          spellcheck="off" type="text" [(ngModel)]="addressInputValue" />
       </mat-form-field>
       <!-- <button mat-icon-button>
         <mat-icon>star_rate</mat-icon>
@@ -26,7 +31,7 @@
     <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">business</mat-icon>
       <mat-form-field class="input-service" fxFlex="100">
-        <input matInput [(ngModel)]="reference" placeholder="Referencia (Apto, Edificio...)" />
+        <input matInput [(ngModel)]="placeReference" placeholder="Referencia (Apto, Edificio...)" />
       </mat-form-field>
     </div>
 
@@ -56,6 +61,7 @@
       Cancelar
     </button>
   </div>
+
 </div>
 
 

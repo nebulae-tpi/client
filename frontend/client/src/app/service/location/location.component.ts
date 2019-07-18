@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   ViewChild,
-  ElementRef,
   ChangeDetectorRef,
   OnDestroy
 } from '@angular/core';
@@ -13,21 +12,18 @@ import {
   map,
   takeUntil,
   debounceTime,
-  distinctUntilChanged,
   mergeMap,
   toArray
 } from 'rxjs/operators';
-import { Subject, of, from, interval, merge } from 'rxjs';
+import { Subject, from, interval } from 'rxjs';
 import { ServiceState } from '../service-state';
 import {
   MatBottomSheetRef,
   MatBottomSheet,
   MatSelectionList,
-  MatListOption,
   MatDialog,
   MatSnackBar
 } from '@angular/material';
-import { SelectionModel } from '@angular/cdk/collections';
 import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.component';
 
 @Component({
@@ -92,10 +88,10 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
   styleUrls: ['./location.component.scss']
 })
 export class LocationComponent implements OnInit, OnDestroy {
-  lat = 3.416652;
-  lng = -76.524436;
+  lat = 3.416652; // todo
+  lng = -76.524436; // todo
   zoom = 17;
-  render = true;
+  // render = true;
   widthMapContent = 0;
   heightMapContent = 0;
   center$ = new Subject();
@@ -109,13 +105,22 @@ export class LocationComponent implements OnInit, OnDestroy {
   nearbyTimer;
   nearbyVehicleList = [];
   protected map: any;
-  private ngUnsubscribe = new Subject();
+
   lastServiceStateReported;
   index = 0;
-  numDeltas = 80;
-  delay = 10;
-  testMarker;
-  testMarker2;
+  NUM_DELTAS = 80;
+  DELAY = 10;
+
+  private ngUnsubscribe = new Subject();
+
+
+  // TESTING VARS
+  public origin: any; // new google.maps.LatLng(6.1610224, -75.605014);
+  public destination: any; // = new google.maps.LatLng(6.1731996, -75.6079489);
+
+  // TESTING VARS
+
+
   constructor(
     private cdRef: ChangeDetectorRef,
     private serviceService: ServiceService,
@@ -149,31 +154,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             latitude: (val as any).lat,
             longitude: (val as any).lng
           });
-          /*
-          if (this.testMarker2) {
-            this.testMarker2.setMap(undefined);
-          }
-          this.testMarker2 = new google.maps.Marker({
-            position: new google.maps.LatLng(
-              this.map.getCenter().lat(),
-              this.map.getCenter().lng()
-            ),
-            icon: '../../../assets/icons/location/assigned_user_marker.png',
-            map: this.map
-          });
 
-          if (this.testMarker) {
-            this.testMarker.setMap(undefined);
-          }
-          this.testMarker = new google.maps.Marker({
-            position: new google.maps.LatLng(
-              (val as any).lat,
-              (val as any).lng
-            ),
-            icon: '../../../assets/icons/location/vehicle_marker.png',
-            map: this.map
-          });
-*/
         }),
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(location => {
@@ -197,6 +178,11 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
+
+  consoleLog(event) {
+    console.log('####### ==> ', event);
+  }
+
 
   /* #endregion */
 
@@ -318,11 +304,11 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   changeMarkerPosition(marker, newLat, newLng) {
-    const deltaLat = (newLat - marker.getPosition().lat()) / this.numDeltas;
-    const deltaLng = (newLng - marker.getPosition().lng()) / this.numDeltas;
+    const deltaLat = (newLat - marker.getPosition().lat()) / this.NUM_DELTAS;
+    const deltaLng = (newLng - marker.getPosition().lng()) / this.NUM_DELTAS;
 
-    const timeDelay = this.delay * 0.5;
-    for (let i = 0; i < this.numDeltas; i++) {
+    const timeDelay = this.DELAY * 0.5;
+    for (let i = 0; i < this.NUM_DELTAS; i++) {
       setTimeout(() => {
         let lat = marker.position.lat();
         let lng = marker.position.lng();
@@ -371,6 +357,9 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   mapReady(mapRef) {
+    this.origin = new google.maps.LatLng(6.1610224, -75.605014);
+    this.destination = new google.maps.LatLng(6.1731996, -75.6079489);
+
     this.map = mapRef;
     this.initLocation();
     this.listenServiceChanges();

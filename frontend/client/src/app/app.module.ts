@@ -2,6 +2,7 @@ import { KeycloakService, KeycloakAngularModule } from 'keycloak-angular';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { AgmCoreModule, GoogleMapsAPIWrapper } from '@agm/core';
+import { AgmDirectionModule } from 'agm-direction';   // agm-direction
 import { AppComponent } from './app.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
@@ -73,6 +74,7 @@ import { MenuService } from './menu/menu.service';
       apiKey: environment.google.maps.key,
       libraries: ['places']
     }),
+    AgmDirectionModule,
     KeycloakAngularModule,
     CurrencyMaskModule,
     ApolloModule,

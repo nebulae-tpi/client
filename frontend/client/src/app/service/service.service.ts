@@ -50,6 +50,13 @@ export class ServiceService {
   fromAddressLocation = false;
   userProfile;
   businessContactInfo;
+
+
+  // Origin and destination selection observables
+  originPlaceSelected$ = new BehaviorSubject(undefined);
+  destinationPlaceSelected$ = new BehaviorSubject(undefined);
+
+  //
   /* #endregion */
 
   constructor(private gateway: GatewayService) {}
@@ -249,7 +256,7 @@ export class ServiceService {
     contextWidth?: number,
     contextHeight?: number
   ) {
-    this.layoutChanges$.next({
+    const layout = {
       layout: {
         type,
         address: {
@@ -284,7 +291,11 @@ export class ServiceService {
               : 0)
         }
       }
-    });
+    };
+    console.log('PUBLISHIN LAYOUT CHANGE TYPE ==> ', layout.layout.type);
+
+
+    this.layoutChanges$.next(layout);
   }
 
   /**

@@ -11,7 +11,6 @@ import { ServiceState } from './service/service-state';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'Tx Plus !!!';
   update = false;
   joke: any;
   lastLocation = null;

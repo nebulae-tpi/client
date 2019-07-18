@@ -1,6 +1,6 @@
 <div *ngIf="showAddress" class="form-group">
-  <input id="addressInput" placeholder="Buscar ubicación" autocorrect="off" autocapitalize="off" spellcheck="off"
-    type="text" class="address-input" onfocus="this.value=''" [(ngModel)]="addressInputValue" #search
+  <input id="addressInput" placeholder="¿A donde vás?" autocorrect="off" autocapitalize="off" spellcheck="off"
+    type="text" class="address-input" onfocus="this.value=''" #search
     [formControl]="searchControl" (change)="onBlurAddress()" />
 </div>
 

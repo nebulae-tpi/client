@@ -8,7 +8,6 @@ import {
   NgZone
 } from '@angular/core';
 import {
-  MatIconRegistry,
   MatBottomSheet,
   MatBottomSheetRef
 } from '@angular/material';
@@ -16,10 +15,9 @@ import { ServiceService } from '../../service.service';
 import { ServiceState } from '../../service-state';
 import { filter, takeUntil, map, tap, mergeMap } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material';
-import { Subject, fromEvent, combineLatest, of } from 'rxjs';
+import { Subject, fromEvent, of } from 'rxjs';
 import { MapsAPILoader } from '@agm/core';
 import { MenuService } from 'src/app/menu/menu.service';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 
 @Component({
@@ -98,11 +96,11 @@ export class FilterSheetComponent implements OnInit {
     if (!currentService.requestedFeatures) {
       currentService.requestedFeatures = [];
     }
-    const found = currentService.requestedFeatures.findIndex(element => {
+    const featureFoundIndex = currentService.requestedFeatures.findIndex(element => {
       return element === requestFeature;
     });
-    if (found >= 0) {
-      currentService.requestedFeatures.splice(found, 1);
+    if (featureFoundIndex >= 0) {
+      currentService.requestedFeatures.splice(featureFoundIndex, 1);
     } else {
       enabled = true;
       currentService.requestedFeatures.push(requestFeature);
@@ -132,7 +130,7 @@ export class FilterSheetComponent implements OnInit {
 })
 export class RequestConfirmationComponent implements OnInit, OnDestroy {
   tipValue = '0';
-  reference = '';
+  placeReference = '';
   currentAddress = '';
   fxFlexTip = 40;
   fxFlexFilter = 40;
@@ -194,12 +192,12 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
 
   loadUserProfile() {
     this.menuService.currentUserProfile$
-    .pipe(
-      tap( userProfile => {
-        this.userProfile = userProfile;
-      })
-    )
-    .subscribe(ev => {}, e => console.log(e), () => { });
+      .pipe(
+        tap(userProfile => {
+          this.userProfile = userProfile;
+        })
+      )
+      .subscribe(ev => { }, e => console.log(e), () => { });
 
   }
 
@@ -208,10 +206,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
       ? this.userProfile.favoritePlaces.filter(e => {
         const eName = e.name.replace(/\./g, '').trim().toLowerCase();
         const filterTextFixed = `${filterText}`
-              .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
-              .toLowerCase();
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+          .toLowerCase();
         return eName.includes(filterTextFixed);
-        })
+      })
       : [];
   }
 
@@ -226,7 +224,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
           this.serviceService.userProfile.username,
           pickUpMarker,
           this.addressInputValue,
-          this.reference,
+          this.placeReference,
           parseInt(this.tipValue, 10)
         )
         .pipe(
@@ -348,12 +346,13 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
       geometry: {
         location: {
           lat: () => favoriteSelected.location.lat,
-          lng: () => favoriteSelected.location.lng }
+          lng: () => favoriteSelected.location.lng
+        }
       }
     });
   }
 
-  buildPlacesAutoComplete() {
+  buildPlacesAutoComplete(circle?) {
     if (this.searchElementRef) {
       this.mapsAPILoader.load().then(() => {
         this.autocomplete = new google.maps.places.Autocomplete(
@@ -377,6 +376,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
 
             const { address_components, name, formatted_address, geometry } = place;
             console.log(JSON.stringify({ name, formatted_address, geometry }));
+
             const stringsToRemove = [', Antioquia', ', Valle del Cauca', ', Colombia'];
             this.addressInputValue = this.selectedPlace.favorite
               ? `${name}`.trim()
@@ -398,6 +398,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
             */
           });
         });
+
+        if (circle) {
+          this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        }
       });
     }
   }
@@ -422,7 +426,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
       .pipe(
         filter(evt => evt),
         tap(location => {
-          this.selectedPlace.location = { lat: location.latitude, lng: location.longitude};
+          this.selectedPlace.location = { lat: location.latitude, lng: location.longitude };
         }),
         takeUntil(this.ngUnsubscribe)
       )
@@ -435,11 +439,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
           center: latlng,
           radius: 20000 // meter
         });
+
+
         if (!this.autocomplete) {
-          this.buildPlacesAutoComplete();
-          setTimeout(() => {
-            this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
-          }, 500);
+          this.buildPlacesAutoComplete(circle);
         } else {
           this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
@@ -480,38 +483,38 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy {
     console.log('toggleFavoritePlace', this.selectedPlace);
     this.selectedPlace.favorite = !this.selectedPlace.favorite;
     of(this.selectedPlace.favorite)
-    .pipe(
-      map(toInsert => toInsert ? ({
-        type: 'other',
-        name: this.selectedPlace.name,
-        lat: this.selectedPlace.location.lat,
-        lng: this.selectedPlace.location.lng
-      })
-      : ({ id: this.selectedPlace.id, name: this.selectedPlace.name })
-      ),
-      mergeMap(args => this.selectedPlace.favorite
-        ? this.serviceService.addFavoritePlace$(args)
-        : this.serviceService.removeFavoritePlace$(args.id, args.name)
-      ),
-      tap(r => console.log('RESPONSE ==> ', r)),
-      map(response => ((response || {}).data || {})),
-      tap(response => {
-        if ((response.AddFavoritePlace || {}).code === 200) {
-          this.userProfile.favoritePlaces.push({
-            type: 'other',
-            name: this.selectedPlace.name,
-            location: this.selectedPlace.location
-          });
-          this.menuService.currentUserProfile$.next(this.userProfile);
-          this.showSnackMessage('Favorito Agregado');
-        } else if ((response.RemoveFavoritePlace || {}).code === 200) {
-          this.userProfile.favoritePlaces = this.userProfile.favoritePlaces.filter( fp => fp.name !== this.selectedPlace.name );
-          this.menuService.currentUserProfile$.next(this.userProfile);
-          this.showSnackMessage('Favorito Eliminado');
-        }
-      })
-    )
-    .subscribe();
+      .pipe(
+        map(toInsert => toInsert ? ({
+          type: 'other',
+          name: this.selectedPlace.name,
+          lat: this.selectedPlace.location.lat,
+          lng: this.selectedPlace.location.lng
+        })
+          : ({ id: this.selectedPlace.id, name: this.selectedPlace.name })
+        ),
+        mergeMap(args => this.selectedPlace.favorite
+          ? this.serviceService.addFavoritePlace$(args)
+          : this.serviceService.removeFavoritePlace$(args.id, args.name)
+        ),
+        tap(r => console.log('RESPONSE ==> ', r)),
+        map(response => ((response || {}).data || {})),
+        tap(response => {
+          if ((response.AddFavoritePlace || {}).code === 200) {
+            this.userProfile.favoritePlaces.push({
+              type: 'other',
+              name: this.selectedPlace.name,
+              location: this.selectedPlace.location
+            });
+            this.menuService.currentUserProfile$.next(this.userProfile);
+            this.showSnackMessage('Favorito Agregado');
+          } else if ((response.RemoveFavoritePlace || {}).code === 200) {
+            this.userProfile.favoritePlaces = this.userProfile.favoritePlaces.filter(fp => fp.name !== this.selectedPlace.name);
+            this.menuService.currentUserProfile$.next(this.userProfile);
+            this.showSnackMessage('Favorito Eliminado');
+          }
+        })
+      )
+      .subscribe();
   }
 
 }

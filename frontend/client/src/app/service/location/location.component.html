@@ -2,6 +2,10 @@
   <agm-map [ngStyle]="{ 'height.px': heightMapContent }" (mapReady)="mapReady($event)" [clickableIcons]="false"
     [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="lat" [longitude]="lng" [zoom]="zoom"
     (centerChange)="onCenterChange($event)">
+    <agm-direction [origin]="origin" [visible]="true" [destination]="destination" (onResponse)="consoleLog($event)"
+      (status)="consoleLog($event)">
+    </agm-direction>
+    <!-- <span>ANGULAR DIRECTIONS</span> -->
   </agm-map>
   <img *ngIf="showCenterMarker" src="../../assets/icons/location/assigned_user_marker.png" class="vertical-center"
     alt="image" />
@@ -12,4 +16,12 @@
     style=" position: absolute; top: 0">
     <app-requested-progress (click)="openCancelSheet()"></app-requested-progress>
   </div>
+  <!-- <div id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent, 'height.px': heightMapContent }"
+    style=" position: absolute; top: 0" >
+
+    <div class="form-steps">
+      <button mat-button>Consultar servicio</button>
+    </div>
+
+  </div> -->
 </div>

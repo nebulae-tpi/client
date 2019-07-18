@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ServiceService } from '../service.service';
-import { filter, takeUntil, map } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -11,8 +11,7 @@ import { Subject } from 'rxjs';
 export class ContextComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   currentService;
-  width;
-  heigth;
+
   constructor(private serviceService: ServiceService) {}
   ngOnInit() {
     this.listenServiceChanges();
