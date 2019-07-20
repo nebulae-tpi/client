@@ -2,9 +2,7 @@
 import {
   Component,
   OnInit,
-  OnDestroy,
-  HostListener,
-  AfterViewInit
+  OnDestroy
 } from '@angular/core';
 /* #endregion */
 
@@ -13,7 +11,6 @@ import {
   mergeMap,
   filter,
   takeUntil,
-  debounce,
   debounceTime,
   tap
 } from 'rxjs/operators';
@@ -48,7 +45,7 @@ const ADDRESS_ROWS = 4;
   templateUrl: './service.component.html',
   styleUrls: ['./service.component.scss']
 })
-export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ServiceComponent implements OnInit, OnDestroy {
   /* #region  VARIABLES*/
   layoutType: number;
   screenCols: number;
@@ -83,11 +80,13 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     // location.onPopState(() => {
     //   alert(window.location);
     // });
+
   }
 
   ngOnInit() {
     this.listenServiceChanges();
     this.listenSubscriptionReconnection();
+
     if (this.gateway.checkIfUserLogger()) {
       of(this.keycloakService.getKeycloakInstance().tokenParsed)
         .pipe(
@@ -146,9 +145,8 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ngUnsubscribe.complete();
   }
 
-  ngAfterViewInit() {
-    console.log('afterViewInit');
-  }
+
+
 
   // @HostListener('window:resize', ['$event'])
   // onResize(event?) {
@@ -177,8 +175,9 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(service => {
         if (service) {
-          this.recalculateLayout();
           // this.currentService = service;
+          this.recalculateLayout();
+
         }
       });
   }
@@ -289,8 +288,8 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
               ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT;
           }
         } else {
-          this.layoutType =
-            ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
+          this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
+          this.showAddress = false; // don't show addres input in vertical phone layout
         }
       } else {
         if (
@@ -316,6 +315,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
             : this.screenCols;
         this.mapRows = screenRows;
       } else {
+
         this.addressCols = this.screenCols;
         this.addressRows = ADDRESS_ROWS;
         this.contextCols = this.screenCols;
@@ -335,6 +335,7 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
             : this.screenCols;
         this.mapRows = screenRows;
       } else {
+
         this.addressCols = 0;
         this.addressRows = 0;
         this.contextCols = this.screenCols;
@@ -358,10 +359,14 @@ export class ServiceComponent implements OnInit, OnDestroy, AfterViewInit {
   calculateContextRows() {
     switch (this.serviceService.currentService$.getValue().state) {
       case ServiceState.NO_SERVICE:
+
         this.contextRows = 4;
+
+
+
         break;
       case ServiceState.REQUEST:
-        this.contextRows = 30;
+        this.contextRows = 19;
         break;
       case ServiceState.REQUESTED:
         if (

@@ -35,9 +35,8 @@ export class ServiceService {
    */
   layoutChanges$ = new BehaviorSubject(undefined);
 
-  locationChange$ = new BehaviorSubject(undefined);
+  markerOnMapChange$ = new BehaviorSubject(undefined);
 
-  addressChange$ = new BehaviorSubject(undefined);
 
   onResume$ = new BehaviorSubject(undefined);
 
@@ -67,14 +66,14 @@ export class ServiceService {
 
   /* #region QUERIES */
   getNearbyVehicles() {
-    this.locationChange$.getValue();
-    if (this.locationChange$.getValue()) {
+    this.markerOnMapChange$.getValue();
+    if (this.markerOnMapChange$.getValue()) {
       return this.gateway.apollo.query<any>({
         query: NearbyVehicles,
         variables: {
           clientLocation: {
-            lat: this.locationChange$.getValue().latitude,
-            lng: this.locationChange$.getValue().longitude
+            lat: this.markerOnMapChange$.getValue().latitude,
+            lng: this.markerOnMapChange$.getValue().longitude
           },
           filters: []
         },

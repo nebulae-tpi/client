@@ -16,12 +16,19 @@
     style=" position: absolute; top: 0">
     <app-requested-progress (click)="openCancelSheet()"></app-requested-progress>
   </div>
-  <!-- <div id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent, 'height.px': heightMapContent }"
-    style=" position: absolute; top: 0" >
 
-    <div class="form-steps">
-      <button mat-button>Consultar servicio</button>
+  <div *ngIf="showDestinationPlaceInput" id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent }">
+
+    <div class="form-steps" fxLayoutAlign="center center">
+
+      <input id="addressInput" placeholder="¿A dónde vás?" autocorrect="off" autocapitalize="off"
+        spellcheck="off" type="text" class="address-input" onfocus="this.value=''" #search />
+
     </div>
 
-  </div> -->
+    <!-- [formControl]="searchControl" (change)="onBlurAddress()" -->
+    <!-- <input class="form-steps" id="addressInput" placeholder="¿A donde vás?" autocorrect="off" autocapitalize="off" spellcheck="off"
+    type="text" class="address-input" onfocus="this.value=''" #search/> -->
+
+  </div>
 </div>

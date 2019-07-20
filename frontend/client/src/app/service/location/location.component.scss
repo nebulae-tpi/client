@@ -29,12 +29,41 @@
   display: none;
 }
 
-#test-form-on-map{
-  padding-top: 50px;
-  padding-right: 50px;
-  padding-left: 50px;
-  padding-bottom: 50px;
-  .form-steps{
-    background: white
+#test-form-on-map {
+  margin-top: 150px;
+  position: absolute;
+  top: 0;
+
+  .form-steps {
+    margin-left: 15px;
+    margin-right: 15px;
+
+    border-radius: 40px;
+    background: white;
+    height: 40px;
+
+    input {
+      border: 0px;
+      outline: 0;
+      width: 100%;
+      font-size: 20px;
+      // line-height: 35px;
+      // height: 70px;
+      text-align: center;
+      padding: 5px;
+      background: transparent;
+      color: black;
+      font-weight: 500;
+
+      // :focus{
+      //   outline: 0;
+      //   color: #BBDEFB;
+      // }
+    }
+
+    input::placeholder {
+      font-size: 20px;
+      color: rgb(196, 70, 70);
+     }
   }
 }

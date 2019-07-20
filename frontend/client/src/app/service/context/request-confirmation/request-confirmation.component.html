@@ -1,7 +1,7 @@
 <div fxLayout="column" class="scroll-content" fxLayoutAlign="start start">
 
-    <!-- (click)="toggleFavoritePlace()" -->
-  <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">
+  <!-- (click)="toggleFavoritePlace()" -->
+  <!-- <div *ngIf="showHeader" fxLayout="row" fxLayoutAlign="center center" class="tittle-content"> -->
 
     <!-- <label *ngIf="!selectedPlace.name || !selectedPlace.location" class="tittle-header">Solicitando Servicio</label>
     <label *ngIf="selectedPlace.name && selectedPlace.location" class="tittle-header">Agregar Favorito</label>
@@ -11,61 +11,85 @@
       </mat-icon>
     </button> -->
 
-    <label class="tittle-header">Solicitando Servicio</label>
+    <!-- <label class="tittle-header">Solicitando Servicio</label>
     <img class="circle" src="../../../../assets/icons/context/tx_white_car.png" width="23px" height="20px"
       style="margin-top: -5px; margin-left: 5px" />
-  </div>
+  </div> -->
 
   <div fxLayout="row" style="margin-left: 7px; margin-top: 10px" fxLayoutAlign="start start" class="flex-wrap">
+
+    <!-- ORIGIN PLACE -->
     <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">location_on</mat-icon>
 
       <mat-form-field class="input-service" fxFlex="100">
-        <input #search matInput id="addressInput" placeholder="Dirección" autocorrect="off" autocapitalize="off"
-          spellcheck="off" type="text" [(ngModel)]="addressInputValue" />
+        <input #originPlaceSearch matInput id="addressInput" placeholder="Dirección Origen" autocorrect="off"
+          autocapitalize="off" spellcheck="off" type="text" [formControl]="originPlaceAddresInput" />
       </mat-form-field>
       <!-- <button mat-icon-button>
         <mat-icon>star_rate</mat-icon>
       </button> -->
     </div>
+    <!-- ORIGIN PLACE -->
+
+    <!-- DESTINATION PLACE -->
     <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
+      <mat-icon style="margin-right: 10px">location_on</mat-icon>
+
+      <mat-form-field class="input-service" fxFlex="100">
+        <input #destinationPlaceSearch matInput id="addressInput" placeholder="Dirección Destino" autocorrect="off"
+          autocapitalize="off" spellcheck="off" type="text" [formControl]="destinationPlaceAddresInput" />
+      </mat-form-field>
+      <!-- <button mat-icon-button>
+        <mat-icon>star_rate</mat-icon>
+      </button> -->
+    </div>
+    <!-- DESTINATION PLACE -->
+
+    <!-- REFERENCE ORIGIN PLACE -->
+    <!-- <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">business</mat-icon>
       <mat-form-field class="input-service" fxFlex="100">
         <input matInput [(ngModel)]="placeReference" placeholder="Referencia (Apto, Edificio...)" />
       </mat-form-field>
-    </div>
+    </div> -->
+    <!-- REFERENCE ORIGIN PLACE -->
 
-    <div fxLayout="row" [fxFlex]="fxFlexTip" fxLayoutAlign="start center" class="flex-no-wrap"
+    <!-- TIP -->
+    <!-- <div fxLayout="row" [fxFlex]="fxFlexTip" fxLayoutAlign="start center" class="flex-no-wrap"
       style="margin-right: 20px">
       <mat-icon style="margin-right: 10px">monetization_on</mat-icon>
       <mat-form-field fxFlex="80">
         <input [options]="{ prefix: ' ', thousands: '.', precision: '0', align: 'left'}" matInput placeholder="Propina"
           maxlength="9" [(ngModel)]="tipValue" currencyMask style="text-align: left !important" />
       </mat-form-field>
-    </div>
+    </div> -->
+    <!-- TIP -->
 
-    <button style="margin-top: 10px; margin-right: 20px" [fxFlex]="fxFlexFilter" (click)="openBottomSheet()"
+    <!-- FILTERS -->
+    <!-- <button style="margin-top: 10px; margin-right: 20px" [fxFlex]="fxFlexFilter" (click)="openBottomSheet()"
       mat-stroked-button color="warn">
       Aplicar filtros
-    </button>
+    </button> -->
+    <!-- FILTERS -->
   </div>
 
+  <!-- CONFIRM AND CANCEL BUTTONS -->
   <div fxLayout="row" style="margin-left: 7px; margin-top: 10px; width: 100%" fxLayoutAlign="start start"
     class="flex-wrap">
-    <button mat-raised-button style="margin-right: 10px" fxFlex="45" color="confirm-button-color"
-      (click)="confirmService()">
-      Confirmar
-    </button>
 
     <button mat-raised-button style="margin-right: 10px" fxFlex="45" color="warn" (click)="cancel()">
       Cancelar
     </button>
+
+    <button mat-raised-button style="margin-right: 10px" fxFlex="45" color="confirm-button-color"
+      (click)="confirmService()">
+      Confirmar
+    </button>
   </div>
+  <!-- CONFIRM AND CANCEL BUTTONS -->
 
 </div>
-
-
-
 
 <!-- <div class="pac-item">
   <span class="pac-icon pac-icon-marker"></span>

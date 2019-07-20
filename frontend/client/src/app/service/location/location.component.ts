@@ -111,6 +111,8 @@ export class LocationComponent implements OnInit, OnDestroy {
   NUM_DELTAS = 80;
   DELAY = 10;
 
+  showDestinationPlaceInput = false;
+
   private ngUnsubscribe = new Subject();
 
 
@@ -133,8 +135,21 @@ export class LocationComponent implements OnInit, OnDestroy {
   /* #region ANGULAR NGS */
   ngOnInit() {
     this.listenLayoutCommands();
-    this.listenLocationChanges();
+    this.listenMarkerPosition();
     this.listenOnResume();
+    this.listenCenterChanges();
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
+  }
+
+  consoleLog(event) {
+    console.log('####### ==> ', event);
+  }
+
+  listenCenterChanges() {
     this.center$
       .pipe(
         debounceTime(500),
@@ -150,7 +165,7 @@ export class LocationComponent implements OnInit, OnDestroy {
           return toReport;
         }),
         tap(val => {
-          this.serviceService.locationChange$.next({
+          this.serviceService.markerOnMapChange$.next({
             latitude: (val as any).lat,
             longitude: (val as any).lng
           });
@@ -164,23 +179,14 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.serviceService.fromAddressLocation = false;
               return temp;
             }),
-            tap(() => {
-              this.serviceService.addressChange$.next(undefined);
-            })
+            // tap(() => {
+            //   this.serviceService.addressChange$.next(undefined);
+            // })
           );
         }),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(val => {});
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
-  }
-
-  consoleLog(event) {
-    console.log('####### ==> ', event);
   }
 
 
@@ -220,13 +226,14 @@ export class LocationComponent implements OnInit, OnDestroy {
             });
             this.map.setZoom(17);
 
-            this.serviceService.locationChange$.next({
+            this.serviceService.markerOnMapChange$.next({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude
             });
+
           }
         },
-        error => console.log('LLega error: ', error),
+        error => console.log('getCurrentPosition error: ', error),
         { maximumAge: 60000, timeout: 5000, enableHighAccuracy: true }
       );
     } else {
@@ -262,11 +269,11 @@ export class LocationComponent implements OnInit, OnDestroy {
       if (
         this.map !== undefined &&
         service &&
-        this.serviceService.locationChange$.getValue()
+        this.serviceService.markerOnMapChange$.getValue()
       ) {
         this.map.setCenter({
-          lat: this.serviceService.locationChange$.getValue().latitude,
-          lng: this.serviceService.locationChange$.getValue().longitude
+          lat: this.serviceService.markerOnMapChange$.getValue().latitude,
+          lng: this.serviceService.markerOnMapChange$.getValue().longitude
         });
         this.map.setZoom(17);
       } else {
@@ -278,7 +285,7 @@ export class LocationComponent implements OnInit, OnDestroy {
                 lng: position.coords.longitude
               });
               this.map.setZoom(17);
-              this.serviceService.locationChange$.next({
+              this.serviceService.markerOnMapChange$.next({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
               });
@@ -336,6 +343,9 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region LISTENERS */
 
+  /**
+   * Listen Layouts to update width and height map
+   */
   listenLayoutCommands() {
     this.serviceService.layoutChanges$
       .pipe(
@@ -345,9 +355,15 @@ export class LocationComponent implements OnInit, OnDestroy {
       .subscribe(command => {
         this.widthMapContent = command.layout.map.width;
         this.heightMapContent = command.layout.map.height;
+        if (command.layout.type !== ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
+          this.showDestinationPlaceInput = false;
+        }
       });
   }
 
+  /**
+   * todo ...
+   */
   listenOnResume() {
     this.serviceService.onResume$.pipe(
       takeUntil(this.ngUnsubscribe)
@@ -357,6 +373,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   mapReady(mapRef) {
+    // todo origin and destination to test
     this.origin = new google.maps.LatLng(6.1610224, -75.605014);
     this.destination = new google.maps.LatLng(6.1731996, -75.6079489);
 
@@ -378,8 +395,11 @@ export class LocationComponent implements OnInit, OnDestroy {
     }
   }
 
-  listenLocationChanges() {
-    this.serviceService.locationChange$
+  /**
+   * Updates the map center
+   */
+  listenMarkerPosition() {
+    this.serviceService.markerOnMapChange$
       .pipe(
         filter(evt => evt),
         takeUntil(this.ngUnsubscribe)
@@ -401,8 +421,24 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
+        console.log('opopopopop----- ', service);
         if (service) {
           switch (service.state) {
+
+            case ServiceState.NO_SERVICE:
+              this.showDestinationPlaceInput = true;
+              break;
+            case ServiceState.CANCELLED_CLIENT:
+              break;
+            case ServiceState.CANCELLED_DRIVER:
+              break;
+            case ServiceState.CANCELLED_OPERATOR:
+              break;
+            case ServiceState.CANCELLED_SYSTEM:
+              break;
+            case ServiceState.DONE:
+              this.showDestinationPlaceInput = true;
+              break;
             case ServiceState.REQUESTED:
               this.refreshCenterMap(service);
               this.disableMap = true;
@@ -558,6 +594,10 @@ export class LocationComponent implements OnInit, OnDestroy {
         }
       });
   }
+
+
+
+
   /* #endregion */
 
   /* #region QUERIES */

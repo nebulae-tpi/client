@@ -4,28 +4,33 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
-  OnDestroy
+  OnDestroy,
+  AfterContentInit,
+  AfterViewInit
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
 import { filter, takeUntil, tap, map } from 'rxjs/operators';
-import { Subject, fromEvent } from 'rxjs';
+import { Subject, fromEvent, defer } from 'rxjs';
 import { ServiceState } from '../service-state';
 import { MenuService } from 'src/app/menu/menu.service';
+import { GatewayService } from 'src/app/api/gateway.service';
+import { KeycloakService } from 'keycloak-angular';
+
 
 @Component({
   selector: 'app-address',
   templateUrl: './address.component.html',
   styleUrls: ['./address.component.scss']
 })
-export class AddressComponent implements OnInit, OnDestroy {
+export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
+
   public searchControl = new FormControl();
 
-  @ViewChild('search')
-  public searchElementRef: ElementRef;
+  @ViewChild('search') searchElementRef: ElementRef;
   private ngUnsubscribe = new Subject();
-  // addressInputValue = '';
+
   autocomplete: any;
   showAddress = true;
   showOfferHeader = false;
@@ -41,7 +46,9 @@ export class AddressComponent implements OnInit, OnDestroy {
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private serviceService: ServiceService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private gateway: GatewayService,
+    private keycloakService: KeycloakService
   ) { }
 
   ngOnInit() {
@@ -49,6 +56,9 @@ export class AddressComponent implements OnInit, OnDestroy {
     this.listenLocationChanges();
     this.buildPlacesAutoComplete();
     this.loadUserProfile();
+  }
+
+  ngAfterViewInit(): void {
     this.listenChangesOnAddressSearchInput();
   }
 
@@ -102,28 +112,21 @@ export class AddressComponent implements OnInit, OnDestroy {
           }
 
           stringsToRemove.forEach(s => this.searchControl.setValue(this.searchControl.value.replace(s, '')));
-          // place.formatted_address.split(',')[0];
 
-          // this.serviceService.locationChange$.next({
-          //   latitude: place.geometry.location.lat(),
-          //   longitude: place.geometry.location.lng()
-          // });
-          // this.serviceService.fromAddressLocation = true;
-          // this.serviceService.addressChange$.next(this.searchControl.value);
-
-          this.serviceService.originPlaceSelected$.next({
+          this.serviceService.destinationPlaceSelected$.next({
             name: this.searchControl.value,
-            coords: {
+            location: {
               lat: place.geometry.location.lat(),
               lng: place.geometry.location.lng()
             }
           });
-          // set latitude, longitude and zoom
-          /*
-            this.latitude = place.geometry.location.lat();
-            this.longitude = place.geometry.location.lng();
-            this.zoom = 12;
-            */
+
+          this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+          // todo enable when develop eviroment is on
+          // if (!this.gateway.checkIfUserLogger()) {
+          //    defer(() => this.keycloakService.login({ scope: 'offline_access' }) ).pipe().subscribe();
+          // }
+
         });
       });
 
@@ -138,13 +141,13 @@ export class AddressComponent implements OnInit, OnDestroy {
    * listen the marker position changes
    */
   listenLocationChanges() {
-    this.serviceService.locationChange$
+    this.serviceService.markerOnMapChange$
       .pipe(
         filter(evt => evt),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        console.log('this.serviceService.locationChange$ ==>', location);
+        console.log('this.serviceService.markerOnMapChange$ ==>', location);
         const latlng = new google.maps.LatLng(
           location.latitude,
           location.longitude
@@ -169,10 +172,15 @@ export class AddressComponent implements OnInit, OnDestroy {
         if (service) {
           switch (service.state) {
             case ServiceState.NO_SERVICE:
+              break;
             case ServiceState.CANCELLED_CLIENT:
+              break;
             case ServiceState.CANCELLED_DRIVER:
+              break;
             case ServiceState.CANCELLED_OPERATOR:
+              break;
             case ServiceState.CANCELLED_SYSTEM:
+              break;
             case ServiceState.DONE:
               this.showAddress = true;
               this.showOfferHeader = false;
@@ -248,9 +256,9 @@ export class AddressComponent implements OnInit, OnDestroy {
 
   listenChangesOnAddressSearchInput() {
     if (!this.showAddress) { return; }
-    fromEvent(this.searchElementRef.nativeElement, 'keyup')
+    this.searchControl.valueChanges
       .pipe(
-        map(() => this.searchElementRef.nativeElement.value),
+        // map(() => this.searchElementRef.nativeElement.value),
         tap(inputValue => {
           const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(inputValue);
           // console.log('ITEMS PARA AÑADIR', itemsToAutocomplete);
