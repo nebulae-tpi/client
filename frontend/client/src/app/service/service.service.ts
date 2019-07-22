@@ -30,13 +30,10 @@ export class ServiceService {
 
   public static LAYOUT_COMMAND_SHOW_ADDRESS = 100;
   public static LAYOUT_COMMAND_HIDE_ADDRESS = 101;
-  /**
-   * layout dimension observable
-   */
+
   layoutChanges$ = new BehaviorSubject(undefined);
 
   markerOnMapChange$ = new BehaviorSubject(undefined);
-
 
   onResume$ = new BehaviorSubject(undefined);
 
@@ -46,7 +43,7 @@ export class ServiceService {
 
   backNavigation$ = new BehaviorSubject<any>(undefined);
 
-  fromAddressLocation = false;
+  // fromAddressLocation = false;
   userProfile;
   businessContactInfo;
 
@@ -292,8 +289,6 @@ export class ServiceService {
       }
     };
     console.log('PUBLISHIN LAYOUT CHANGE TYPE ==> ', layout.layout.type);
-
-
     this.layoutChanges$.next(layout);
   }
 

@@ -15,7 +15,7 @@ import {
 } from '@angular/material';
 import { ServiceService } from '../../service.service';
 import { ServiceState } from '../../service-state';
-import { filter, takeUntil, map, tap, mergeMap } from 'rxjs/operators';
+import { filter, takeUntil, map, tap, mergeMap, startWith } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material';
 import { Subject, fromEvent, of, merge } from 'rxjs';
 import { MapsAPILoader } from '@agm/core';
@@ -141,7 +141,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   fxFlexTip = 40;
   fxFlexFilter = 40;
   showHeader = true;
-
+  showPlacesInputs = true;
+  layoutType = null;
+  serviceState = null;
   userProfile: any;
 
 
@@ -176,6 +178,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.listenDestinationPlaceChanges();
 
     this.listenLayoutCommands();
+    this.listenServiceChanges();
 
   }
 
@@ -184,10 +187,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.buildDestinationPlaceAutoComplete();
 
     this.listenChangesOnOriginAndDestinationSearchInput();
-
   }
-
-
 
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
@@ -326,6 +326,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   listenChangesOnOriginAndDestinationSearchInput() {
+    if(!this.showPlacesInputs){
+      return;
+    }
     merge(
       fromEvent(this.originPlaceSearchElementRef.nativeElement, 'keyup').pipe(
         map(input => ({ type: 'ORIGIN', value: input }))
@@ -446,7 +449,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
               }
             });
 
-            this.serviceService.fromAddressLocation = true;
+            // this.serviceService.fromAddressLocation = true;
           });
         });
 
@@ -499,7 +502,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                 lng: geometry.location.lng()
               }
             });
-            this.serviceService.fromAddressLocation = true;
+            // this.serviceService.fromAddressLocation = true;
           });
         });
 
@@ -514,10 +517,23 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.serviceService.originPlaceSelected$
       .pipe(
         filter(place => place),
+        startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
+        console.log('------------------ LISTENING ORIGIN PLACE  ==> ', place);
+        if (place.type === 'INITIAL_MARKER') {
+          place = {
+            name: 'Mi Posición',
+            location: {
+              lat: place.latitude,
+              lng: place.longitude
+            }
+          }
+        }
+
         this.originPlace.name = place.name;
         this.originPlace.location = place.location;
+        this.originPlaceAddresInput.setValue(this.originPlace.name);
 
         const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
         const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
@@ -533,14 +549,15 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   listenDestinationPlaceChanges() {
-
     this.serviceService.destinationPlaceSelected$
       .pipe(
         filter(place => place),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
+        console.log('listenDestinationPlaceChanges ==> ', place);
 
         this.destinationPlace.name = place.name;
+        this.destinationPlaceAddresInput.setValue(this.destinationPlace.name);
         this.destinationPlace.location = place.location;
 
         const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
@@ -563,16 +580,13 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.serviceService.layoutChanges$
       .pipe(
         filter(command => command && command.layout),
+        map(update => update.layout),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(command => {
-        // if (command && command.layout) {
-        if (
-          command.layout.type === 0 ||
-          command.layout.type === 1 ||
-          command.layout.type === 4 ||
-          command.layout.type === 5
-        ) {
+      .subscribe(layout => {
+        const { type } = layout;
+        this.layoutType = type;
+        if (type === 0 || type === 1 || type === 4 || type === 5) {
           this.fxFlexTip = 100;
           this.fxFlexFilter = 100;
           this.showHeader = false;
@@ -581,9 +595,42 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           this.fxFlexFilter = 40;
           this.showHeader = true;
         }
+
+        this.serviceState = this.serviceState || this.serviceService.currentService$.getValue().state;
+
+        console.log({ serviceState: this.serviceState, layoutType: this.layoutType });
+        
+
+        this.showPlacesInputs = !(
+          this.serviceState === ServiceState.REQUEST &&
+          this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
+        );
+
+        console.log({ showPlacesInputs: this.showPlacesInputs });
+
       }
-        // }
       );
+  }
+
+  listenServiceChanges() {
+    this.serviceService.currentService$
+      .pipe(
+        filter(service => service),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe(service => {
+        const { state } = service;
+        this.serviceState = state;
+
+        console.log({serviceState: this.serviceState, layoutType: this.layoutType });
+
+        this.showPlacesInputs = !(
+          this.serviceState === ServiceState.REQUEST &&
+          this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
+        );
+
+        console.log({ showPlacesInputs: this.showPlacesInputs });
+
+      });
   }
 
 

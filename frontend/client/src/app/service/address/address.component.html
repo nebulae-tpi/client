@@ -1,7 +1,17 @@
-<div *ngIf="showAddress" class="form-group">
-  <input id="addressInput" placeholder="¿A donde vás?" autocorrect="off" autocapitalize="off" spellcheck="off"
-    type="text" class="address-input" onfocus="this.value=''" #search
-    [formControl]="searchControl" (change)="onBlurAddress()" />
+<div *ngIf="showAddress && showTwoInputs">
+  <input placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="input-address"
+    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
+</div>
+
+<div *ngIf="showAddress && showTwoInputs">
+
+  <input placeholder="Destino" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="input-address"
+    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
+</div>
+
+<div *ngIf="showAddress && !showTwoInputs" class="form-group">
+  <input placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="address-input"
+    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
 </div>
 
 <div *ngIf="showWithoutService" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">

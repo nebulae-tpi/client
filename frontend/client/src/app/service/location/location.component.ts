@@ -3,7 +3,10 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectorRef,
-  OnDestroy
+  OnDestroy,
+  AfterViewInit,
+  ElementRef,
+  NgZone
 } from '@angular/core';
 import { ServiceService } from '../service.service';
 import {
@@ -25,6 +28,8 @@ import {
   MatSnackBar
 } from '@angular/material';
 import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.component';
+import { MapsAPILoader } from '@agm/core';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-cancel-sheet',
@@ -56,7 +61,7 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
   constructor(
     private bottomSheetRef: MatBottomSheetRef<CancelSheetComponent>,
     private serviceService: ServiceService
-  ) {}
+  ) { }
 
   openLink(event: MouseEvent): void {
     this.bottomSheetRef.dismiss();
@@ -64,11 +69,10 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
   }
 
   onNgModelChange($event) {
-    this.serviceService
-      .cancelService$($event)
+    this.serviceService.cancelService$($event)
       .subscribe(res => console.log('Cancela servicio: ', res));
     this.bottomSheetRef.dismiss();
-    console.log({$event});
+    console.log({ $event });
     // event.preventDefault();
   }
 
@@ -88,12 +92,23 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
   styleUrls: ['./location.component.scss']
 })
 export class LocationComponent implements OnInit, OnDestroy {
+
+  STRINGS_TO_REMOVE = [', Antioquia', ', Valle del Cauca', ', Colombia'];
+
+  showDestinationPlaceInput = false;
+  @ViewChild('destinationPlaceSearch') destinationPlaceSearchElementRef: ElementRef;
+  destinationPlace: any = {};
+  destinationPlaceAutocomplete: any;
+  destinationPlaceAddresInput = new FormControl();
+
+
   lat = 3.416652; // todo
   lng = -76.524436; // todo
   zoom = 17;
   // render = true;
   widthMapContent = 0;
   heightMapContent = 0;
+
   center$ = new Subject();
   lastCenterResported;
   showCenterMarker = true;
@@ -111,7 +126,9 @@ export class LocationComponent implements OnInit, OnDestroy {
   NUM_DELTAS = 80;
   DELAY = 10;
 
-  showDestinationPlaceInput = false;
+
+
+  layoutType = null;
 
   private ngUnsubscribe = new Subject();
 
@@ -128,7 +145,9 @@ export class LocationComponent implements OnInit, OnDestroy {
     private serviceService: ServiceService,
     private bottomSheet: MatBottomSheet,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private mapsAPILoader: MapsAPILoader,
+    private ngZone: NgZone
   ) {
   }
 
@@ -149,18 +168,83 @@ export class LocationComponent implements OnInit, OnDestroy {
     console.log('####### ==> ', event);
   }
 
+  buildDestinationPlaceAutoComplete(circle?) {
+    if (!this.destinationPlaceSearchElementRef) {
+      setTimeout(() => {
+        console.log('INTENTANDO A CONSTRUIR EL AUTOCIOMPLETE ..............');
+        if(this.showDestinationPlaceInput){
+          this.buildDestinationPlaceAutoComplete(circle);
+        }        
+      }, 200);
+      return;
+    }
+    this.mapsAPILoader.load().then(() => {
+      this.destinationPlaceAutocomplete = new google.maps.places.Autocomplete(
+        this.destinationPlaceSearchElementRef.nativeElement,
+        {
+          componentRestrictions: { country: 'co' }
+        }
+      );
+
+      this.destinationPlaceAutocomplete.addListener('place_changed', () => {
+        this.ngZone.run(() => {
+          // get the place result
+          const place: google.maps.places.PlaceResult = this.destinationPlaceAutocomplete.getPlace();
+          // verify result
+          if (!place || place.geometry === undefined || place.geometry === null) {
+            return;
+          }
+
+          // this.addressInputValue = place.formatted_address.split(',')[0];
+
+          const { address_components, name, formatted_address, geometry } = place;
+
+          this.destinationPlace.favorite = (formatted_address === '[FAVORITE]');
+          let destinationPlaceName = this.destinationPlace.favorite
+            ? `${name}`.trim()
+            : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
+
+          this.STRINGS_TO_REMOVE.forEach(s => destinationPlaceName = destinationPlaceName.replace(s, ''));
+
+          this.destinationPlace.name = destinationPlaceName;
+
+          this.serviceService.destinationPlaceSelected$.next({
+            ...this.destinationPlace,
+            name: this.destinationPlace.name,
+            location: {
+              lat: geometry.location.lat(),
+              lng: geometry.location.lng()
+            }
+          });
+
+          this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+
+
+        });
+      });
+
+      if (circle) {
+        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+      }
+    });
+
+  }
+
+  publishDestinationPlaceSelected(){
+    console.log(this.serviceService.destinationPlaceSelected$);
+  }
+
   listenCenterChanges() {
     this.center$
       .pipe(
         debounceTime(500),
         filter(val => {
+
           let toReport = false;
-          if (
-            this.lastCenterResported &&
-            this.lastCenterResported.lat !== (val as any).lat
-          ) {
+          if (this.lastCenterResported && this.lastCenterResported.lat !== (val as any).lat) {
             toReport = true;
           }
+
           this.lastCenterResported = val;
           return toReport;
         }),
@@ -173,12 +257,13 @@ export class LocationComponent implements OnInit, OnDestroy {
         }),
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(location => {
+          // todo - what for is fromAddressLocation variable??
           return this.getNearbyVehicles$().pipe(
-            filter(() => {
-              const temp = !this.serviceService.fromAddressLocation;
-              this.serviceService.fromAddressLocation = false;
-              return temp;
-            }),
+            // filter(() => {
+            //   const temp = !this.serviceService.fromAddressLocation;
+            //   this.serviceService.fromAddressLocation = false;
+            //   return temp;
+            // }),
             // tap(() => {
             //   this.serviceService.addressChange$.next(undefined);
             // })
@@ -186,7 +271,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(val => {});
+      .subscribe(val => { });
   }
 
 
@@ -194,13 +279,10 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region TOOLS */
   currentLocation() {
-    if (
-      this.map !== undefined &&
-      this.currentService &&
-      (this.currentService.state === ServiceState.REQUESTED ||
-        this.currentService.state === ServiceState.ASSIGNED ||
-        this.currentService.state === ServiceState.ARRIVED)
-    ) {
+
+    const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED ];
+
+    if ( this.map !== undefined && this.currentService && availableStates.includes(this.currentService.state)) {
       this.map.setCenter({
         lat: this.currentService.pickUp.marker.lat,
         lng: this.currentService.pickUp.marker.lng
@@ -241,39 +323,34 @@ export class LocationComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * 
+   */
   initLocation() {
-    const service = this.serviceService.currentService$.getValue();
-    if (
-      this.map !== undefined &&
-      service &&
-      (service.state === ServiceState.REQUESTED ||
-        service.state === ServiceState.ASSIGNED ||
-        service.state === ServiceState.ARRIVED)
-    ) {
+    this.currentService = this.serviceService.currentService$.getValue();
+    const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
+
+    const { state, pickUp, location  } = this.currentService;
+
+    const allowedServiceStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
+
+    if (this.map !== undefined && this.currentService && (allowedServiceStates.includes(state))) {
       this.map.setCenter({
-        lat: service.pickUp.marker.lat,
-        lng: service.pickUp.marker.lng
+        lat: pickUp.marker.lat,
+        lng: pickUp.marker.lng
       });
       this.map.setZoom(17);
-    } else if (
-      this.map !== undefined &&
-      service &&
-      service.state === ServiceState.ON_BOARD
-    ) {
+    } else if (this.map !== undefined && this.currentService && state === ServiceState.ON_BOARD) {
       this.map.setCenter({
-        lat: service.location.lat,
-        lng: service.location.lng
+        lat: location.lat,
+        lng: location.lng
       });
       this.map.setZoom(17);
     } else if (navigator.geolocation) {
-      if (
-        this.map !== undefined &&
-        service &&
-        this.serviceService.markerOnMapChange$.getValue()
-      ) {
+      if (this.map !== undefined && this.currentService && markerOnMap) {
         this.map.setCenter({
-          lat: this.serviceService.markerOnMapChange$.getValue().latitude,
-          lng: this.serviceService.markerOnMapChange$.getValue().longitude
+          lat: markerOnMap.latitude,
+          lng: markerOnMap.longitude
         });
         this.map.setZoom(17);
       } else {
@@ -301,13 +378,13 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   openCancelSheet() {
-    this.bottomSheet.open(CancelSheetComponent, {closeOnNavigation: true});
+    this.bottomSheet.open(CancelSheetComponent, { closeOnNavigation: true });
   }
 
   clearMarkerFromMap(listToClear) {
     from(listToClear)
       .pipe()
-      .subscribe(res => {});
+      .subscribe(res => { });
   }
 
   changeMarkerPosition(marker, newLat, newLng) {
@@ -350,19 +427,23 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.serviceService.layoutChanges$
       .pipe(
         filter(e => e && e.layout),
+        map(e => e.layout),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(command => {
-        this.widthMapContent = command.layout.map.width;
-        this.heightMapContent = command.layout.map.height;
-        if (command.layout.type !== ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
+      .subscribe(layout => {
+        this.widthMapContent = layout.map.width;
+        this.heightMapContent = layout.map.height;
+        this.layoutType = layout.type;
+
+        if (layout.type !== ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
           this.showDestinationPlaceInput = false;
         }
+
       });
   }
 
   /**
-   * todo ...
+   * todo what is it ? when onResume is emmited ? ...
    */
   listenOnResume() {
     this.serviceService.onResume$.pipe(
@@ -377,10 +458,16 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.origin = new google.maps.LatLng(6.1610224, -75.605014);
     this.destination = new google.maps.LatLng(6.1731996, -75.6079489);
 
+
     this.map = mapRef;
     this.initLocation();
     this.listenServiceChanges();
     this.startNearbyVehicles();
+    if (this.currentService && this.currentService.state === ServiceState.NO_SERVICE && this.showDestinationPlaceInput) {
+      // setTimeout(() => {
+        this.buildDestinationPlaceAutoComplete();
+      // }, 1000);
+    }
   }
 
   onCenterChange($event) {
@@ -410,45 +497,110 @@ export class LocationComponent implements OnInit, OnDestroy {
             lat: location.latitude,
             lng: location.longitude
           });
+
         }
+        const latlng = new google.maps.LatLng(
+          location.latitude,
+          location.longitude
+        );
+        const circle = new google.maps.Circle({
+          center: latlng,
+          radius: 20000 // meters
+        });
+
+        if (!this.destinationPlaceAutocomplete) {
+          this.buildDestinationPlaceAutoComplete(circle);
+        } else if(this.showDestinationPlaceInput) {
+          console.log('PONIENDO  OPCIONES ADICIONALES A EL AUTOCOMPLETE DE DESTINO EN EL MAPA');          
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        }
+
       });
   }
 
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
+        filter(service => service),
         debounceTime(100),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
-        console.log('opopopopop----- ', service);
-        if (service) {
-          switch (service.state) {
+        this.currentService = service;
 
-            case ServiceState.NO_SERVICE:
+        switch (service.state) {
+          case ServiceState.NO_SERVICE:
+            if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showDestinationPlaceInput = true;
-              break;
-            case ServiceState.CANCELLED_CLIENT:
-              break;
-            case ServiceState.CANCELLED_DRIVER:
-              break;
-            case ServiceState.CANCELLED_OPERATOR:
-              break;
-            case ServiceState.CANCELLED_SYSTEM:
-              break;
-            case ServiceState.DONE:
-              this.showDestinationPlaceInput = true;
-              break;
-            case ServiceState.REQUESTED:
-              this.refreshCenterMap(service);
-              this.disableMap = true;
-              this.currentService = service;
-              if (
-                this.currentService &&
-                this.currentService.pickUp &&
-                this.currentService.pickUp &&
-                this.currentService.pickUp.marker
-              ) {
+            }
+            break;
+          case ServiceState.CANCELLED_CLIENT:
+            break;
+          case ServiceState.CANCELLED_DRIVER:
+            break;
+          case ServiceState.CANCELLED_OPERATOR:
+            break;
+          case ServiceState.CANCELLED_SYSTEM:
+            break;
+          case ServiceState.DONE:
+            this.showDestinationPlaceInput = true;
+            break;
+          case ServiceState.REQUESTED:
+            this.showDestinationPlaceInput = false;
+            this.refreshCenterMap(service);
+            this.disableMap = true;
+            if (
+              this.currentService &&
+              this.currentService.pickUp &&
+              this.currentService.pickUp &&
+              this.currentService.pickUp.marker
+            ) {
+              this.userMarker = new google.maps.Marker({
+                position: new google.maps.LatLng(
+                  this.currentService.pickUp.marker.lat,
+                  this.currentService.pickUp.marker.lng
+                ),
+                icon:
+                  '../../../assets/icons/location/assigned_user_marker.png',
+                map: this.map
+              });
+            }
+            this.showCenterMarker = false;
+            break;
+          case ServiceState.ARRIVED:
+
+          case ServiceState.ASSIGNED:
+            this.refreshCenterMap(service);
+            if (
+              service.state === ServiceState.ARRIVED &&
+              this.lastServiceStateReported !== service.state
+            ) {
+              this.dialog.closeAll();
+              this.dialog.open(DialogArrivedComponent, {
+                width: '250px',
+                panelClass: 'my-panel',
+                data: {}
+              });
+            }
+            this.nearbyVehiclesEnabled = false;
+            this.disableMap = false;
+            this.nearbyVehicleList.forEach(vehicle => {
+              vehicle.marker.setMap(undefined);
+            });
+            this.nearbyVehicleList = [];
+            if (
+              this.currentService &&
+              this.currentService.pickUp &&
+              this.currentService.pickUp &&
+              this.currentService.pickUp.marker
+            ) {
+              if (this.userMarker) {
+                this.changeMarkerPosition(
+                  this.userMarker,
+                  this.currentService.pickUp.marker.lat,
+                  this.currentService.pickUp.marker.lng
+                );
+              } else {
                 this.userMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
                     this.currentService.pickUp.marker.lat,
@@ -459,139 +611,91 @@ export class LocationComponent implements OnInit, OnDestroy {
                   map: this.map
                 });
               }
-              this.showCenterMarker = false;
-              break;
-            case ServiceState.ARRIVED:
-            case ServiceState.ASSIGNED:
-              this.refreshCenterMap(service);
-              if (
-                service.state === ServiceState.ARRIVED &&
-                this.lastServiceStateReported !== service.state
-              ) {
-                this.dialog.closeAll();
-                this.dialog.open(DialogArrivedComponent, {
-                  width: '250px',
-                  panelClass: 'my-panel',
-                  data: {}
+            }
+
+            if (this.currentService && this.currentService.location) {
+              if (this.vehicleMarker) {
+                this.changeMarkerPosition(
+                  this.vehicleMarker,
+                  this.currentService.location.lat,
+                  this.currentService.location.lng
+                );
+              } else {
+                console.log('agrega ubicacion del vehiculo: ', this.currentService.location);
+                this.vehicleMarker = new google.maps.Marker({
+                  position: new google.maps.LatLng(
+                    this.currentService.location.lat,
+                    this.currentService.location.lng
+                  ),
+                  icon: '../../../assets/icons/location/vehicle_marker.png',
+                  map: this.map
                 });
               }
-              this.nearbyVehiclesEnabled = false;
-              this.disableMap = false;
-              this.currentService = service;
-              this.nearbyVehicleList.forEach(vehicle => {
-                vehicle.marker.setMap(undefined);
-              });
-              this.nearbyVehicleList = [];
-              if (
-                this.currentService &&
-                this.currentService.pickUp &&
-                this.currentService.pickUp &&
-                this.currentService.pickUp.marker
-              ) {
-                if (this.userMarker) {
-                  this.changeMarkerPosition(
-                    this.userMarker,
-                    this.currentService.pickUp.marker.lat,
-                    this.currentService.pickUp.marker.lng
-                  );
-                } else {
-                  this.userMarker = new google.maps.Marker({
-                    position: new google.maps.LatLng(
-                      this.currentService.pickUp.marker.lat,
-                      this.currentService.pickUp.marker.lng
-                    ),
-                    icon:
-                      '../../../assets/icons/location/assigned_user_marker.png',
-                    map: this.map
-                  });
-                }
-              }
+            }
+            this.showCenterMarker = false;
+            break;
+          case ServiceState.ON_BOARD:
+            this.refreshCenterMap(service);
+            this.nearbyVehiclesEnabled = false;
+            this.disableMap = false;
+            this.nearbyVehicleList.forEach(vehicle => {
+              vehicle.marker.setMap(undefined);
+            });
+            this.nearbyVehicleList = [];
 
-              if (this.currentService && this.currentService.location) {
-                if (this.vehicleMarker) {
-                  this.changeMarkerPosition(
-                    this.vehicleMarker,
-                    this.currentService.location.lat,
-                    this.currentService.location.lng
-                  );
-                } else {
-                  console.log(
-                    'agrega ubicacion del vehiculo: ',
-                    this.currentService.location
-                  );
-                  this.vehicleMarker = new google.maps.Marker({
-                    position: new google.maps.LatLng(
-                      this.currentService.location.lat,
-                      this.currentService.location.lng
-                    ),
-                    icon: '../../../assets/icons/location/vehicle_marker.png',
-                    map: this.map
-                  });
-                }
-              }
-              this.showCenterMarker = false;
-              break;
-            case ServiceState.ON_BOARD:
-              this.refreshCenterMap(service);
-              this.nearbyVehiclesEnabled = false;
-              this.disableMap = false;
-              this.currentService = service;
-              this.nearbyVehicleList.forEach(vehicle => {
-                vehicle.marker.setMap(undefined);
-              });
-              this.nearbyVehicleList = [];
-
-              if (this.userMarker) {
-                this.userMarker.setMap(undefined);
-                this.userMarker = undefined;
-              }
-              if (this.currentService && this.currentService.location) {
-                if (this.vehicleMarker) {
-                  this.changeMarkerPosition(
-                    this.vehicleMarker,
-                    this.currentService.location.lat,
-                    this.currentService.location.lng
-                  );
-                } else {
-                  this.vehicleMarker = new google.maps.Marker({
-                    position: new google.maps.LatLng(
-                      this.currentService.location.lat,
-                      this.currentService.location.lng
-                    ),
-                    icon: '../../../assets/icons/location/vehicle_marker.png',
-                    map: this.map
-                  });
-                }
-              }
-              this.showCenterMarker = false;
-              if (this.lastServiceStateReported !== service.state) {
-                // TODO read farediscount
-                this.snackBar.open(
-                  'Recuerde que tiene 15% de dcto sobre el valor total del servicio',
-                  'Cerrar',
-                  {
-                    duration: 10000
-                  }
-                );
-              }
-              break;
-            default:
-            if (this.vehicleMarker) {
-                this.vehicleMarker.setMap(undefined);
-                this.vehicleMarker = undefined;
-              }
             if (this.userMarker) {
-                this.userMarker.setMap(undefined);
-                this.userMarker = undefined;
+              this.userMarker.setMap(undefined);
+              this.userMarker = undefined;
+            }
+            if (this.currentService && this.currentService.location) {
+              if (this.vehicleMarker) {
+                this.changeMarkerPosition(
+                  this.vehicleMarker,
+                  this.currentService.location.lat,
+                  this.currentService.location.lng
+                );
+              } else {
+                this.vehicleMarker = new google.maps.Marker({
+                  position: new google.maps.LatLng(
+                    this.currentService.location.lat,
+                    this.currentService.location.lng
+                  ),
+                  icon: '../../../assets/icons/location/vehicle_marker.png',
+                  map: this.map
+                });
               }
+            }
+            this.showCenterMarker = false;
+            if (this.lastServiceStateReported !== service.state) {
+              // TODO read farediscount
+              this.snackBar.open(
+                'Recuerde que tiene 15% de dcto sobre el valor total del servicio',
+                'Cerrar',
+                {
+                  duration: 10000
+                }
+              );
+            }
+            break;
+          default:
+            if (this.vehicleMarker) {
+              this.vehicleMarker.setMap(undefined);
+              this.vehicleMarker = undefined;
+            }
+            if (this.userMarker) {
+              this.userMarker.setMap(undefined);
+              this.userMarker = undefined;
+            }
+
             this.disableMap = false;
             this.currentService = undefined;
             this.showCenterMarker = true;
             this.nearbyVehiclesEnabled = true;
             break;
-          }
-          this.lastServiceStateReported = service.state;
         }
+
+        this.lastServiceStateReported = service.state;
+
       });
   }
 
@@ -611,7 +715,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(
-        () => {},
+        () => { },
         error => {
           // console.error('error buscando vehiculos: ', error);
           this.startNearbyVehicles();
@@ -619,9 +723,12 @@ export class LocationComponent implements OnInit, OnDestroy {
       );
   }
 
+  /**
+   * get near vehicles ans paint it in map
+   */
   getNearbyVehicles$() {
     return this.serviceService.getNearbyVehicles().pipe(
-      map(result => result.data.NearbyVehicles),
+      map(result => ((result || {}).data || {}).NearbyVehicles),
       mergeMap(nearbyVehicles => {
         // Verify if the client have nearbyVehicles and clear all the unnecesary vehicles markers
         if (
@@ -630,22 +737,16 @@ export class LocationComponent implements OnInit, OnDestroy {
           nearbyVehicles.length < 1
         ) {
           return from(this.nearbyVehicleList).pipe(
-            tap(v => {
-              v.marker.setMap(undefined);
-            }),
+            tap(v => v.marker.setMap(undefined)),
             toArray(),
             map(() => nearbyVehicles),
-            tap(() => {
-              this.nearbyVehicleList = [];
-            })
+            tap(() => this.nearbyVehicleList = [])
           );
         } else {
           return from(nearbyVehicles).pipe(
             tap((vehicle: any) => {
               // find in current vehicleList and refresh the marker position
-              const searchElement = this.nearbyVehicleList.find(element => {
-                return vehicle.vehicleId === element.vehicleId;
-              });
+              const searchElement = this.nearbyVehicleList.find(element => vehicle.vehicleId === element.vehicleId);
 
               if (searchElement) {
                 this.changeMarkerPosition(
@@ -667,9 +768,8 @@ export class LocationComponent implements OnInit, OnDestroy {
       mergeMap((nearbyVehicles: any) => {
         return from(this.nearbyVehicleList).pipe(
           map(vehicle => {
-            const searchVehicle = nearbyVehicles.find(element => {
-              return vehicle.vehicleId === element.vehicleId;
-            });
+            const searchVehicle = nearbyVehicles.find(element => vehicle.vehicleId === element.vehicleId);
+
             if (!searchVehicle) {
               vehicle.marker.setMap(undefined);
             }
@@ -679,13 +779,13 @@ export class LocationComponent implements OnInit, OnDestroy {
         );
       }),
       tap(vehiclesToRemoveList => {
+
         if (vehiclesToRemoveList) {
-          this.nearbyVehicleList = this.nearbyVehicleList.filter(val => {
-            return !vehiclesToRemoveList.find(element => {
-              return element && val.vehicleId === element.vehicleId;
-            });
-          });
+          this.nearbyVehicleList = this.nearbyVehicleList.filter(val =>
+            !vehiclesToRemoveList.find(element => element && val.vehicleId === element.vehicleId)
+          );
         }
+
       })
     );
   }

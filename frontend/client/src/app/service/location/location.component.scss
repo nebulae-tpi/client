@@ -40,10 +40,13 @@
 
     border-radius: 40px;
     background: white;
+    border-style: solid;
+    border-color: rgb(196, 70, 70);
     height: 40px;
 
     input {
-      border: 0px;
+      border: 1px;
+      
       outline: 0;
       width: 100%;
       font-size: 20px;

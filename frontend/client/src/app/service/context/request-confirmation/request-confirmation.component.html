@@ -19,7 +19,7 @@
   <div fxLayout="row" style="margin-left: 7px; margin-top: 10px" fxLayoutAlign="start start" class="flex-wrap">
 
     <!-- ORIGIN PLACE -->
-    <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
+    <div *ngIf="showPlacesInputs" fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">location_on</mat-icon>
 
       <mat-form-field class="input-service" fxFlex="100">
@@ -33,7 +33,7 @@
     <!-- ORIGIN PLACE -->
 
     <!-- DESTINATION PLACE -->
-    <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
+    <div *ngIf="showPlacesInputs" fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">location_on</mat-icon>
 
       <mat-form-field class="input-service" fxFlex="100">

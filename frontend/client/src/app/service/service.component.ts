@@ -12,7 +12,8 @@ import {
   filter,
   takeUntil,
   debounceTime,
-  tap
+  tap,
+  map
 } from 'rxjs/operators';
 
 import {
@@ -56,6 +57,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
   mapCols: number;
   mapRows: number;
   showAddress = true;
+
   private ngUnsubscribe = new Subject();
 
   LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT = 0;
@@ -68,6 +70,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
   isWindowVisible = true;
   /* #endregion */
 
+  currentService: any = {};
+
   constructor(
     protected serviceService: ServiceService,
     private keycloakService: KeycloakService,
@@ -75,16 +79,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private location: LocationStrategy
   ) {
-    // this.onResize();
-    this.listenResizeEvent();
-    // location.onPopState(() => {
-    //   alert(window.location);
-    // });
 
   }
 
   ngOnInit() {
     this.listenServiceChanges();
+    this.listenResizeEvent();
     this.listenSubscriptionReconnection();
 
     if (this.gateway.checkIfUserLogger()) {
@@ -145,21 +145,13 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-
-
-
-  // @HostListener('window:resize', ['$event'])
-  // onResize(event?) {
-  //   this.recalculateLayout();
-  // }
-
-
   listenResizeEvent() {
+    this.currentService = this.serviceService.currentService$.getValue();
     fromEvent(window, 'resize')
-    .pipe(
-      debounceTime(100),
-      tap(() => this.recalculateLayout())
-    ).subscribe();
+      .pipe(
+        debounceTime(50),
+        tap(() => this.recalculateLayout())
+      ).subscribe();
   }
 
   showSnackBar(message) {
@@ -175,9 +167,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(service => {
         if (service) {
-          // this.currentService = service;
-          this.recalculateLayout();
+          this.currentService = service;
+          console.log('CAMBIO EL ESTADO DEL SERVICIO .....', this.currentService);
 
+          this.recalculateLayout();
         }
       });
   }
@@ -189,22 +182,13 @@ export class ServiceComponent implements OnInit, OnDestroy {
   listenSubscriptionReconnection() {
     this.gateway.onSubscriptionClientEvent$
       .pipe(
-        filter(
-          subscriptionConnectionEvent =>
-            subscriptionConnectionEvent === 'reconnected'
-        ),
-        mergeMap(() => this.serviceService.getCurrentService$()),
+        filter(subscriptionConnectionEvent => subscriptionConnectionEvent === 'reconnected'),
+        mergeMap(() => this.serviceService.currentService$),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(service => {
-        if (
-          !service &&
-          this.serviceService.currentService$.getValue().state !==
-            ServiceState.REQUEST
-        ) {
-          this.serviceService.currentService$.next({
-            state: ServiceState.NO_SERVICE
-          });
+      .subscribe((service: any) => {
+        if (!service && this.currentService.state !== ServiceState.REQUEST) {
+          this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
         } else {
           this.serviceService.publishServiceChanges(service);
         }
@@ -226,37 +210,41 @@ export class ServiceComponent implements OnInit, OnDestroy {
    * Recalculate layout type and dimensions
    */
   recalculateLayout() {
-    // this.showAddress = true;
 
-    if (this.serviceService.currentService$.getValue()) {
-      switch (this.serviceService.currentService$.getValue().state) {
-        case ServiceState.NO_SERVICE:
-          this.showAddress = true;
-          screenHeightWaste = 110;
-          break;
-        case ServiceState.REQUESTED:
-        case ServiceState.ASSIGNED:
-        case ServiceState.ARRIVED:
-        case ServiceState.ON_BOARD:
-        case ServiceState.REQUEST:
-          this.showAddress = false;
-          screenHeightWaste = 70;
-          break;
-        default:
-          this.showAddress = true;
-          screenHeightWaste = 110;
-          break;
-      }
+    console.log('CALCULANDO EL LAYOUT .......');
+
+    switch (this.currentService.state) {
+      case ServiceState.NO_SERVICE:
+        this.showAddress = true;
+        screenHeightWaste = 65;
+        break;
+      case ServiceState.REQUESTED:
+        break;
+      case ServiceState.ASSIGNED:
+      case ServiceState.ARRIVED:
+      case ServiceState.ON_BOARD:
+      case ServiceState.REQUEST:
+        this.showAddress = true;
+        screenHeightWaste = 110;
+        break;
+      default:
+        this.showAddress = true;
+        screenHeightWaste = 110;
+        break;
     }
 
     const rowHeight = 10;
     const colWidth = 10;
+
     let screenHeight = window.innerHeight - screenHeightWaste;
     const screenWidth = window.innerWidth;
+
     const onMobile = screenWidth < 820;
+
     const horizontalLayout = onMobile
       ? screenWidth >= (screenHeight + screenHeightWaste) * 1.5
       : screenWidth >= screenHeight;
+
     if (horizontalLayout) {
       this.showAddress = true;
       screenHeightWaste = 110;
@@ -265,11 +253,13 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
     const screenRows = screenHeight / rowHeight;
     this.screenCols = screenWidth / colWidth;
+
     if (!this.showAddress) {
       if (onMobile) {
         if (horizontalLayout) {
           this.layoutType = ServiceService.LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT;
-        } else {
+        }
+        else {
           this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_MAP_CONTENT;
         }
       } else {
@@ -278,31 +268,29 @@ export class ServiceComponent implements OnInit, OnDestroy {
     } else {
       if (onMobile) {
         if (horizontalLayout) {
-          if (
-            this.serviceService.currentService$.getValue().state ===
-            ServiceState.NO_SERVICE
-          ) {
+          if (this.currentService.state === ServiceState.NO_SERVICE) {
             this.layoutType = ServiceService.LAYOUT_ADDRESS_MAP_CONTENT;
           } else {
-            this.layoutType =
-              ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT;
+            this.layoutType = ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT;
           }
-        } else {
+        } else {          
           this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
-          this.showAddress = false; // don't show addres input in vertical phone layout
+          // don't show addres input in vertical phone layout in NO_SERVICE state
+          this.showAddress = this.currentService.state === ServiceState.NO_SERVICE ? false : true;
+
         }
       } else {
-        if (
-          this.serviceService.currentService$.getValue().state ===
-          ServiceState.NO_SERVICE
-        ) {
+        if (this.currentService.state === ServiceState.NO_SERVICE) {
           this.layoutType = ServiceService.LAYOUT_ADDRESS_MAP_CONTENT;
         } else {
           this.layoutType = ServiceService.LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT;
         }
       }
     }
-    // console.log('layoutType: ', this.layoutType);
+
+
+    console.log({layoutType: this.layoutType, showAddress: this.showAddress});
+
     if (this.showAddress) {
       if (horizontalLayout) {
         this.addressCols = this.screenCols;
@@ -315,11 +303,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
             : this.screenCols;
         this.mapRows = screenRows;
       } else {
-
         this.addressCols = this.screenCols;
-        this.addressRows = ADDRESS_ROWS;
+        this.addressRows = this.calculateAddressRows();
         this.contextCols = this.screenCols;
-        this.calculateContextRows();
+        this.contextRows = this.calculateContextRows();
         this.mapCols = this.screenCols;
         this.mapRows = screenRows - this.contextRows;
       }
@@ -335,11 +322,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
             : this.screenCols;
         this.mapRows = screenRows;
       } else {
-
         this.addressCols = 0;
         this.addressRows = 0;
         this.contextCols = this.screenCols;
-        this.calculateContextRows();
+        this.contextRows = this.calculateContextRows();
         this.mapCols = this.screenCols;
         this.mapRows = screenRows - this.contextRows;
       }
@@ -357,44 +343,48 @@ export class ServiceComponent implements OnInit, OnDestroy {
   }
 
   calculateContextRows() {
-    switch (this.serviceService.currentService$.getValue().state) {
+    const { state, tip, pickUp  } = this.currentService;
+    switch (state) {
       case ServiceState.NO_SERVICE:
-
-        this.contextRows = 4;
-
-
-
-        break;
+        return 4;
       case ServiceState.REQUEST:
-        this.contextRows = 19;
-        break;
-      case ServiceState.REQUESTED:
-        if (
-          this.serviceService.currentService$.getValue().tip &&
-          this.serviceService.currentService$.getValue().pickUp.addressLine2
-        ) {
-          this.contextRows = 15;
-        } else if (
-          this.serviceService.currentService$.getValue().pickUp.addressLine2 ||
-          this.serviceService.currentService$.getValue().tip
-        ) {
-          this.contextRows = 12;
-        } else {
-          this.contextRows = 10;
+        if(this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT){
+          return 7;
         }
-        break;
+        return 19;
+      case ServiceState.REQUESTED:
+        if (tip && pickUp.addressLine2) {
+          return 15;
+        } else if ( pickUp.addressLine2 || tip) {
+          return 12;
+        } else {
+          return 10;
+        }
       case ServiceState.ASSIGNED:
+        return 20;
       case ServiceState.ARRIVED:
-        this.contextRows = 20;
-
-        break;
+        return 20;
       case ServiceState.ON_BOARD:
-        this.contextRows = 17;
-        break;
+        return 17;
       default:
-        this.contextRows = 4;
-        break;
+       return 4;
     }
+  }
+
+  calculateAddressRows(){
+    switch (this.currentService.state) {
+      case ServiceState.REQUEST:
+        console.log('calculateAddressRows ==>', 10);
+        return 10;
+    
+      default:
+          console.log('calculateAddressRows ==>', ADDRESS_ROWS);
+        return ADDRESS_ROWS;
+    }
+  }
+  
+  calculateMapRows(){
+
   }
   /* #endregion */
 }

@@ -5,18 +5,15 @@ import {
   ElementRef,
   NgZone,
   OnDestroy,
-  AfterContentInit,
   AfterViewInit
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
 import { filter, takeUntil, tap, map } from 'rxjs/operators';
-import { Subject, fromEvent, defer } from 'rxjs';
+import { Subject } from 'rxjs';
 import { ServiceState } from '../service-state';
 import { MenuService } from 'src/app/menu/menu.service';
-import { GatewayService } from 'src/app/api/gateway.service';
-import { KeycloakService } from 'keycloak-angular';
 
 
 @Component({
@@ -26,12 +23,16 @@ import { KeycloakService } from 'keycloak-angular';
 })
 export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  public searchControl = new FormControl();
+  @ViewChild('originPlaceSearch') originPlaceSearchElementRef: ElementRef;
+  originPlace: any = {};
+  originPlaceAutocomplete: any;
+  originPlaceAddresInput = new FormControl();
 
-  @ViewChild('search') searchElementRef: ElementRef;
+
   private ngUnsubscribe = new Subject();
 
-  autocomplete: any;
+  layoutType = null;
+
   showAddress = true;
   showOfferHeader = false;
   showAssignedHeader = false;
@@ -42,19 +43,23 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   userProfile: any; // User profile
   selectedPlace: any = {}; // selected place.
 
+  showTwoInputs = false;
+
   constructor(
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private serviceService: ServiceService,
-    private menuService: MenuService,
-    private gateway: GatewayService,
-    private keycloakService: KeycloakService
+    private menuService: MenuService
   ) { }
 
   ngOnInit() {
     this.listenServiceChanges();
-    this.listenLocationChanges();
-    this.buildPlacesAutoComplete();
+    this.listenLayoutChanges();
+
+    this.listenMarkerPositionChanges();
+
+    this.buildOriginPlaceAutoComplete();
+
     this.loadUserProfile();
   }
 
@@ -85,18 +90,27 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Initialize the google autocomplete
    */
-  buildPlacesAutoComplete(circle?) {
-    if (!this.showAddress) { return; }
+  buildOriginPlaceAutoComplete(circle?) {
+    
+    if(!this.originPlaceSearchElementRef){
+      console.log('INTENTANDO DAR INICIALIZAR EL AUTOCOMPLETE --- originPlaceSearchElementRef');
+      
+      setTimeout(() => {
+        if (this.showAddress) { 
+          this.buildOriginPlaceAutoComplete(circle);        
+         }       
+      }, 1000);
+    }
     this.mapsAPILoader.load().then(() => {
-      this.autocomplete = new google.maps.places.Autocomplete(
-        this.searchElementRef.nativeElement,
+      this.originPlaceAutocomplete = new google.maps.places.Autocomplete(
+        this.originPlaceSearchElementRef.nativeElement,
         { componentRestrictions: { country: 'co' } }
       );
 
-      this.autocomplete.addListener('place_changed', () => {
+      this.originPlaceAutocomplete.addListener('place_changed', () => {
         this.ngZone.run(() => {
           // get the place result
-          const place: google.maps.places.PlaceResult = this.autocomplete.getPlace();
+          const place: google.maps.places.PlaceResult = this.originPlaceAutocomplete.getPlace();
           // verify result
           if (!place || place.geometry === undefined || place.geometry === null) {
             return;
@@ -106,22 +120,22 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
           // this.searchControl.setValue(`${place.name}, ${place.formatted_address.split(',').slice(1)}`);
 
           if (this.selectedPlace.favorite) {
-            this.searchControl.setValue(`${name}`.trim());
+            this.originPlaceAddresInput.setValue(`${name}`.trim());
           } else {
-            this.searchControl.setValue(`${name}, ${formatted_address.split(',').slice(1)}`.trim());
+            this.originPlaceAddresInput.setValue(`${name}, ${formatted_address.split(',').slice(1)}`.trim());
           }
 
-          stringsToRemove.forEach(s => this.searchControl.setValue(this.searchControl.value.replace(s, '')));
+          stringsToRemove.forEach(s => this.originPlaceAddresInput.setValue(this.originPlaceAddresInput.value.replace(s, '')));
 
           this.serviceService.destinationPlaceSelected$.next({
-            name: this.searchControl.value,
+            name: this.originPlaceAddresInput.value,
             location: {
               lat: place.geometry.location.lat(),
               lng: place.geometry.location.lng()
             }
           });
 
-          this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+          // this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
           // todo enable when develop eviroment is on
           // if (!this.gateway.checkIfUserLogger()) {
           //    defer(() => this.keycloakService.login({ scope: 'offline_access' }) ).pipe().subscribe();
@@ -131,7 +145,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       });
 
       if (circle) {
-        this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
 
     });
@@ -140,14 +154,13 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * listen the marker position changes
    */
-  listenLocationChanges() {
+  listenMarkerPositionChanges() {
     this.serviceService.markerOnMapChange$
       .pipe(
         filter(evt => evt),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        console.log('this.serviceService.markerOnMapChange$ ==>', location);
         const latlng = new google.maps.LatLng(
           location.latitude,
           location.longitude
@@ -156,10 +169,10 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
           center: latlng,
           radius: 20000 // meters
         });
-        if (!this.autocomplete) {
-          this.buildPlacesAutoComplete(circle);
+        if (!this.originPlaceAutocomplete) {
+          this.buildOriginPlaceAutoComplete(circle);
         } else if (this.showAddress) {
-          this.autocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
       });
   }
@@ -168,18 +181,24 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
     this.serviceService.currentService$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(service => {
-        // console.log('Se escucha service: ', service);
+        console.log(' ()()()()()() Se escucha service: ', service);
+        
         if (service) {
           switch (service.state) {
             case ServiceState.NO_SERVICE:
+              this.showTwoInputs = false;
               break;
             case ServiceState.CANCELLED_CLIENT:
+                this.showTwoInputs = false;
               break;
             case ServiceState.CANCELLED_DRIVER:
+                this.showTwoInputs = false;
               break;
             case ServiceState.CANCELLED_OPERATOR:
+                this.showTwoInputs = false;
               break;
             case ServiceState.CANCELLED_SYSTEM:
+                this.showTwoInputs = false;
               break;
             case ServiceState.DONE:
               this.showAddress = true;
@@ -188,6 +207,16 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               this.showWithoutService = false;
               this.showArrivedHeader = false;
               this.showOnBoardHeader = true;
+              this.showTwoInputs = false;
+              break;
+            case ServiceState.REQUEST:
+              this.showWithoutService = false;
+              this.showOfferHeader = false;
+              this.showAddress = true;
+              this.showAssignedHeader = false;
+              this.showArrivedHeader = false;
+              this.showOnBoardHeader = false;
+              this.showTwoInputs = true;
               break;
             case ServiceState.REQUESTED:
               this.showOfferHeader = true;
@@ -196,6 +225,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               this.showWithoutService = false;
               this.showArrivedHeader = false;
               this.showOnBoardHeader = true;
+              this.showTwoInputs = false;
               break;
             case ServiceState.ASSIGNED:
               this.showAssignedHeader = true;
@@ -204,6 +234,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               this.showWithoutService = false;
               this.showArrivedHeader = false;
               this.showOnBoardHeader = true;
+              this.showTwoInputs = false;
               break;
             case ServiceState.ARRIVED:
               this.showAssignedHeader = false;
@@ -212,6 +243,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               this.showWithoutService = false;
               this.showArrivedHeader = true;
               this.showOnBoardHeader = true;
+              this.showTwoInputs = false;
               break;
             case ServiceState.ON_BOARD:
               this.showAssignedHeader = false;
@@ -220,17 +252,38 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               this.showWithoutService = false;
               this.showArrivedHeader = false;
               this.showOnBoardHeader = true;
+              this.showTwoInputs = false;
               break;
             default:
+              console.log('ON DEFAULT ------ - - -S-TS -S T-');              
               this.showWithoutService = true;
               this.showOfferHeader = false;
               this.showAddress = false;
               this.showAssignedHeader = false;
               this.showArrivedHeader = false;
               this.showOnBoardHeader = true;
+              this.showTwoInputs = false;
               break;
           }
         }
+      });
+  }
+
+  listenLayoutChanges() {
+    this.serviceService.layoutChanges$
+      .pipe(
+        filter(update => update),
+        map(update => update.layout),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe(layout => {
+
+        const { type } = layout;
+        this.layoutType = type;
+
+        const serviceState = this.serviceService.currentService$.getValue().state;
+        this.showTwoInputs = (serviceState === ServiceState.REQUEST && type == ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
+
+        console.log('this.layoutType ==> ', this.layoutType);
       });
   }
 
@@ -256,7 +309,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
   listenChangesOnAddressSearchInput() {
     if (!this.showAddress) { return; }
-    this.searchControl.valueChanges
+    this.originPlaceAddresInput.valueChanges
       .pipe(
         // map(() => this.searchElementRef.nativeElement.value),
         tap(inputValue => {
@@ -294,7 +347,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   onFavoriteResultClick(favoriteSelected) {
     this.selectedPlace.favorite = true;
 
-    this.autocomplete.set('place', {
+    this.originPlaceAutocomplete.set('place', {
       name: favoriteSelected.name,
       formatted_address: '[FAVORITE]', // todo check
       geometry: {
@@ -305,6 +358,5 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
   }
-
 
 }
