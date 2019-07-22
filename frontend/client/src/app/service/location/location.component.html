@@ -2,8 +2,8 @@
   <agm-map [ngStyle]="{ 'height.px': heightMapContent }" (mapReady)="mapReady($event)" [clickableIcons]="false"
     [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="lat" [longitude]="lng" [zoom]="zoom"
     (centerChange)="onCenterChange($event)">
-    <agm-direction [origin]="origin" [visible]="true" [destination]="destination" (onResponse)="consoleLog($event)"
-      (status)="consoleLog($event)">
+    <agm-direction [origin]="origin" [visible]="true" [destination]="destination" (onResponse)="onDirectionResponse($event)"
+      (status)="reportAgmStatus($event)">
     </agm-direction>
     <!-- <span>ANGULAR DIRECTIONS</span> -->
   </agm-map>

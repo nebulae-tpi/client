@@ -224,8 +224,13 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.ARRIVED:
       case ServiceState.ON_BOARD:
       case ServiceState.REQUEST:
-        this.showAddress = true;
-        screenHeightWaste = 110;
+        console.log('this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT',  this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
+        
+        this.showAddress = this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
+        screenHeightWaste = 135;
+        console.log('this.showAddress', this.showAddress);
+        
+
         break;
       default:
         this.showAddress = true;
@@ -246,7 +251,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
       : screenWidth >= screenHeight;
 
     if (horizontalLayout) {
-      this.showAddress = true;
+      // this.showAddress = true;
       screenHeightWaste = 110;
       screenHeight = window.innerHeight - screenHeightWaste;
     }
@@ -289,7 +294,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     }
 
 
-    console.log({layoutType: this.layoutType, showAddress: this.showAddress});
+    console.log(' ======> ', {layoutType: this.layoutType, showAddress: this.showAddress});
 
     if (this.showAddress) {
       if (horizontalLayout) {
@@ -349,7 +354,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
         return 4;
       case ServiceState.REQUEST:
         if(this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT){
-          return 7;
+          return 6;
         }
         return 19;
       case ServiceState.REQUESTED:
@@ -372,15 +377,21 @@ export class ServiceComponent implements OnInit, OnDestroy {
   }
 
   calculateAddressRows(){
-    switch (this.currentService.state) {
-      case ServiceState.REQUEST:
-        console.log('calculateAddressRows ==>', 10);
-        return 10;
-    
-      default:
-          console.log('calculateAddressRows ==>', ADDRESS_ROWS);
-        return ADDRESS_ROWS;
+    if(this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT){
+
+      switch (this.currentService.state) {
+        case ServiceState.REQUEST:
+          console.log('calculateAddressRows ==>', 8);
+          return 8;       
+      
+        default:
+            console.log('calculateAddressRows ==>', ADDRESS_ROWS);
+          return ADDRESS_ROWS;
+      }
+
     }
+    return ADDRESS_ROWS;
+    
   }
   
   calculateMapRows(){

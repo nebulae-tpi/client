@@ -164,8 +164,12 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-  consoleLog(event) {
-    console.log('####### ==> ', event);
+  onDirectionResponse(event) {
+    console.log(' onDirectionResponse ==> ', event);
+  }
+
+  reportAgmStatus(event) {
+    console.log(' reportAgmStatus ==> ', event);
   }
 
   buildDestinationPlaceAutoComplete(circle?) {
@@ -230,9 +234,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   }
 
-  publishDestinationPlaceSelected(){
-    console.log(this.serviceService.destinationPlaceSelected$);
-  }
 
   listenCenterChanges() {
     this.center$
@@ -323,9 +324,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * 
-   */
+
   initLocation() {
     this.currentService = this.serviceService.currentService$.getValue();
     const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
@@ -403,6 +402,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       }, timeDelay * i);
     }
   }
+
   addNearbyVehicle(vehicleMarker) {
     this.nearbyVehicleList.push({
       vehicleId: vehicleMarker.vehicleId,
@@ -535,15 +535,22 @@ export class LocationComponent implements OnInit, OnDestroy {
             }
             break;
           case ServiceState.CANCELLED_CLIENT:
+              this.showDestinationPlaceInput = true;
             break;
           case ServiceState.CANCELLED_DRIVER:
+              this.showDestinationPlaceInput = true;
             break;
           case ServiceState.CANCELLED_OPERATOR:
+              this.showDestinationPlaceInput = true;
             break;
           case ServiceState.CANCELLED_SYSTEM:
+              this.showDestinationPlaceInput = true;
             break;
           case ServiceState.DONE:
             this.showDestinationPlaceInput = true;
+            break;
+          case ServiceState.REQUEST:
+            this.showDestinationPlaceInput = false;
             break;
           case ServiceState.REQUESTED:
             this.showDestinationPlaceInput = false;
@@ -568,8 +575,10 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.showCenterMarker = false;
             break;
           case ServiceState.ARRIVED:
+              this.showDestinationPlaceInput = true;
 
           case ServiceState.ASSIGNED:
+              this.showDestinationPlaceInput = false;
             this.refreshCenterMap(service);
             if (
               service.state === ServiceState.ARRIVED &&
@@ -635,6 +644,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.showCenterMarker = false;
             break;
           case ServiceState.ON_BOARD:
+            this.showDestinationPlaceInput = false;
             this.refreshCenterMap(service);
             this.nearbyVehiclesEnabled = false;
             this.disableMap = false;

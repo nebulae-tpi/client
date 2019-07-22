@@ -1,11 +1,11 @@
-<div *ngIf="showAddress && showTwoInputs">
+<div class="input-address-xs" *ngIf="showAddress && showTwoInputs">
   <input placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="input-address"
     onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
 </div>
 
-<div *ngIf="showAddress && showTwoInputs">
+<div class="input-address-xs" *ngIf="showAddress && showTwoInputs">
 
-  <input placeholder="Destino" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="input-address"
+  <input placeholder="Destino" autocorrect="off" autocapitalize="off" spellcheck="off" type="text"
     onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
 </div>
 
