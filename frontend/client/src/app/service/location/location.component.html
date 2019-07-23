@@ -18,7 +18,7 @@
   </div>
 
   <!-- DESTINATION ADDRESS INPUT FOR PSEUDO-XS-LAYOUT -->
-  <div *ngIf="showDestinationPlaceInput" id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent }">
+  <div id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent }" [ngClass]="{'hide-item': !showDestinationPlaceInput}" >
     <div class="form-steps" fxLayoutAlign="center center">
       <input id="addressInput" placeholder="¿A dónde vás?" autocorrect="off" autocapitalize="off"
         [formControl]="destinationPlaceAddresInput"

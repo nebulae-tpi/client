@@ -72,7 +72,7 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
     this.serviceService.cancelService$($event)
       .subscribe(res => console.log('Cancela servicio: ', res));
     this.bottomSheetRef.dismiss();
-    console.log({ $event });
+    // console.log({ $event });
     // event.preventDefault();
   }
 
@@ -81,7 +81,6 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    console.log('Ondestroy');
     this.bottomSheetRef.dismiss();
   }
 }
@@ -176,9 +175,9 @@ export class LocationComponent implements OnInit, OnDestroy {
     if (!this.destinationPlaceSearchElementRef) {
       setTimeout(() => {
         console.log('INTENTANDO A CONSTRUIR EL AUTOCIOMPLETE ..............');
-        if(this.showDestinationPlaceInput){
+        if (this.showDestinationPlaceInput) {
           this.buildDestinationPlaceAutoComplete(circle);
-        }        
+        }
       }, 200);
       return;
     }
@@ -208,9 +207,15 @@ export class LocationComponent implements OnInit, OnDestroy {
             ? `${name}`.trim()
             : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
 
+          // console.log('OLD NAME IS ==> ', destinationPlaceName);
           this.STRINGS_TO_REMOVE.forEach(s => destinationPlaceName = destinationPlaceName.replace(s, ''));
 
+          // console.log('NEW NAME IS ==> ', destinationPlaceName);
+
           this.destinationPlace.name = destinationPlaceName;
+          this.destinationPlaceAddresInput.setValue(destinationPlaceName);
+
+          this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
 
           this.serviceService.destinationPlaceSelected$.next({
             ...this.destinationPlace,
@@ -221,7 +226,6 @@ export class LocationComponent implements OnInit, OnDestroy {
             }
           });
 
-          this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
 
 
         });
@@ -281,9 +285,9 @@ export class LocationComponent implements OnInit, OnDestroy {
   /* #region TOOLS */
   currentLocation() {
 
-    const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED ];
+    const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
 
-    if ( this.map !== undefined && this.currentService && availableStates.includes(this.currentService.state)) {
+    if (this.map !== undefined && this.currentService && availableStates.includes(this.currentService.state)) {
       this.map.setCenter({
         lat: this.currentService.pickUp.marker.lat,
         lng: this.currentService.pickUp.marker.lng
@@ -329,7 +333,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.currentService = this.serviceService.currentService$.getValue();
     const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
 
-    const { state, pickUp, location  } = this.currentService;
+    const { state, pickUp, location } = this.currentService;
 
     const allowedServiceStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
 
@@ -465,9 +469,10 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.startNearbyVehicles();
     if (this.currentService && this.currentService.state === ServiceState.NO_SERVICE && this.showDestinationPlaceInput) {
       // setTimeout(() => {
-        this.buildDestinationPlaceAutoComplete();
+      this.buildDestinationPlaceAutoComplete();
       // }, 1000);
     }
+
   }
 
   onCenterChange($event) {
@@ -498,6 +503,8 @@ export class LocationComponent implements OnInit, OnDestroy {
             lng: location.longitude
           });
 
+
+
         }
         const latlng = new google.maps.LatLng(
           location.latitude,
@@ -508,12 +515,15 @@ export class LocationComponent implements OnInit, OnDestroy {
           radius: 20000 // meters
         });
 
+
+
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
-        } else if(this.showDestinationPlaceInput) {
-          console.log('PONIENDO  OPCIONES ADICIONALES A EL AUTOCOMPLETE DE DESTINO EN EL MAPA');          
+        } else if (this.showDestinationPlaceInput) {
           this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
+
+        this.updateFirstOriginPlace(location.latitude, location.longitude);
 
       });
   }
@@ -527,24 +537,25 @@ export class LocationComponent implements OnInit, OnDestroy {
       )
       .subscribe(service => {
         this.currentService = service;
+        const { state, pickUp, location } = this.currentService;
 
-        switch (service.state) {
+        switch (state) {
           case ServiceState.NO_SERVICE:
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showDestinationPlaceInput = true;
             }
             break;
           case ServiceState.CANCELLED_CLIENT:
-              this.showDestinationPlaceInput = true;
+            this.showDestinationPlaceInput = true;
             break;
           case ServiceState.CANCELLED_DRIVER:
-              this.showDestinationPlaceInput = true;
+            this.showDestinationPlaceInput = true;
             break;
           case ServiceState.CANCELLED_OPERATOR:
-              this.showDestinationPlaceInput = true;
+            this.showDestinationPlaceInput = true;
             break;
           case ServiceState.CANCELLED_SYSTEM:
-              this.showDestinationPlaceInput = true;
+            this.showDestinationPlaceInput = true;
             break;
           case ServiceState.DONE:
             this.showDestinationPlaceInput = true;
@@ -554,18 +565,13 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.REQUESTED:
             this.showDestinationPlaceInput = false;
-            this.refreshCenterMap(service);
+            this.refreshCenterMap(this.currentService);
             this.disableMap = true;
-            if (
-              this.currentService &&
-              this.currentService.pickUp &&
-              this.currentService.pickUp &&
-              this.currentService.pickUp.marker
-            ) {
+            if (this.currentService && pickUp && pickUp.marker) {
               this.userMarker = new google.maps.Marker({
                 position: new google.maps.LatLng(
-                  this.currentService.pickUp.marker.lat,
-                  this.currentService.pickUp.marker.lng
+                  pickUp.marker.lat,
+                  pickUp.marker.lng
                 ),
                 icon:
                   '../../../assets/icons/location/assigned_user_marker.png',
@@ -575,14 +581,13 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.showCenterMarker = false;
             break;
           case ServiceState.ARRIVED:
-              this.showDestinationPlaceInput = true;
-
+            this.showDestinationPlaceInput = true;
+            break;
           case ServiceState.ASSIGNED:
-              this.showDestinationPlaceInput = false;
-            this.refreshCenterMap(service);
-            if (
-              service.state === ServiceState.ARRIVED &&
-              this.lastServiceStateReported !== service.state
+            this.showDestinationPlaceInput = false;
+            this.refreshCenterMap(this.currentService);
+            if (state === ServiceState.ARRIVED &&
+              this.lastServiceStateReported !== state
             ) {
               this.dialog.closeAll();
               this.dialog.open(DialogArrivedComponent, {
@@ -597,23 +602,18 @@ export class LocationComponent implements OnInit, OnDestroy {
               vehicle.marker.setMap(undefined);
             });
             this.nearbyVehicleList = [];
-            if (
-              this.currentService &&
-              this.currentService.pickUp &&
-              this.currentService.pickUp &&
-              this.currentService.pickUp.marker
-            ) {
+            if (this.currentService && pickUp && pickUp.marker) {
               if (this.userMarker) {
                 this.changeMarkerPosition(
                   this.userMarker,
-                  this.currentService.pickUp.marker.lat,
-                  this.currentService.pickUp.marker.lng
+                  pickUp.marker.lat,
+                  pickUp.marker.lng
                 );
               } else {
                 this.userMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
-                    this.currentService.pickUp.marker.lat,
-                    this.currentService.pickUp.marker.lng
+                    pickUp.marker.lat,
+                    pickUp.marker.lng
                   ),
                   icon:
                     '../../../assets/icons/location/assigned_user_marker.png',
@@ -622,19 +622,19 @@ export class LocationComponent implements OnInit, OnDestroy {
               }
             }
 
-            if (this.currentService && this.currentService.location) {
+            if (this.currentService && location) {
               if (this.vehicleMarker) {
                 this.changeMarkerPosition(
                   this.vehicleMarker,
-                  this.currentService.location.lat,
-                  this.currentService.location.lng
+                  location.lat,
+                  location.lng
                 );
               } else {
-                console.log('agrega ubicacion del vehiculo: ', this.currentService.location);
+                console.log('agrega ubicacion del vehiculo: ', location);
                 this.vehicleMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
-                    this.currentService.location.lat,
-                    this.currentService.location.lng
+                    location.lat,
+                    location.lng
                   ),
                   icon: '../../../assets/icons/location/vehicle_marker.png',
                   map: this.map
@@ -645,7 +645,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.ON_BOARD:
             this.showDestinationPlaceInput = false;
-            this.refreshCenterMap(service);
+            this.refreshCenterMap(this.currentService);
             this.nearbyVehiclesEnabled = false;
             this.disableMap = false;
             this.nearbyVehicleList.forEach(vehicle => {
@@ -657,18 +657,18 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.userMarker.setMap(undefined);
               this.userMarker = undefined;
             }
-            if (this.currentService && this.currentService.location) {
+            if (this.currentService && location) {
               if (this.vehicleMarker) {
                 this.changeMarkerPosition(
                   this.vehicleMarker,
-                  this.currentService.location.lat,
-                  this.currentService.location.lng
+                  location.lat,
+                  location.lng
                 );
               } else {
                 this.vehicleMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
-                    this.currentService.location.lat,
-                    this.currentService.location.lng
+                    location.lat,
+                    location.lng
                   ),
                   icon: '../../../assets/icons/location/vehicle_marker.png',
                   map: this.map
@@ -799,5 +799,23 @@ export class LocationComponent implements OnInit, OnDestroy {
       })
     );
   }
+
+  updateFirstOriginPlace(lat: number, lng: number) {
+    const geocoder = new google.maps.Geocoder();
+    const latlng = { lat, lng };
+    geocoder.geocode({ location: latlng }, (results, status) => {
+      console.log({ results, status });
+      const locationName = (results[0] || { formatted_address: 'Mi Ubicación Actual' }).formatted_address;
+
+
+
+      this.serviceService.originPlaceSelected$.next({
+        name: locationName,
+        location: { lat, lng }
+      });
+    });
+
+  }
+
   /* #endregion */
 }

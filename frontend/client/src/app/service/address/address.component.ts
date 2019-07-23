@@ -10,7 +10,7 @@ import {
 import { FormControl } from '@angular/forms';
 import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
-import { filter, takeUntil, tap, map } from 'rxjs/operators';
+import { filter, takeUntil, tap, map, startWith } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { ServiceState } from '../service-state';
 import { MenuService } from 'src/app/menu/menu.service';
@@ -28,6 +28,12 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   originPlaceAutocomplete: any;
   originPlaceAddresInput = new FormControl();
 
+  @ViewChild('destinationPlaceSearch') destinationPlaceSearchElementRef: ElementRef;
+  destinationPlace: any = {};
+  destinationPlaceAutocomplete: any;
+  destinationPlaceAddresInput = new FormControl();
+
+  STRINGS_TO_REMOVE = [', Antioquia', ', Valle del Cauca', ', Colombia'];
 
   private ngUnsubscribe = new Subject();
 
@@ -53,18 +59,24 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   ) { }
 
   ngOnInit() {
+    this.loadUserProfile();
+
     this.listenServiceChanges();
     this.listenLayoutChanges();
 
     this.listenMarkerPositionChanges();
 
     this.buildOriginPlaceAutoComplete();
+    this.buildDestinationPlaceAutoComplete();
 
-    this.loadUserProfile();
+    this.listenOriginPlaceChanges();
+    this.listenDestinationPlaceChanges();
+
   }
 
   ngAfterViewInit(): void {
     this.listenChangesOnAddressSearchInput();
+
   }
 
   ngOnDestroy() {
@@ -80,27 +92,23 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(userProfile => this.userProfile = userProfile,
-        e => console.log(e),
-        () => { }
-      );
-
+      .subscribe(userProfile => this.userProfile = userProfile);
   }
 
   /**
    * Initialize the google autocomplete
    */
   buildOriginPlaceAutoComplete(circle?) {
-    
-    if(!this.originPlaceSearchElementRef){
+
+    if (!this.originPlaceSearchElementRef) {
       console.log('INTENTANDO DAR INICIALIZAR EL AUTOCOMPLETE --- originPlaceSearchElementRef');
-      
       setTimeout(() => {
-        if (this.showAddress) { 
-          this.buildOriginPlaceAutoComplete(circle);        
-         }       
+        if (this.showAddress) {
+          this.buildOriginPlaceAutoComplete(circle);
+        }
       }, 1000);
     }
+
     this.mapsAPILoader.load().then(() => {
       this.originPlaceAutocomplete = new google.maps.places.Autocomplete(
         this.originPlaceSearchElementRef.nativeElement,
@@ -116,7 +124,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             return;
           }
           const { address_components, name, formatted_address } = place;
-          const stringsToRemove = [', Antioquia', ', Valle del Cauca', ', Colombia'];
           // this.searchControl.setValue(`${place.name}, ${place.formatted_address.split(',').slice(1)}`);
 
           if (this.selectedPlace.favorite) {
@@ -125,9 +132,9 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             this.originPlaceAddresInput.setValue(`${name}, ${formatted_address.split(',').slice(1)}`.trim());
           }
 
-          stringsToRemove.forEach(s => this.originPlaceAddresInput.setValue(this.originPlaceAddresInput.value.replace(s, '')));
+          this.STRINGS_TO_REMOVE.forEach(s => this.originPlaceAddresInput.setValue(this.originPlaceAddresInput.value.replace(s, '')));
 
-          this.serviceService.destinationPlaceSelected$.next({
+          this.serviceService.originPlaceSelected$.next({
             name: this.originPlaceAddresInput.value,
             location: {
               lat: place.geometry.location.lat(),
@@ -144,11 +151,97 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       });
 
+      if (!circle) {
+        const location = this.serviceService.markerOnMapChange$.getValue();
+        if (!location) { return; }
+        const latlng = new google.maps.LatLng(location.latitude, location.longitude);
+        circle = new google.maps.Circle({
+          center: latlng,
+          radius: 20000 // meters
+        });
+      }
+
       if (circle) {
         this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
+      console.log({ originPlaceAutocomplete: this.originPlaceAutocomplete });
 
     });
+  }
+
+  buildDestinationPlaceAutoComplete(circle?) {
+    if (!this.destinationPlaceSearchElementRef) {
+      console.log('TRYING BUILD DESTINATION AUTOCOMPLETE', {showTwoInputs: this.showTwoInputs});
+
+      setTimeout(() => {
+        if (this.showTwoInputs) {
+          this.buildDestinationPlaceAutoComplete(circle);
+        }
+      }, 200);
+    }
+
+    if (this.destinationPlaceSearchElementRef) {
+      this.mapsAPILoader.load().then(() => {
+        this.destinationPlaceAutocomplete = new google.maps.places.Autocomplete(
+          this.destinationPlaceSearchElementRef.nativeElement,
+          {
+            componentRestrictions: { country: 'co' }
+          }
+        );
+
+        this.destinationPlaceAutocomplete.addListener('place_changed', () => {
+          this.ngZone.run(() => {
+            // get the place result
+            const place: google.maps.places.PlaceResult = this.destinationPlaceAutocomplete.getPlace();
+            // verify result
+            if (!place || place.geometry === undefined || place.geometry === null) {
+              return;
+            }
+
+            // this.addressInputValue = place.formatted_address.split(',')[0];
+
+            const { address_components, name, formatted_address, geometry } = place;
+
+
+            this.destinationPlace.favorite = (formatted_address === '[FAVORITE]');
+            let destinationPlaceName = this.destinationPlace.favorite
+              ? `${name}`.trim()
+              : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
+
+            this.STRINGS_TO_REMOVE.forEach(s => destinationPlaceName = destinationPlaceName.replace(s, ''));
+
+            this.destinationPlace.name = destinationPlaceName;
+
+            this.serviceService.destinationPlaceSelected$.next({
+              ...this.destinationPlace,
+              name: this.destinationPlace.name,
+              location: {
+                lat: geometry.location.lat(),
+                lng: geometry.location.lng()
+              }
+            });
+            // this.serviceService.fromAddressLocation = true;
+          });
+        });
+
+        if (!circle) {
+          const location = this.serviceService.markerOnMapChange$.getValue();
+          if (!location) { return; }
+          const latlng = new google.maps.LatLng(location.latitude, location.longitude);
+          circle = new google.maps.Circle({
+            center: latlng,
+            radius: 20000 // meters
+          });
+        }
+
+        if (circle) {
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        }
+      });
+    } else {
+      console.log('destinationPlaceSearchElementRef IS NO DEFINED!!!!!!!! ');
+
+    }
   }
 
   /**
@@ -169,103 +262,121 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
           center: latlng,
           radius: 20000 // meters
         });
+
+
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
         } else if (this.showAddress) {
+          console.log('SETTTING STRICT BOUNDS TO ORIGIN AUTOCOMPLETE');
           this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
+
+        if (!this.destinationPlace) {
+          this.buildDestinationPlaceAutoComplete(circle);
+        } else if (this.showAddress && this.showTwoInputs) {
+          console.log('SETTTING STRICT BOUNDS TO DESTINATION AUTOCOMPLETE');
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        }
+
       });
   }
 
   listenServiceChanges() {
     this.serviceService.currentService$
-      .pipe(takeUntil(this.ngUnsubscribe))
+      .pipe(
+        takeUntil(this.ngUnsubscribe),
+        filter(service => service)
+      )
       .subscribe(service => {
-        console.log(' ()()()()()() Se escucha service: ', service);
-        
-        if (service) {
-          switch (service.state) {
-            case ServiceState.NO_SERVICE:
-              this.showTwoInputs = false;
-              break;
-            case ServiceState.CANCELLED_CLIENT:
-                this.showTwoInputs = false;
-              break;
-            case ServiceState.CANCELLED_DRIVER:
-                this.showTwoInputs = false;
-              break;
-            case ServiceState.CANCELLED_OPERATOR:
-                this.showTwoInputs = false;
-              break;
-            case ServiceState.CANCELLED_SYSTEM:
-                this.showTwoInputs = false;
-              break;
-            case ServiceState.DONE:
-              this.showAddress = true;
-              this.showOfferHeader = false;
-              this.showAssignedHeader = false;
-              this.showWithoutService = false;
-              this.showArrivedHeader = false;
-              this.showOnBoardHeader = true;
-              this.showTwoInputs = false;
-              break;
-            case ServiceState.REQUEST:
-              this.showWithoutService = false;
-              this.showOfferHeader = false;
-              this.showAddress = true;
-              this.showAssignedHeader = false;
-              this.showArrivedHeader = false;
-              this.showOnBoardHeader = false;
+        console.log('=====> ', service);
+        switch (service.state) {
+          case ServiceState.NO_SERVICE:
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.CANCELLED_CLIENT:
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.CANCELLED_DRIVER:
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.CANCELLED_OPERATOR:
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.CANCELLED_SYSTEM:
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.DONE:
+            this.showAddress = true;
+            this.showOfferHeader = false;
+            this.showAssignedHeader = false;
+            this.showWithoutService = false;
+            this.showArrivedHeader = false;
+            this.showOnBoardHeader = true;
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.REQUEST:
+            this.showWithoutService = false;
+            this.showOfferHeader = false;
+            this.showAddress = true;
+            this.showAssignedHeader = false;
+            this.showArrivedHeader = false;
+            this.showOnBoardHeader = false;
+            this.showTwoInputs = false;
+            if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
+              console.log('MOSTRANDO LOS DOS INPUT');
+
+              this.buildDestinationPlaceAutoComplete();
               this.showTwoInputs = true;
-              break;
-            case ServiceState.REQUESTED:
-              this.showOfferHeader = true;
-              this.showAddress = false;
-              this.showAssignedHeader = false;
-              this.showWithoutService = false;
-              this.showArrivedHeader = false;
-              this.showOnBoardHeader = true;
-              this.showTwoInputs = false;
-              break;
-            case ServiceState.ASSIGNED:
-              this.showAssignedHeader = true;
-              this.showOfferHeader = false;
-              this.showAddress = false;
-              this.showWithoutService = false;
-              this.showArrivedHeader = false;
-              this.showOnBoardHeader = true;
-              this.showTwoInputs = false;
-              break;
-            case ServiceState.ARRIVED:
-              this.showAssignedHeader = false;
-              this.showOfferHeader = false;
-              this.showAddress = false;
-              this.showWithoutService = false;
-              this.showArrivedHeader = true;
-              this.showOnBoardHeader = true;
-              this.showTwoInputs = false;
-              break;
-            case ServiceState.ON_BOARD:
-              this.showAssignedHeader = false;
-              this.showOfferHeader = false;
-              this.showAddress = false;
-              this.showWithoutService = false;
-              this.showArrivedHeader = false;
-              this.showOnBoardHeader = true;
-              this.showTwoInputs = false;
-              break;
-            default:
-              console.log('ON DEFAULT ------ - - -S-TS -S T-');              
-              this.showWithoutService = true;
-              this.showOfferHeader = false;
-              this.showAddress = false;
-              this.showAssignedHeader = false;
-              this.showArrivedHeader = false;
-              this.showOnBoardHeader = true;
-              this.showTwoInputs = false;
-              break;
-          }
+            }
+
+            break;
+          case ServiceState.REQUESTED:
+            this.showOfferHeader = true;
+            this.showAddress = false;
+            this.showAssignedHeader = false;
+            this.showWithoutService = false;
+            this.showArrivedHeader = false;
+            this.showOnBoardHeader = true;
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.ASSIGNED:
+            this.showAssignedHeader = true;
+            this.showOfferHeader = false;
+            this.showAddress = false;
+            this.showWithoutService = false;
+            this.showArrivedHeader = false;
+            this.showOnBoardHeader = true;
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.ARRIVED:
+            this.showAssignedHeader = false;
+            this.showOfferHeader = false;
+            this.showAddress = false;
+            this.showWithoutService = false;
+            this.showArrivedHeader = true;
+            this.showOnBoardHeader = true;
+            this.showTwoInputs = false;
+            break;
+          case ServiceState.ON_BOARD:
+            this.showAssignedHeader = false;
+            this.showOfferHeader = false;
+            this.showAddress = false;
+            this.showWithoutService = false;
+            this.showArrivedHeader = false;
+            this.showOnBoardHeader = true;
+            this.showTwoInputs = false;
+            break;
+          default:
+            this.showWithoutService = true;
+            this.showOfferHeader = false;
+            this.showAddress = false;
+            this.showAssignedHeader = false;
+            this.showArrivedHeader = false;
+            this.showOnBoardHeader = true;
+            this.showTwoInputs = false;
+            break;
         }
+
       });
   }
 
@@ -281,9 +392,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         this.layoutType = type;
 
         const serviceState = this.serviceService.currentService$.getValue().state;
-        this.showTwoInputs = (serviceState === ServiceState.REQUEST && type == ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
+        this.showTwoInputs = (serviceState === ServiceState.REQUEST && type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
 
-        console.log('this.layoutType ==> ', this.layoutType);
       });
   }
 
@@ -357,6 +467,73 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     });
+  }
+
+  listenOriginPlaceChanges() {
+    this.serviceService.originPlaceSelected$
+      .pipe(
+        filter(place => place),
+        startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe((place: any) => {
+
+        let startWithElement = false;
+        if (place.type === 'INITIAL_MARKER') {
+          startWithElement = true;
+          place = {
+            name: 'Mi Posición',
+            location: {
+              lat: place.latitude,
+              lng: place.longitude
+            }
+          };
+        }
+        console.log('???????????????????????', place);
+
+        this.originPlace.name = place.name;
+        this.originPlace.location = place.location;
+        this.originPlaceAddresInput.setValue(this.originPlace.name);
+
+
+        if (!startWithElement) {
+          console.log('.-.-.-.-.-.-.', place);
+          const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
+          const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
+
+
+          // if (!this.originPlaceAutocomplete) {
+          //   this.buildOriginPlaceAutoComplete(circle);
+          // } else {
+          //   this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // }
+        }
+
+      });
+  }
+
+
+  listenDestinationPlaceChanges() {
+    this.serviceService.destinationPlaceSelected$
+      .pipe(
+        filter(place => place),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe((place: any) => {
+
+        this.destinationPlace.name = place.name;
+        this.destinationPlaceAddresInput.setValue(this.destinationPlace.name);
+        this.destinationPlace.location = place.location;
+
+        const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
+        const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
+
+
+        // if (!this.destinationPlaceAutocomplete) {
+        //   this.buildDestinationPlaceAutoComplete(circle);
+        // } else {
+        //   this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        // }
+
+      });
   }
 
 }

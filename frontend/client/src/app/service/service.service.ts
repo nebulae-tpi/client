@@ -141,7 +141,6 @@ export class ServiceService {
           })
         );
     } else {
-      // console.log('se retorna undefined: ');
       return of(undefined);
     }
   }
@@ -288,7 +287,6 @@ export class ServiceService {
         }
       }
     };
-    console.log('PUBLISHIN LAYOUT CHANGE TYPE ==> ', layout.layout.type);
     this.layoutChanges$.next(layout);
   }
 

@@ -214,8 +214,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.menuService.currentUserProfile$
       .pipe(
         tap(userProfile => {
-          console.log('LOADING USER PROFILE ==>', userProfile);
-
           this.userProfile = userProfile;
         }),
         takeUntil(this.ngUnsubscribe)
@@ -326,7 +324,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   listenChangesOnOriginAndDestinationSearchInput() {
-    if(!this.showPlacesInputs){
+    if (!this.showPlacesInputs) {
       return;
     }
     merge(
@@ -429,7 +427,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
             // this.addressInputValue = place.formatted_address.split(',')[0];
 
             const { address_components, name, formatted_address, geometry } = place;
-            console.log(JSON.stringify({ name, formatted_address, geometry }));
 
             this.originPlace.favorite = (formatted_address === '[FAVORITE]');
             let originPlaceName = this.originPlace.favorite
@@ -483,7 +480,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
             const { address_components, name, formatted_address, geometry } = place;
 
-            console.log(JSON.stringify({ name, formatted_address, geometry }));
 
             this.destinationPlace.favorite = (formatted_address === '[FAVORITE]');
             let destinationPlaceName = this.destinationPlace.favorite
@@ -506,6 +502,17 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           });
         });
 
+        if (!circle) {
+          const location = this.serviceService.markerOnMapChange$.getValue();
+          if (!location) { return; }
+          console.log('POSICION RECUPERADA ===>', location);
+          const latlng = new google.maps.LatLng( location.latitude, location.longitude );
+          circle = new google.maps.Circle({
+            center: latlng,
+            radius: 20000 // meters
+          });
+        }
+
         if (circle) {
           this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
@@ -520,7 +527,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-        console.log('------------------ LISTENING ORIGIN PLACE  ==> ', place);
+        console.log({place});
+
         if (place.type === 'INITIAL_MARKER') {
           place = {
             name: 'Mi Posición',
@@ -528,7 +536,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
               lat: place.latitude,
               lng: place.longitude
             }
-          }
+          };
         }
 
         this.originPlace.name = place.name;
@@ -554,7 +562,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         filter(place => place),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-        console.log('listenDestinationPlaceChanges ==> ', place);
 
         this.destinationPlace.name = place.name;
         this.destinationPlaceAddresInput.setValue(this.destinationPlace.name);
@@ -598,15 +605,13 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
         this.serviceState = this.serviceState || this.serviceService.currentService$.getValue().state;
 
-        console.log({ serviceState: this.serviceState, layoutType: this.layoutType });
-        
+
 
         this.showPlacesInputs = !(
           this.serviceState === ServiceState.REQUEST &&
           this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
         );
 
-        console.log({ showPlacesInputs: this.showPlacesInputs });
 
       }
       );
@@ -621,14 +626,11 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         const { state } = service;
         this.serviceState = state;
 
-        console.log({serviceState: this.serviceState, layoutType: this.layoutType });
-
         this.showPlacesInputs = !(
           this.serviceState === ServiceState.REQUEST &&
           this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
         );
 
-        console.log({ showPlacesInputs: this.showPlacesInputs });
 
       });
   }
@@ -660,7 +662,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
     const selectedPlace = placeType === 'ORIGIN' ? this.originPlace : this.destinationPlace;
 
-    console.log('toggleFavoritePlace', placeType, selectedPlace);
 
     of(selectedPlace.favorite)
       .pipe(
@@ -676,7 +677,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           ? this.serviceService.addFavoritePlace$(args)
           : this.serviceService.removeFavoritePlace$(args.id, args.name)
         ),
-        tap(r => console.log('RESPONSE ==> ', r)),
         map(response => ((response || {}).data || {})),
         tap(response => {
           if ((response.AddFavoritePlace || {}).code === 200) {

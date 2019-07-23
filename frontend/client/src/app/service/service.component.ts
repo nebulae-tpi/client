@@ -76,8 +76,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     protected serviceService: ServiceService,
     private keycloakService: KeycloakService,
     private gateway: GatewayService,
-    private snackBar: MatSnackBar,
-    private location: LocationStrategy
+    private snackBar: MatSnackBar
   ) {
 
   }
@@ -87,64 +86,61 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.listenResizeEvent();
     this.listenSubscriptionReconnection();
 
+    this.checkIfUserIsLoggedAndListenServiceUpdates();
+    this.buildBackgroundListener();
+  }
+
+
+  checkIfUserIsLoggedAndListenServiceUpdates() {
     if (this.gateway.checkIfUserLogger()) {
       of(this.keycloakService.getKeycloakInstance().tokenParsed)
         .pipe(
-          mergeMap((tokenParsed: any) => {
+          mergeMap((tokenParsed: any) => (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated)
             // console.log('tokenParsed => ', tokenParsed.clientId,
             // (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
             // (!tokenParsed.clientId && this.keycloakService.getKeycloakInstance().authenticated));
-            return (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated)
-              ? defer(() => this.keycloakService.updateToken(-1))
-              : of(undefined);
-          }),
+
+            ? defer(() => this.keycloakService.updateToken(-1))
+            : of(undefined)
+          ),
           mergeMap(() => this.serviceService.getBusinessContactInfo$()),
-          mergeMap(() => this.serviceService.getCurrentService$())
+          mergeMap(() => this.serviceService.getCurrentService$()),
+          filter(service => service),
+          takeUntil(this.ngUnsubscribe)
+        )
+        .subscribe(service => this.serviceService.currentService$.next(service));
+
+
+      this.serviceService.subscribeToClientServiceUpdatedSubscription$()
+        .pipe(
+          filter(service => service),
+          takeUntil(this.ngUnsubscribe)
         )
         .subscribe(service => {
-          if (service) {
-            // console.log('Llega cambio de servicio:', service);
+          if (service.state === ServiceState.CANCELLED_DRIVER) {
+            this.showSnackBar('El conductor ha cancelado el servicio');
+            this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+          } else if ([ServiceState.CANCELLED_OPERATOR, ServiceState.CANCELLED_SYSTEM ].includes(service.state)) {
+            this.showSnackBar('El sistema ha cancelado el servicio');
+            this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+          } else if (service.state === ServiceState.DONE) {
+            this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+          } else {
             this.serviceService.currentService$.next(service);
           }
         });
-
-      this.serviceService.subscribeToClientServiceUpdatedSubscription$()
-        .pipe(takeUntil(this.ngUnsubscribe))
-        .subscribe(service => {
-          if (service) {
-            // console.log('Llega cambio de servicio:', service);
-            if (service.state === ServiceState.CANCELLED_DRIVER) {
-              this.showSnackBar('El conductor ha cancelado el servicio');
-              this.serviceService.currentService$.next({
-                state: ServiceState.NO_SERVICE
-              });
-            } else if (
-              service.state === ServiceState.CANCELLED_OPERATOR ||
-              service.state === ServiceState.CANCELLED_SYSTEM
-            ) {
-              this.showSnackBar('El sistema ha cancelado el servicio');
-              this.serviceService.currentService$.next({
-                state: ServiceState.NO_SERVICE
-              });
-            } else if (service.state === ServiceState.DONE) {
-              this.serviceService.currentService$.next({
-                state: ServiceState.NO_SERVICE
-              });
-            } else {
-              this.serviceService.currentService$.next(service);
-            }
-          }
-        });
     }
-
-    this.buildBackgroundListener();
   }
+
 
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
 
+  /**
+   * listen the window size changes
+   */
   listenResizeEvent() {
     this.currentService = this.serviceService.currentService$.getValue();
     fromEvent(window, 'resize')
@@ -154,6 +150,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
       ).subscribe();
   }
 
+  /**
+   * Shows a message using snackbar component
+   * @param message message to show
+   */
   showSnackBar(message) {
     this.snackBar.open(message, 'Cerrar', {
       duration: 2000
@@ -162,14 +162,15 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
   /* #region LAYOUT CONTROL */
 
+  /**
+   * listen service changes
+   */
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(service => {
         if (service) {
           this.currentService = service;
-          console.log('CAMBIO EL ESTADO DEL SERVICIO .....', this.currentService);
-
           this.recalculateLayout();
         }
       });
@@ -195,6 +196,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * todo
+   */
   buildBackgroundListener() {
     interval(1000)
       .pipe(takeUntil(this.ngUnsubscribe))
@@ -211,8 +215,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
    */
   recalculateLayout() {
 
-    console.log('CALCULANDO EL LAYOUT .......');
-
     switch (this.currentService.state) {
       case ServiceState.NO_SERVICE:
         this.showAddress = true;
@@ -224,13 +226,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.ARRIVED:
       case ServiceState.ON_BOARD:
       case ServiceState.REQUEST:
-        console.log('this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT',  this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
-        
         this.showAddress = this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
-        screenHeightWaste = 135;
-        console.log('this.showAddress', this.showAddress);
-        
-
+        screenHeightWaste = 136;
         break;
       default:
         this.showAddress = true;
@@ -263,8 +260,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
       if (onMobile) {
         if (horizontalLayout) {
           this.layoutType = ServiceService.LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT;
-        }
-        else {
+        } else {
           this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_MAP_CONTENT;
         }
       } else {
@@ -278,7 +274,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
           } else {
             this.layoutType = ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT;
           }
-        } else {          
+        } else {
           this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
           // don't show addres input in vertical phone layout in NO_SERVICE state
           this.showAddress = this.currentService.state === ServiceState.NO_SERVICE ? false : true;
@@ -294,7 +290,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
     }
 
 
-    console.log(' ======> ', {layoutType: this.layoutType, showAddress: this.showAddress});
 
     if (this.showAddress) {
       if (horizontalLayout) {
@@ -348,19 +343,19 @@ export class ServiceComponent implements OnInit, OnDestroy {
   }
 
   calculateContextRows() {
-    const { state, tip, pickUp  } = this.currentService;
+    const { state, tip, pickUp } = this.currentService;
     switch (state) {
       case ServiceState.NO_SERVICE:
         return 4;
       case ServiceState.REQUEST:
-        if(this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT){
+        if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
           return 6;
         }
         return 19;
       case ServiceState.REQUESTED:
         if (tip && pickUp.addressLine2) {
           return 15;
-        } else if ( pickUp.addressLine2 || tip) {
+        } else if (pickUp.addressLine2 || tip) {
           return 12;
         } else {
           return 10;
@@ -372,29 +367,29 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.ON_BOARD:
         return 17;
       default:
-       return 4;
+        return 4;
     }
   }
 
-  calculateAddressRows(){
-    if(this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT){
+  calculateAddressRows() {
+    if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
 
       switch (this.currentService.state) {
         case ServiceState.REQUEST:
-          console.log('calculateAddressRows ==>', 8);
-          return 8;       
-      
+          // console.log('calculateAddressRows ==>', 8);
+          return 8;
+
         default:
-            console.log('calculateAddressRows ==>', ADDRESS_ROWS);
+          // console.log('calculateAddressRows ==>', ADDRESS_ROWS);
           return ADDRESS_ROWS;
       }
 
     }
     return ADDRESS_ROWS;
-    
+
   }
-  
-  calculateMapRows(){
+
+  calculateMapRows() {
 
   }
   /* #endregion */
