@@ -2,12 +2,8 @@
   <agm-map [ngStyle]="{ 'height.px': heightMapContent }" (mapReady)="mapReady($event)" [clickableIcons]="false"
     [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="lat" [longitude]="lng" [zoom]="zoom"
     (centerChange)="onCenterChange($event)">
-    <agm-direction [origin]="origin" [visible]="true" [destination]="destination" (onResponse)="onDirectionResponse($event)"
-      (status)="reportAgmStatus($event)">
-    </agm-direction>
-    <!-- <span>ANGULAR DIRECTIONS</span> -->
   </agm-map>
-  <img *ngIf="showCenterMarker" src="../../assets/icons/location/assigned_user_marker.png" class="vertical-center"
+  <img *ngIf="showCenterMarker" src="../../assets/icons/location/origin-place-30.png" class="vertical-center"
     alt="image" />
   <button mat-mini-fab [color]="'location-button-color'" (click)="currentLocation()" class="location-button">
     <mat-icon #icontest>gps_fixed</mat-icon>
@@ -18,12 +14,23 @@
   </div>
 
   <!-- DESTINATION ADDRESS INPUT FOR PSEUDO-XS-LAYOUT -->
-  <div id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent }" [ngClass]="{'hide-item': !showDestinationPlaceInput}" >
+  <div id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent }"
+    [ngClass]="{'hide-item': !showDestinationPlaceInput}">
     <div class="form-steps" fxLayoutAlign="center center">
       <input id="addressInput" placeholder="¿A dónde vás?" autocorrect="off" autocapitalize="off"
-        [formControl]="destinationPlaceAddresInput"
-        spellcheck="off" type="text" class="address-input" onfocus="this.value=''" #destinationPlaceSearch />
+        [formControl]="destinationPlaceAddresInput" spellcheck="off" type="text" class="address-input"
+        onfocus="this.value=''" #destinationPlaceSearch />
     </div>
   </div>
   <!-- DESTINATION ADDRESS INPUT FOR PSEUDO-XS-LAYOUT -->
+</div>
+
+
+<div id="estimated-cost-result" *ngIf="estimatedTripCost" [ngStyle]="{ 'width.px': widthMapContent }">
+  <div class="results" fxLayout="column" fxLayoutAlign="center center">
+      <span class="font-size-32">Distacia: {{ estimatedTripCost.distance }} </span>
+      <span class="font-size-32">Valor Estimado: {{ estimatedTripCost.cost }} </span>
+
+  </div>
+
 </div>

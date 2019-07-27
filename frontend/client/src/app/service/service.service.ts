@@ -11,7 +11,8 @@ import {
   CancelServiceByClient,
   BusinessContactInfo,
   RemoveFavoritePlace,
-  AddFavoritePlace
+  AddFavoritePlace,
+  pricePerKilometerOnTrip
 } from './gql/service.js';
 import { map, tap, retryWhen, concatMap, delay } from 'rxjs/operators';
 
@@ -31,7 +32,11 @@ export class ServiceService {
   public static LAYOUT_COMMAND_SHOW_ADDRESS = 100;
   public static LAYOUT_COMMAND_HIDE_ADDRESS = 101;
 
+  public static COMMAND_ON_CONFIRM_BTN = 200;
+
+
   layoutChanges$ = new BehaviorSubject(undefined);
+  serviceCommands$ = new BehaviorSubject(undefined);
 
   markerOnMapChange$ = new BehaviorSubject(undefined);
 
@@ -43,7 +48,6 @@ export class ServiceService {
 
   backNavigation$ = new BehaviorSubject<any>(undefined);
 
-  // fromAddressLocation = false;
   userProfile;
   businessContactInfo;
 
@@ -55,10 +59,16 @@ export class ServiceService {
   //
   /* #endregion */
 
-  constructor(private gateway: GatewayService) {}
+  constructor(private gateway: GatewayService) { }
 
   notifyBackNavigation() {
     this.backNavigation$.next(true);
+  }
+
+  isPointInPolygon(point, polygon) {
+    const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
+    const placePolygon = new google.maps.Polygon({ paths: polygon.points });
+    return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
   }
 
   /* #region QUERIES */
@@ -143,6 +153,21 @@ export class ServiceService {
     } else {
       return of(undefined);
     }
+  }
+
+  getPricePerKilometerOnTrip$() {
+    // if (this.userProfile) {
+    //   return this.gateway.apollo
+    //     .query<any>({
+    //       query: pricePerKilometerOnTrip,
+    //       fetchPolicy: 'network-only',
+    //       errorPolicy: 'all'
+    //     });
+    // } else {
+    //   return of(undefined);
+    // }
+
+    return of(1310);
   }
   /* #endregion */
 
@@ -251,6 +276,7 @@ export class ServiceService {
     contextWidth?: number,
     contextHeight?: number
   ) {
+    console.log('publishING Layout Changes ...');
     const layout = {
       layout: {
         type,
@@ -274,14 +300,14 @@ export class ServiceService {
             addressWidth +
             mapWidth +
             (contextWidth &&
-            type === ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT
+              type === ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT
               ? contextWidth
               : 0),
           height:
             addressHeight +
             mapHeight +
             (contextHeight &&
-            type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
+              type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
               ? contextHeight
               : 0)
         }
@@ -320,5 +346,9 @@ export class ServiceService {
       ...serviceChanges
     };
     this.currentService$.next(newService);
+  }
+
+  publishCommand(command) {
+    this.serviceCommands$.next(command);
   }
 }

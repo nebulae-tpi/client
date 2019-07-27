@@ -25,6 +25,12 @@ export const NearbyVehicles = gql`
   }
 `;
 
+export const pricePerKilometerOnTrip = gql`
+  query pricePerKilometerOnTrip {
+    pricePerKilometerOnTrip
+  }
+`;
+
 export const CurrentServices = gql`
   query CurrentServices {
     CurrentServices {

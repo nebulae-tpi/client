@@ -133,6 +133,8 @@ export class FilterSheetComponent implements OnInit {
 })
 export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterViewInit {
 
+  locationsConfirmed = false;
+
 
   private ngUnsubscribe = new Subject();
   STRINGS_TO_REMOVE = [', Antioquia', ', Valle del Cauca', ', Colombia'];
@@ -179,6 +181,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
     this.listenLayoutCommands();
     this.listenServiceChanges();
+
+    this.listenServiceCommands();
 
   }
 
@@ -234,7 +238,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       : [];
   }
 
-  confirmService() {
+  confirmServiceRequest() {
+
+
+
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
       const pickUpMarker = {
         lat: this.originPlace.location.lat,
@@ -313,15 +320,42 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           }
         );
     } else {
-      this.snackBar.open(
-        'Por favor ingresar una dirección para el punto de recogida',
-        'Cerrar',
-        {
-          duration: 2000
-        }
+      this.snackBar.open('Por favor ingresar una dirección para el punto de recogida', 'Cerrar',
+        { duration: 2000 }
       );
     }
   }
+
+  listenServiceCommands() {
+    this.serviceService.serviceCommands$
+      .pipe(
+        filter(command => command && command.code),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe(command => {
+        switch (command.code) {
+          case ServiceService.COMMAND_ON_CONFIRM_BTN:
+
+            console.log('HACER EL CALCULO DE LA TARIFA Y MOSTRAR EL CAMINO');
+            if (this.locationsConfirmed) {
+              this.confirmServiceRequest();
+            }
+
+            break;
+
+          default:
+            break;
+        }
+      });
+  }
+
+  onConfirmButton() {
+    this.serviceService.publishCommand({
+      code: ServiceService.COMMAND_ON_CONFIRM_BTN,
+      args: []
+    });
+
+  }
+
 
   listenChangesOnOriginAndDestinationSearchInput() {
     if (!this.showPlacesInputs) {
@@ -445,8 +479,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                 lng: geometry.location.lng()
               }
             });
-
-            // this.serviceService.fromAddressLocation = true;
           });
         });
 
@@ -498,7 +530,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                 lng: geometry.location.lng()
               }
             });
-            // this.serviceService.fromAddressLocation = true;
           });
         });
 
@@ -506,7 +537,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           const location = this.serviceService.markerOnMapChange$.getValue();
           if (!location) { return; }
           console.log('POSICION RECUPERADA ===>', location);
-          const latlng = new google.maps.LatLng( location.latitude, location.longitude );
+          const latlng = new google.maps.LatLng(location.latitude, location.longitude);
           circle = new google.maps.Circle({
             center: latlng,
             radius: 20000 // meters
@@ -527,7 +558,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-        console.log({place});
 
         if (place.type === 'INITIAL_MARKER') {
           place = {

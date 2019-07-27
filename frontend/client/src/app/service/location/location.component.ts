@@ -4,7 +4,6 @@ import {
   ViewChild,
   ChangeDetectorRef,
   OnDestroy,
-  AfterViewInit,
   ElementRef,
   NgZone
 } from '@angular/core';
@@ -16,9 +15,11 @@ import {
   takeUntil,
   debounceTime,
   mergeMap,
-  toArray
+  toArray,
+  delay,
+  startWith,
 } from 'rxjs/operators';
-import { Subject, from, interval } from 'rxjs';
+import { Subject, from, interval, merge, of, combineLatest, defer, Observable, forkJoin } from 'rxjs';
 import { ServiceState } from '../service-state';
 import {
   MatBottomSheetRef,
@@ -30,6 +31,8 @@ import {
 import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.component';
 import { MapsAPILoader } from '@agm/core';
 import { FormControl } from '@angular/forms';
+import { ORIGIN_DESTINATION_MATRIX_FARE } from '../specialFarePlaces/originDestinationMatrix';
+import { PLACES_WITH_SPECIAL_FARE } from '../specialFarePlaces/places';
 
 @Component({
   selector: 'app-cancel-sheet',
@@ -104,21 +107,32 @@ export class LocationComponent implements OnInit, OnDestroy {
   lat = 3.416652; // todo
   lng = -76.524436; // todo
   zoom = 17;
+
   // render = true;
   widthMapContent = 0;
   heightMapContent = 0;
 
   center$ = new Subject();
-  lastCenterResported;
+  lastCenterReported: any;
   showCenterMarker = true;
   currentService;
-  userMarker;
+
+  originMarker: google.maps.Marker;
+  originMarkerInfoWindow: google.maps.InfoWindow;
+
+  destinationMarker: google.maps.Marker;
+  destinationMarkerInfoWindow: google.maps.InfoWindow;
+
+  placeToMoveWithCenter: string = null;
+  estimatedTripCost: any = null;
+  minTripCost = 5600; // toddo
+
   vehicleMarker;
   disableMap = false;
   nearbyVehiclesEnabled = true;
   nearbyTimer;
   nearbyVehicleList = [];
-  protected map: any;
+  protected map: google.maps.Map;
 
   lastServiceStateReported;
   index = 0;
@@ -132,11 +146,11 @@ export class LocationComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
 
 
-  // TESTING VARS
-  public origin: any; // new google.maps.LatLng(6.1610224, -75.605014);
-  public destination: any; // = new google.maps.LatLng(6.1731996, -75.6079489);
+  // direction display Element
+  directionsDisplay: google.maps.DirectionsRenderer;
+  directionsService: google.maps.DirectionsService;
 
-  // TESTING VARS
+  originPlace: any;
 
 
   constructor(
@@ -152,16 +166,243 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region ANGULAR NGS */
   ngOnInit() {
+
     this.listenLayoutCommands();
     this.listenMarkerPosition();
     this.listenOnResume();
     this.listenCenterChanges();
+
+
+
+    this.listenOriginDestinationPlaceChanges();
+
+    this.listenServiceCommands();
+
   }
 
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
+
+  listenOriginDestinationPlaceChanges() {
+    combineLatest(
+      this.serviceService.originPlaceSelected$,
+      this.serviceService.destinationPlaceSelected$
+    )
+      .pipe(
+        map(([origin, destination]) => ({
+          origin, destination,
+          twoConfirmed: (origin || {}).confirmed && (destination || {}).confirmed
+        })),
+        tap((places: any) => {
+
+          if (this.directionsDisplay) {
+            this.directionsDisplay.setMap(null);
+            this.estimatedTripCost = null;
+          }
+
+          // https://icons8.com/icon/set/map-marker/material
+          if (places.destination) {
+            console.log('REMOVE THE MARKER ON CENTER MAP');
+            this.showCenterMarker = false;
+            this.placeToMoveWithCenter = null;
+
+            if (this.destinationMarker) {
+              this.destinationMarker.setPosition({
+                lat: places.destination.location.lat,
+                lng: places.destination.location.lng
+              });
+            } else {
+              this.destinationMarker = new google.maps.Marker({
+                position: {
+                  lat: places.destination.location.lat,
+                  lng: places.destination.location.lng
+                },
+                icon: '../../../assets/icons/location/destination-place-30.png',
+                map: this.map
+              });
+            }
+
+
+
+          }
+          if (places.origin && !this.showCenterMarker) {
+            if (!this.originMarker) {
+              this.originMarker = new google.maps.Marker({
+                position: new google.maps.LatLng(
+                  places.origin.location.lat,
+                  places.origin.location.lng,
+                ),
+                icon: '../../../assets/icons/location/origin-place-30.png',
+                // icon: '../../../assets/icons/location/drag-pin-30.png',
+                map: this.map,
+                clickable: true
+              });
+
+              const buttonString = 'Fijar Con Puntero';
+              this.originMarkerInfoWindow = new google.maps.InfoWindow({
+                content: `
+                <div id="origin-marker-info-window">
+                  <div id="bodyContent">
+                  <p><b>${places.origin.name}</b></p>
+                  <div id="use-pointer-btn" class="use-pointer-btn">${buttonString}</div>
+                </div>`
+              });
+
+              this.originMarker.addListener('click', () => {
+                this.originMarkerInfoWindow.open(this.map, this.originMarker);
+                setTimeout(() => {
+                  document.getElementById('use-pointer-btn')
+                    .addEventListener('mousedown', () => this.onUsePointerToSetLocation('ORIGIN'));
+                }, 200);
+
+              });
+
+              // node
+
+
+
+            } else {
+
+              this.originMarker.setPosition({
+                lat: places.origin.location.lat,
+                lng: places.origin.location.lng
+              });
+
+            }
+
+
+          }
+
+
+          // UPDATE THE ZOOM AND CENTER TO SHOW DESTINATION AND ORIGINMARKER ON MAP
+
+          let bounds;
+          if (this.originMarker) {
+            bounds = new google.maps.LatLngBounds();
+            bounds.extend(this.originMarker.getPosition());
+          }
+          if (bounds && this.destinationMarker) {
+            bounds.extend(this.destinationMarker.getPosition());
+          }
+
+          if (this.map && bounds) {
+            // todo padding is not working
+            this.map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+            // this.map.setZoom(this.map.getZoom());
+
+            // this.map.setCenter(bounds);
+          }
+
+
+
+        }),
+        filter(places => places.origin && places.destination),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe(places => {
+        this.originPlace = places.origin;
+        this.destinationPlace = places.destination;
+
+
+
+
+
+
+
+      });
+  }
+
+  listenServiceCommands() {
+    this.serviceService.serviceCommands$
+      .pipe(
+        filter(command => command && command.code),
+      ).subscribe(command => {
+        switch (command.code) {
+          case ServiceService.COMMAND_ON_CONFIRM_BTN:
+
+            console.log('CONFIRMAR LAS UBICACIONES DE LOSMARCADORES');
+
+            this.originPlace = {
+              ...this.originPlace,
+              location: {
+                lat: this.originMarker.getPosition().lat(),
+                lng: this.originMarker.getPosition().lng()
+              }
+            };
+
+            this.originMarkerInfoWindow = new google.maps.InfoWindow({
+              content: `
+            <div id="origin-marker-info-window">
+              <div id="bodyContent">
+              <p><b>${this.originPlace.name}</b></p>
+            </div>`
+            });
+
+            this.destinationMarkerInfoWindow = new google.maps.InfoWindow({
+              content: `
+            <div id="destination-marker-info-window">
+              <div id="bodyContent">
+              <p><b>${this.originPlace.name}</b></p>
+            </div>`
+            });
+
+            this.serviceService.originPlaceSelected$.next(this.originPlace);
+
+            this.calculateRoute();
+
+
+            break;
+
+          default:
+            break;
+        }
+      });
+  }
+
+  onUsePointerToSetLocation(e: string) {
+    console.log(e);
+
+    switch (e) {
+      case 'ORIGIN':
+        this.originMarkerInfoWindow.close();
+        const newCenter = new google.maps.LatLng(this.originPlace.location.lat, this.originPlace.location.lng);
+        this.map.setCenter(newCenter);
+        const newMapZoom = this.map.getZoom() + 2;
+        // tslint:disable-next-line: no-unused-expression
+        newMapZoom < 19 ? this.map.setZoom(newMapZoom) : {};
+        this.placeToMoveWithCenter = e;
+        // this.originMarker.setOptions({
+        //   position: this.originMarker.getPosition(),
+        //   visible: false
+        // });
+
+        break;
+
+      default:
+        break;
+    }
+
+  }
+
+  confirmLocationCoords(placeType: string) {
+    console.log('CONFIRMANDO EL PUNTERO DE ', placeType);
+
+    switch (placeType) {
+      case 'ORIGIN':
+        this.placeToMoveWithCenter = null;
+        break;
+
+      default:
+        break;
+    }
+
+
+  }
+
+
+
 
   onDirectionResponse(event) {
     console.log(' onDirectionResponse ==> ', event);
@@ -232,48 +473,56 @@ export class LocationComponent implements OnInit, OnDestroy {
       });
 
       if (circle) {
-        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
     });
-
   }
 
 
   listenCenterChanges() {
     this.center$
       .pipe(
-        debounceTime(500),
-        filter(val => {
-
-          let toReport = false;
-          if (this.lastCenterResported && this.lastCenterResported.lat !== (val as any).lat) {
-            toReport = true;
+        tap(R => console.log('listenCenterChanges ==> ', R)),
+        filter((center: any) => {
+          const isDifferentLocation = this.lastCenterReported && this.lastCenterReported.lat !== center.lat;
+          this.lastCenterReported = center;
+          return isDifferentLocation;
+        }),
+        tap((center: any) => {
+          console.log('NUEVO CENTER ===> ', center);
+          if (this.placeToMoveWithCenter === 'ORIGIN') {
+            this.originMarker.setPosition({ lat: center.lat, lng: center.lng });
+            this.serviceService.originPlaceSelected$.next({
+              ...this.originPlace,
+              location: { lat: center.lat, lng: center.lng }
+            });
           }
 
-          this.lastCenterResported = val;
-          return toReport;
-        }),
-        tap(val => {
-          this.serviceService.markerOnMapChange$.next({
-            latitude: (val as any).lat,
-            longitude: (val as any).lng
-          });
+
+
 
         }),
+        debounceTime(500),
+
+        tap((val: any) => {
+          this.serviceService.markerOnMapChange$.next({
+            latitude: val.lat,
+            longitude: val.lng
+          });
+
+          if (this.originMarker && this.placeToMoveWithCenter === 'ORIGIN') {
+            this.originMarker.setPosition({ lat: val.lat, lng: val.lng });
+          }
+          if (this.destinationMarker && this.placeToMoveWithCenter === 'DESTINATION') {
+            this.destinationMarker.setPosition({ lat: val.lat, lng: val.lng });
+          }
+
+        }
+
+
+        ),
         filter(() => this.nearbyVehiclesEnabled),
-        mergeMap(location => {
-          // todo - what for is fromAddressLocation variable??
-          return this.getNearbyVehicles$().pipe(
-            // filter(() => {
-            //   const temp = !this.serviceService.fromAddressLocation;
-            //   this.serviceService.fromAddressLocation = false;
-            //   return temp;
-            // }),
-            // tap(() => {
-            //   this.serviceService.addressChange$.next(undefined);
-            // })
-          );
-        }),
+        mergeMap(() => this.getNearbyVehicles$()),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(val => { });
@@ -333,6 +582,9 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.currentService = this.serviceService.currentService$.getValue();
     const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
 
+    console.log('init location marker on map ==> ', markerOnMap);
+
+
     const { state, pickUp, location } = this.currentService;
 
     const allowedServiceStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
@@ -369,6 +621,8 @@ export class LocationComponent implements OnInit, OnDestroy {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
               });
+
+              this.updateFirstOriginPlace(position.coords.latitude, position.coords.longitude);
             }
           },
           error => console.log('LLega error: ', error),
@@ -430,6 +684,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenLayoutCommands() {
     this.serviceService.layoutChanges$
       .pipe(
+        tap(R => console.log(R)),
         filter(e => e && e.layout),
         map(e => e.layout),
         takeUntil(this.ngUnsubscribe)
@@ -451,6 +706,7 @@ export class LocationComponent implements OnInit, OnDestroy {
    */
   listenOnResume() {
     this.serviceService.onResume$.pipe(
+      tap(R => console.log(R)),
       takeUntil(this.ngUnsubscribe)
     ).subscribe(() => {
       this.currentLocation();
@@ -459,11 +715,9 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   mapReady(mapRef) {
     // todo origin and destination to test
-    this.origin = new google.maps.LatLng(6.1610224, -75.605014);
-    this.destination = new google.maps.LatLng(6.1731996, -75.6079489);
-
 
     this.map = mapRef;
+
     this.initLocation();
     this.listenServiceChanges();
     this.startNearbyVehicles();
@@ -472,6 +726,128 @@ export class LocationComponent implements OnInit, OnDestroy {
       this.buildDestinationPlaceAutoComplete();
       // }, 1000);
     }
+
+    const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
+
+  }
+
+
+  searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng){
+    console.log({estimatedTripValue});
+
+    // recardo de noche 700
+
+    return forkJoin(
+      of(PLACES_WITH_SPECIAL_FARE
+        .filter(place => this.serviceService.isPointInPolygon({lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
+        [0]
+      ),
+      of(PLACES_WITH_SPECIAL_FARE
+        .filter(place => this.serviceService.isPointInPolygon({lat: destinationLatLng.lat, lng: destinationLatLng.lng }, place.points))
+        [0]
+      ),
+    )
+    .pipe(
+      map(([specialOrigin, specialDestination]) => (specialOrigin && specialDestination)
+        ? ORIGIN_DESTINATION_MATRIX_FARE
+        .find(item => (specialOrigin.name === item.from && specialDestination.name === item.to ))
+        : of(null)
+      ),
+      map((additionalFare: any) => !additionalFare ? estimatedTripValue : {
+        ...estimatedTripValue,
+        cost: additionalFare.fare
+      }),
+      tap((estimatedResult) =>  this.estimatedTripCost = estimatedResult )
+    );
+
+
+  }
+
+  calculateRoute() {
+
+    const originLatLng = new google.maps.LatLng(this.originPlace.location.lat, this.originPlace.location.lng);
+    const destinationLatLng = new google.maps.LatLng(this.destinationPlace.location.lat, this.destinationPlace.location.lng);
+
+
+    this.directionsDisplay = this.directionsDisplay || new google.maps.DirectionsRenderer();
+    this.directionsService = this.directionsService || new google.maps.DirectionsService();
+
+    this.directionsDisplay.setMap(this.map);
+
+    Observable.create(observer => {
+
+      let tripDuration = 0; // minutes
+      let tripDistance = 0; // Meters
+
+      const queryArgs: google.maps.DirectionsRequest = {
+        origin: originLatLng,
+        destination: destinationLatLng,
+        travelMode: google.maps.TravelMode.DRIVING
+      };
+
+      this.directionsService.route(queryArgs, (response, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+
+          this.directionsDisplay.setOptions({
+            polylineOptions: {
+              strokeColor: '#3B4045',
+              strokeWeight: 6
+            },
+            suppressMarkers: true,
+            directions: response
+          });
+
+          response.routes[0].legs.forEach(leg => {
+            tripDistance += leg.distance.value;
+            tripDuration += leg.duration.value;
+          });
+          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100 + ' Km', cost: 0  });
+
+
+        } else {
+          console.log('ERROR AL HACER EL CALCULO DE LA RUTA', status);
+          observer.next(null);
+        }
+        observer.complete();
+
+      });
+
+
+    }).pipe(
+      mergeMap(estimatedResult => this.searchAdditionalTripFare$(estimatedResult, originLatLng, destinationLatLng)),
+      filter((response: any) => response),
+      mergeMap(result => this.serviceService.getPricePerKilometerOnTrip$()),
+      map((result: any) => ((result || {}).data || {}).pricePerKilometerOnTrip || 1410),
+      // filter((result: any) => result)
+
+    ).subscribe(valuePerKilometer => {
+      console.log('################### ===> ', valuePerKilometer);
+
+      let cost = (Math.ceil( parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) +
+        50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) % 50));
+
+      if (cost < this.minTripCost) {
+        cost = this.minTripCost;
+        console.log('VALOR DE LA CARRERA MINIMA');
+      }
+
+      const formatter = new Intl.NumberFormat('co-COP', {
+        style: 'currency',
+        currency: 'USD',
+      });
+
+      const priceFormated = formatter.format(cost +  this.estimatedTripCost.cost);
+      this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
+
+
+
+    }
+
+
+    );
+
+
+
 
   }
 
@@ -493,6 +869,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenMarkerPosition() {
     this.serviceService.markerOnMapChange$
       .pipe(
+        tap(R => console.log(R)),
         filter(evt => evt),
         takeUntil(this.ngUnsubscribe)
       )
@@ -502,9 +879,6 @@ export class LocationComponent implements OnInit, OnDestroy {
             lat: location.latitude,
             lng: location.longitude
           });
-
-
-
         }
         const latlng = new google.maps.LatLng(
           location.latitude,
@@ -520,10 +894,8 @@ export class LocationComponent implements OnInit, OnDestroy {
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else if (this.showDestinationPlaceInput) {
-          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
-
-        this.updateFirstOriginPlace(location.latitude, location.longitude);
 
       });
   }
@@ -531,6 +903,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
+        tap(R => console.log(R)),
         filter(service => service),
         debounceTime(100),
         takeUntil(this.ngUnsubscribe)
@@ -544,6 +917,18 @@ export class LocationComponent implements OnInit, OnDestroy {
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showDestinationPlaceInput = true;
             }
+            this.showCenterMarker = true;
+            if (this.destinationMarker) {
+              this.destinationMarker.setMap(null);
+              this.destinationMarker = null;
+            }
+
+            if (this.originMarker) {
+              this.originMarker.setMap(null);
+              this.originMarker = null;
+            }
+
+
             break;
           case ServiceState.CANCELLED_CLIENT:
             this.showDestinationPlaceInput = true;
@@ -562,13 +947,14 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.REQUEST:
             this.showDestinationPlaceInput = false;
+            console.log(' CHANGED TO == ServiceState.REQUEST ==>', this.originMarker, this.originPlace);
             break;
           case ServiceState.REQUESTED:
             this.showDestinationPlaceInput = false;
             this.refreshCenterMap(this.currentService);
             this.disableMap = true;
             if (this.currentService && pickUp && pickUp.marker) {
-              this.userMarker = new google.maps.Marker({
+              this.originMarker = new google.maps.Marker({
                 position: new google.maps.LatLng(
                   pickUp.marker.lat,
                   pickUp.marker.lng
@@ -603,14 +989,14 @@ export class LocationComponent implements OnInit, OnDestroy {
             });
             this.nearbyVehicleList = [];
             if (this.currentService && pickUp && pickUp.marker) {
-              if (this.userMarker) {
+              if (this.originMarker) {
                 this.changeMarkerPosition(
-                  this.userMarker,
+                  this.originMarker,
                   pickUp.marker.lat,
                   pickUp.marker.lng
                 );
               } else {
-                this.userMarker = new google.maps.Marker({
+                this.originMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
                     pickUp.marker.lat,
                     pickUp.marker.lng
@@ -653,9 +1039,9 @@ export class LocationComponent implements OnInit, OnDestroy {
             });
             this.nearbyVehicleList = [];
 
-            if (this.userMarker) {
-              this.userMarker.setMap(undefined);
-              this.userMarker = undefined;
+            if (this.originMarker) {
+              this.originMarker.setMap(undefined);
+              this.originMarker = undefined;
             }
             if (this.currentService && location) {
               if (this.vehicleMarker) {
@@ -692,9 +1078,9 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.vehicleMarker.setMap(undefined);
               this.vehicleMarker = undefined;
             }
-            if (this.userMarker) {
-              this.userMarker.setMap(undefined);
-              this.userMarker = undefined;
+            if (this.originMarker) {
+              this.originMarker.setMap(undefined);
+              this.originMarker = undefined;
             }
 
             this.disableMap = false;
@@ -718,6 +1104,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   startNearbyVehicles() {
     interval(5000)
       .pipe(
+        tap(R => console.log(R)),
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(() => {
           return this.getNearbyVehicles$();
@@ -801,18 +1188,21 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   updateFirstOriginPlace(lat: number, lng: number) {
-    const geocoder = new google.maps.Geocoder();
-    const latlng = { lat, lng };
-    geocoder.geocode({ location: latlng }, (results, status) => {
-      console.log({ results, status });
-      const locationName = (results[0] || { formatted_address: 'Mi Ubicación Actual' }).formatted_address;
+    // const geocoder = new google.maps.Geocoder();
+    // const latlng = { lat, lng };
 
+    // geocoder.geocode({ location: latlng }, (results, status) => {
+    //   let locationName = (results[0] || { formatted_address: 'Mi Ubicación Actual' }).formatted_address;
+    //   this.STRINGS_TO_REMOVE.forEach(s => locationName = locationName.replace(s, ''));
+    //   this.serviceService.originPlaceSelected$.next({
+    //     name: locationName,
+    //     location: { lat, lng }
+    //   });
+    // });
 
-
-      this.serviceService.originPlaceSelected$.next({
-        name: locationName,
-        location: { lat, lng }
-      });
+    this.serviceService.originPlaceSelected$.next({
+      name: 'Mi Ubicación Actual',
+      location: { lat, lng }
     });
 
   }

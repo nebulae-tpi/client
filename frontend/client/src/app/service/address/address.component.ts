@@ -66,7 +66,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.listenMarkerPositionChanges();
 
-    this.buildOriginPlaceAutoComplete();
+    // this.buildOriginPlaceAutoComplete();
     this.buildDestinationPlaceAutoComplete();
 
     this.listenOriginPlaceChanges();
@@ -101,13 +101,15 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   buildOriginPlaceAutoComplete(circle?) {
 
     if (!this.originPlaceSearchElementRef) {
-      console.log('INTENTANDO DAR INICIALIZAR EL AUTOCOMPLETE --- originPlaceSearchElementRef');
+      console.log('TRYING BUILD ORIGIN AUTOCOMPLETE', { showTwoInputs: this.showTwoInputs });
       setTimeout(() => {
-        if (this.showAddress) {
+        if (this.showTwoInputs) {
           this.buildOriginPlaceAutoComplete(circle);
         }
       }, 1000);
+      return;
     }
+
 
     this.mapsAPILoader.load().then(() => {
       this.originPlaceAutocomplete = new google.maps.places.Autocomplete(
@@ -164,20 +166,18 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       if (circle) {
         this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
-      console.log({ originPlaceAutocomplete: this.originPlaceAutocomplete });
 
     });
   }
 
   buildDestinationPlaceAutoComplete(circle?) {
     if (!this.destinationPlaceSearchElementRef) {
-      console.log('TRYING BUILD DESTINATION AUTOCOMPLETE', {showTwoInputs: this.showTwoInputs});
+      console.log('TRYING BUILD DESTINATION AUTOCOMPLETE', { showTwoInputs: this.showTwoInputs });
 
       setTimeout(() => {
-        if (this.showTwoInputs) {
-          this.buildDestinationPlaceAutoComplete(circle);
-        }
+        this.buildDestinationPlaceAutoComplete(circle);
       }, 200);
+      return;
     }
 
     if (this.destinationPlaceSearchElementRef) {
@@ -220,7 +220,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
                 lng: geometry.location.lng()
               }
             });
-            // this.serviceService.fromAddressLocation = true;
           });
         });
 
@@ -288,7 +287,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         filter(service => service)
       )
       .subscribe(service => {
-        console.log('=====> ', service);
         switch (service.state) {
           case ServiceState.NO_SERVICE:
             this.showTwoInputs = false;
@@ -323,10 +321,9 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             this.showOnBoardHeader = false;
             this.showTwoInputs = false;
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
-              console.log('MOSTRANDO LOS DOS INPUT');
-
-              this.buildDestinationPlaceAutoComplete();
               this.showTwoInputs = true;
+              this.buildOriginPlaceAutoComplete();
+
             }
 
             break;
@@ -488,7 +485,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           };
         }
-        console.log('???????????????????????', place);
 
         this.originPlace.name = place.name;
         this.originPlace.location = place.location;
@@ -496,10 +492,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
         if (!startWithElement) {
-          console.log('.-.-.-.-.-.-.', place);
           const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
           const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
-
 
           // if (!this.originPlaceAutocomplete) {
           //   this.buildOriginPlaceAutoComplete(circle);

@@ -13,7 +13,8 @@ import {
   takeUntil,
   debounceTime,
   tap,
-  map
+  map,
+  distinctUntilChanged
 } from 'rxjs/operators';
 
 import {
@@ -88,6 +89,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
     this.checkIfUserIsLoggedAndListenServiceUpdates();
     this.buildBackgroundListener();
+
+    this.serviceService.getPricePerKilometerOnTrip$().subscribe(
+      e => {
+        console.log('#########################', e);
+      }
+    );
   }
 
 
@@ -167,7 +174,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
    */
   listenServiceChanges() {
     this.serviceService.currentService$
-      .pipe(takeUntil(this.ngUnsubscribe))
+      .pipe(
+        distinctUntilChanged(),
+        takeUntil(this.ngUnsubscribe)
+        )
       .subscribe(service => {
         if (service) {
           this.currentService = service;

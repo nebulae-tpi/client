@@ -30,7 +30,7 @@
 }
 
 #test-form-on-map {
-  margin-top: 150px;
+  margin-top: 100px;
   position: absolute;
   top: 0;
 
@@ -67,9 +67,84 @@
     input::placeholder {
       font-size: 20px;
       color: rgb(196, 70, 70);
-     }
+    }
   }
 }
-.hide-item{
+
+#estimated-cost-result {
+  bottom: 30px;
+  background: transparent;
+  position: absolute;
+
+  .results {
+    // box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px;
+
+    min-height: 80px;
+    height: 80px;
+    max-height: 80px;
+
+    margin-left: 10px;
+    margin-right: 60px;
+
+    border-radius: 10px;
+    border: 2px solid;
+
+    font-size: 25px;
+
+    color: #245e7a;
+    background-color: #d9edf7;
+    border-color: #3a3a3a;
+  }
+}
+
+.hide-item {
   display: none;
+}
+
+::ng-deep #origin-marker-info-window {
+  // background: #3a8a9e !important
+
+  .use-pointer-btn {
+    border-radius: 6px;
+    background-color: #ededed;
+    border: 1px solid #d6bcd6;
+    // display:inline-block;
+    cursor: pointer;
+    padding: 5px 5px;
+  }
+  .use-pointer-btn:hover {
+    background-color: #bab1ba;
+  }
+  .use-pointer-btn:active {
+    position: relative;
+    top: 1px;
+  }
+}
+
+::ng-deep #destination-marker-info-window {
+  // background: #3a8a9e !important
+
+  .use-pointer-btn {
+    border-radius: 6px;
+    background-color: #ededed;
+    border: 1px solid #d6bcd6;
+    // display:inline-block;
+    cursor: pointer;
+    padding: 5px 5px;
+  }
+  .use-pointer-btn:hover {
+    background-color: #bab1ba;
+  }
+  .use-pointer-btn:active {
+    position: relative;
+    top: 1px;
+  }
+}
+
+.myButton {
+  color: #3a8a9e;
+  font-family: Arial;
+  font-size: 11px;
+  font-weight: bold;
+  text-decoration: none;
 }

@@ -1,12 +1,12 @@
-<div *ngIf="showAddress" [ngClass]="{'input-address-xs': showTwoInputs, 'form-group': !showTwoInputs}">
-  <input [ngClass]="{'input-address': showTwoInputs, 'address-input': !showTwoInputs }"
-    placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text"
-    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
+<div *ngIf="showAddress && showTwoInputs" class="input-address-xs" [ngClass]="{'mt-8': showTwoInputs}" >
+  <input placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text"
+    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()"/>
 </div>
 
-<div class="input-address-xs" *ngIf="showAddress && showTwoInputs">
-  <input placeholder="Destino" autocorrect="off" autocapitalize="off" spellcheck="off" type="text"
-    onfocus="this.value=''" #destinationPlaceSearch [formControl]="destinationPlaceAddresInput" (change)="onBlurAddress()" />
+<div *ngIf="showAddress" [ngClass]="{'input-address-xs': showTwoInputs, 'form-group': !showTwoInputs}">
+  <input [ngClass]="{'address-input': !showTwoInputs}" placeholder="Destino" autocorrect="off"
+    autocapitalize="off" spellcheck="off" type="text"  onfocus="this.value=''"
+    #destinationPlaceSearch [formControl]="destinationPlaceAddresInput" (change)="onBlurAddress()" />
 </div>
 
 <!-- <div *ngIf="showAddress && !showTwoInputs" class="form-group">
