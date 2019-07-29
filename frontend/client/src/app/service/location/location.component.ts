@@ -235,7 +235,6 @@ export class LocationComponent implements OnInit, OnDestroy {
                   places.origin.location.lng,
                 ),
                 icon: '../../../assets/icons/location/origin-place-30.png',
-                // icon: '../../../assets/icons/location/drag-pin-30.png',
                 map: this.map,
                 clickable: true
               });
@@ -289,7 +288,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
           if (this.map && bounds) {
             // todo padding is not working
-            this.map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+            this.map.fitBounds(bounds); // { top: 40, right: 40, bottom: 40, left: 40 }
             // this.map.setZoom(this.map.getZoom());
 
             // this.map.setCenter(bounds);
@@ -324,11 +323,13 @@ export class LocationComponent implements OnInit, OnDestroy {
 
             console.log('CONFIRMAR LAS UBICACIONES DE LOSMARCADORES');
 
+
+
             this.originPlace = {
               ...this.originPlace,
               location: {
-                lat: this.originMarker.getPosition().lat(),
-                lng: this.originMarker.getPosition().lng()
+                lat: this.originMarker ? this.originMarker.getPosition().lat() : this.lastCenterReported.lat,
+                lng: this.originMarker ? this.originMarker.getPosition().lng() : this.lastCenterReported.lng
               }
             };
 
@@ -349,9 +350,19 @@ export class LocationComponent implements OnInit, OnDestroy {
             });
 
             this.serviceService.originPlaceSelected$.next(this.originPlace);
+            
+            console.log(({destinationPlace:  this.destinationPlace}));
+            
+            if(this.destinationMarker){
+              this.calculateRoute();
+            }else{
+              this.serviceService.publishCommand({
+                code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
+                args: []
+              })
+            }
 
-            this.calculateRoute();
-
+            
 
             break;
 
@@ -373,10 +384,6 @@ export class LocationComponent implements OnInit, OnDestroy {
         // tslint:disable-next-line: no-unused-expression
         newMapZoom < 19 ? this.map.setZoom(newMapZoom) : {};
         this.placeToMoveWithCenter = e;
-        // this.originMarker.setOptions({
-        //   position: this.originMarker.getPosition(),
-        //   visible: false
-        // });
 
         break;
 
@@ -482,7 +489,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenCenterChanges() {
     this.center$
       .pipe(
-        tap(R => console.log('listenCenterChanges ==> ', R)),
         filter((center: any) => {
           const isDifferentLocation = this.lastCenterReported && this.lastCenterReported.lat !== center.lat;
           this.lastCenterReported = center;
@@ -732,33 +738,41 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
 
-  searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng){
-    console.log({estimatedTripValue});
+  searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng) {
+    console.log("&&&&&&&&&&&&& ", { estimatedTripValue });
 
     // recardo de noche 700
 
     return forkJoin(
       of(PLACES_WITH_SPECIAL_FARE
-        .filter(place => this.serviceService.isPointInPolygon({lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
-        [0]
+        .filter(place => this.serviceService.isPointInPolygon({ lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
+      [0]
       ),
       of(PLACES_WITH_SPECIAL_FARE
-        .filter(place => this.serviceService.isPointInPolygon({lat: destinationLatLng.lat, lng: destinationLatLng.lng }, place.points))
-        [0]
+        .filter(place => this.serviceService.isPointInPolygon({ lat: destinationLatLng.lat, lng: destinationLatLng.lng }, place.points))
+      [0]
       ),
     )
-    .pipe(
-      map(([specialOrigin, specialDestination]) => (specialOrigin && specialDestination)
-        ? ORIGIN_DESTINATION_MATRIX_FARE
-        .find(item => (specialOrigin.name === item.from && specialDestination.name === item.to ))
-        : of(null)
-      ),
-      map((additionalFare: any) => !additionalFare ? estimatedTripValue : {
-        ...estimatedTripValue,
-        cost: additionalFare.fare
-      }),
-      tap((estimatedResult) =>  this.estimatedTripCost = estimatedResult )
-    );
+      .pipe(
+        map(([specialOrigin, specialDestination]) => (specialOrigin && specialDestination)
+          ? ORIGIN_DESTINATION_MATRIX_FARE
+            .find(item => (specialOrigin.name === item.from && specialDestination.name === item.to))
+          : null
+        ),
+        tap(aditionalFare => console.log(';;;;;;;; ; ; ; ;; ADDITIONAL FARE ==> ', aditionalFare )),
+        map((additionalFare: any) => !additionalFare 
+        ? estimatedTripValue 
+        : {
+          ...estimatedTripValue,
+          cost: additionalFare.fare
+        }),
+        tap((estimatedResult) => {
+          console.log("ACTUALIZANDO LA TARIFA ESTIMADA ==> ", estimatedResult);
+          
+          this.estimatedTripCost = estimatedResult;
+
+        })
+      );
 
 
   }
@@ -791,7 +805,7 @@ export class LocationComponent implements OnInit, OnDestroy {
           this.directionsDisplay.setOptions({
             polylineOptions: {
               strokeColor: '#3B4045',
-              strokeWeight: 6
+              strokeWeight: 5
             },
             suppressMarkers: true,
             directions: response
@@ -801,7 +815,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             tripDistance += leg.distance.value;
             tripDuration += leg.duration.value;
           });
-          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100 + ' Km', cost: 0  });
+          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
 
 
         } else {
@@ -823,12 +837,12 @@ export class LocationComponent implements OnInit, OnDestroy {
     ).subscribe(valuePerKilometer => {
       console.log('################### ===> ', valuePerKilometer);
 
-      let cost = (Math.ceil( parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) +
+      let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) +
         50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) % 50));
 
       if (cost < this.minTripCost) {
         cost = this.minTripCost;
-        console.log('VALOR DE LA CARRERA MINIMA');
+        console.log('VALOR DE LA CARRERA MINIMA', cost);
       }
 
       const formatter = new Intl.NumberFormat('co-COP', {
@@ -836,7 +850,9 @@ export class LocationComponent implements OnInit, OnDestroy {
         currency: 'USD',
       });
 
-      const priceFormated = formatter.format(cost +  this.estimatedTripCost.cost);
+      console.log('this.estimatedTripCost.cost ==>', this.estimatedTripCost.cost);
+      
+      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost);
       this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
 
 
@@ -926,6 +942,9 @@ export class LocationComponent implements OnInit, OnDestroy {
             if (this.originMarker) {
               this.originMarker.setMap(null);
               this.originMarker = null;
+            }
+            if(this.directionsDisplay){
+              this.directionsDisplay.setMap(null);
             }
 
 

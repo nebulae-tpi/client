@@ -133,7 +133,9 @@ export class FilterSheetComponent implements OnInit {
 })
 export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  locationsConfirmed = false;
+  locationsAndFiltersConfirmed = false;
+
+  showFilterSection = false;
 
 
   private ngUnsubscribe = new Subject();
@@ -334,12 +336,16 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
+            this.showFilterSection = true;
 
             console.log('HACER EL CALCULO DE LA TARIFA Y MOSTRAR EL CAMINO');
-            if (this.locationsConfirmed) {
-              this.confirmServiceRequest();
+            if (!this.destinationPlace) {
+              // this.confirmServiceRequest();
+              this.showFilterSection = true;
             }
-
+            break;
+          case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
+            this.showFilterSection = true;
             break;
 
           default:

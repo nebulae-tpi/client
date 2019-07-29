@@ -34,6 +34,11 @@ export class ServiceService {
 
   public static COMMAND_ON_CONFIRM_BTN = 200;
 
+  public static COMMAND_REQUEST_ORIGIN_DESTINATION_SELECTION = 201;
+  public static COMMAND_REQUEST_STATE_SHOW_FILTERS = 202;
+  
+
+
 
   layoutChanges$ = new BehaviorSubject(undefined);
   serviceCommands$ = new BehaviorSubject(undefined);
@@ -65,9 +70,10 @@ export class ServiceService {
     this.backNavigation$.next(true);
   }
 
-  isPointInPolygon(point, polygon) {
+  isPointInPolygon(point, polygonPoints) {
     const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
-    const placePolygon = new google.maps.Polygon({ paths: polygon.points });
+    const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
+    
     return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
   }
 

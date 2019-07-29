@@ -46,31 +46,34 @@
     </div>
     <!-- DESTINATION PLACE -->
 
+
+    
+
     <!-- REFERENCE ORIGIN PLACE -->
-    <!-- <div fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
+    <div *ngIf="showFilterSection" fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">business</mat-icon>
       <mat-form-field class="input-service" fxFlex="100">
         <input matInput [(ngModel)]="placeReference" placeholder="Referencia (Apto, Edificio...)" />
       </mat-form-field>
-    </div> -->
+    </div>
     <!-- REFERENCE ORIGIN PLACE -->
 
     <!-- TIP -->
-    <!-- <div fxLayout="row" [fxFlex]="fxFlexTip" fxLayoutAlign="start center" class="flex-no-wrap"
+    <div *ngIf="showFilterSection" fxLayout="row" [fxFlex]="fxFlexTip" fxLayoutAlign="start center" class="flex-no-wrap"
       style="margin-right: 20px">
       <mat-icon style="margin-right: 10px">monetization_on</mat-icon>
       <mat-form-field fxFlex="80">
         <input [options]="{ prefix: ' ', thousands: '.', precision: '0', align: 'left'}" matInput placeholder="Propina"
           maxlength="9" [(ngModel)]="tipValue" currencyMask style="text-align: left !important" />
       </mat-form-field>
-    </div> -->
+    </div>
     <!-- TIP -->
 
     <!-- FILTERS -->
-    <!-- <button style="margin-top: 10px; margin-right: 20px" [fxFlex]="fxFlexFilter" (click)="openBottomSheet()"
+    <button *ngIf="showFilterSection" style="margin-top: 10px; margin-right: 20px" [fxFlex]="fxFlexFilter" (click)="openBottomSheet()"
       mat-stroked-button color="warn">
       Aplicar filtros
-    </button> -->
+    </button>
     <!-- FILTERS -->
   </div>
 

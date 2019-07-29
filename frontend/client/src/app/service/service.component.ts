@@ -72,6 +72,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
   /* #endregion */
 
   currentService: any = {};
+  showFiltersInRequestConfirmation = false;
 
   constructor(
     protected serviceService: ServiceService,
@@ -89,6 +90,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
     this.checkIfUserIsLoggedAndListenServiceUpdates();
     this.buildBackgroundListener();
+
 
     this.serviceService.getPricePerKilometerOnTrip$().subscribe(
       e => {
@@ -127,7 +129,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
           if (service.state === ServiceState.CANCELLED_DRIVER) {
             this.showSnackBar('El conductor ha cancelado el servicio');
             this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
-          } else if ([ServiceState.CANCELLED_OPERATOR, ServiceState.CANCELLED_SYSTEM ].includes(service.state)) {
+          } else if ([ServiceState.CANCELLED_OPERATOR, ServiceState.CANCELLED_SYSTEM].includes(service.state)) {
             this.showSnackBar('El sistema ha cancelado el servicio');
             this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
           } else if (service.state === ServiceState.DONE) {
@@ -175,9 +177,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
-        distinctUntilChanged(),
+        // distinctUntilChanged(),
         takeUntil(this.ngUnsubscribe)
-        )
+      )
       .subscribe(service => {
         if (service) {
           this.currentService = service;
@@ -399,8 +401,5 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
   }
 
-  calculateMapRows() {
-
-  }
   /* #endregion */
 }
