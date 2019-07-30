@@ -96,9 +96,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
     setTimeout(() => {
 
-      this.serviceService.getPricePerKilometerOnTrip$().subscribe(
+      this.serviceService.getFareSettings$().subscribe(
         e => {
-          console.log('------------------------------ PRECIO POR KILOMETRO ==> ', e);
+          console.log('------------------------------ CONFIGURACION DE TARIFA ==> ', e);
         }
       );
 

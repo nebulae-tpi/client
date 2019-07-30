@@ -250,7 +250,7 @@ export class LocationComponent implements OnInit, OnDestroy {
                 this.originMarkerInfoWindow.open(this.map, this.originMarker);
 
                 setTimeout(() => {
-                  const buttonHtmlRef = document.getElementById('use-pointer-btn')
+                  const buttonHtmlRef = document.getElementById('use-pointer-btn');
                   if (buttonHtmlRef) {
                     buttonHtmlRef.addEventListener('mousedown', () => this.onUsePointerToSetLocation('ORIGIN'));
                   }
@@ -270,7 +270,6 @@ export class LocationComponent implements OnInit, OnDestroy {
               });
 
             }
-
 
           }
 
@@ -452,7 +451,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       });
 
       if (circle) {
-        // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
     });
   }
@@ -725,13 +724,11 @@ export class LocationComponent implements OnInit, OnDestroy {
       ),
     )
       .pipe(
-        tap(r => console.log(r)),
         map(([specialOrigin, specialDestination]) => (specialOrigin && specialDestination)
           ? ORIGIN_DESTINATION_MATRIX_FARE
             .find(item => (specialOrigin.name === item.from && specialDestination.name === item.to))
           : null
         ),
-        tap(r => console.log(r)),
         map((additionalFare: any) => !additionalFare
           ? estimatedTripValue
           : {
@@ -749,24 +746,13 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   isPointInPolygon(point, polygonPoints) {
-    // const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
-    // const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
-
-    // return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
-    console.log({...point});
-
-    const qqq = PLACES_WITH_SPECIAL_FARE.find(e => {
-
-
+     return PLACES_WITH_SPECIAL_FARE.find(e => {
       const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
       const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
 
       return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
 
     });
-    console.log(qqq);
-    return qqq;
-
   }
 
   calculateRoute() {
@@ -826,17 +812,18 @@ export class LocationComponent implements OnInit, OnDestroy {
       filter((response: any) => response),
       mergeMap(result => {
         this.estimatedTripCost = result;
-        return this.serviceService.getPricePerKilometerOnTrip$();
+        return this.serviceService.getFareSettings$();
       }),
-      map((result: any) => ((result || {}).data || {}).pricePerKilometerOnTrip || 1410),
-      // filter((result: any) => result)
+      map((result: any) => ((result || {}).data || {}).fareSettings ||
+      { valuePerKilometer: 1410, additionalCost: 0, minimalTripCost: 4000 }),
 
-    ).subscribe(valuePerKilometer => {
-      let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) +
-        50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) % 50));
+    ).subscribe(fareSettings => {
+      let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) +
+        50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) % 50));
+      cost = cost + fareSettings.additionalCost;
 
-      if (cost < this.minTripCost) {
-        cost = this.minTripCost;
+      if (cost < fareSettings.minimalTripCost) {
+        cost = fareSettings.minimalTripCost;
       }
 
       const formatter = new Intl.NumberFormat('co-COP', {
@@ -846,8 +833,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
       const priceFormated = formatter.format(cost + this.estimatedTripCost.cost);
       this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
-
-
 
     }
 
@@ -878,7 +863,6 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.serviceService.markerOnMapChange$
       .pipe(
         filter(evt => evt),
-        tap(R => console.log('listenMarkerPosition ==> ', R)),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
@@ -902,7 +886,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else if (this.showDestinationPlaceInput) {
-          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -1121,11 +1105,8 @@ export class LocationComponent implements OnInit, OnDestroy {
   startNearbyVehicles() {
     interval(5000)
       .pipe(
-        tap(R => console.log('startNearbyVehicles ==> ', R)),
         filter(() => this.nearbyVehiclesEnabled),
-        mergeMap(() => {
-          return this.getNearbyVehicles$();
-        }),
+        mergeMap(() => this.getNearbyVehicles$()),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(

@@ -25,9 +25,13 @@ export const NearbyVehicles = gql`
   }
 `;
 
-export const pricePerKilometerOnTrip = gql`
-  query pricePerKilometerOnTrip {
-    pricePerKilometerOnTrip
+export const fareSettings = gql`
+  query fareSettings {
+    fareSettings{
+      valuePerKilometer
+      additionalCost
+      minimalTripCost
+    }
 
   }
 `;

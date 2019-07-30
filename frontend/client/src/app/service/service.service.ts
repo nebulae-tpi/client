@@ -12,7 +12,7 @@ import {
   BusinessContactInfo,
   RemoveFavoritePlace,
   AddFavoritePlace,
-  pricePerKilometerOnTrip
+  fareSettings
 } from './gql/service.js';
 import { map, tap, retryWhen, concatMap, delay } from 'rxjs/operators';
 
@@ -156,11 +156,11 @@ export class ServiceService {
     }
   }
 
-  getPricePerKilometerOnTrip$() {
+  getFareSettings$() {
     if (this.userProfile) {
       return this.gateway.apollo
         .query<any>({
-          query: pricePerKilometerOnTrip,
+          query: fareSettings,
           fetchPolicy: 'network-only',
           errorPolicy: 'all'
         });
