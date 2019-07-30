@@ -161,10 +161,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   destinationPlaceAutocomplete: any;
   destinationPlaceAddresInput = new FormControl();
 
-
-
-
-
+  requestStep = 0;
 
   constructor(
     private bottomSheet: MatBottomSheet,
@@ -241,9 +238,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
-
-
-
+    console.log(' =======> ', this.originPlace );
+    console.log('ON_CONFIRM_SERVICE_REQUEST ==> ', this.originPlace);
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
       const pickUpMarker = {
         lat: this.originPlace.location.lat,
@@ -311,9 +307,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           })
         )
         .subscribe(
-          res => {
-            console.log('Llega resultado: ', res);
-          },
+          res => { },
           error => {
             this.showSnackMessage(
               'Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde'
@@ -336,12 +330,51 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            this.showFilterSection = true;
+            // no Destination place given
+            if (!this.destinationPlace.location) {
+              switch (this.requestStep) {
+                case 0:
+                  this.showFilterSection = true;
+                  console.log('TO_REQUEST_STEP_2');
+                  this.requestStep = 2;
+                  this.serviceService.publishCommand({
+                    code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
+                    args: []
+                  });
 
-            console.log('HACER EL CALCULO DE LA TARIFA Y MOSTRAR EL CAMINO');
-            if (!this.destinationPlace) {
-              // this.confirmServiceRequest();
-              this.showFilterSection = true;
+                  break;
+
+                case 2:
+
+
+
+                  this.confirmServiceRequest();
+                  break;
+
+                default:
+                  break;
+              }
+            } else {
+
+              this.requestStep++;
+              switch (this.requestStep) {
+                case 1:
+                  console.log('HACIENDO EL CALCULO DE LA TARIFA Y MOSTRAR EL CAMINO');
+                  this.serviceService.publishCommand({
+                    code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
+                    args: []
+                  });
+                  break;
+                case 2:
+                  console.log('haciendoe el request .....');
+                  this.confirmServiceRequest();
+                  break;
+
+                default:
+                  break;
+              }
+
+
             }
             break;
           case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
@@ -355,6 +388,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   onConfirmButton() {
+    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ onConfirmButton ==> ');
+
     this.serviceService.publishCommand({
       code: ServiceService.COMMAND_ON_CONFIRM_BTN,
       args: []
@@ -379,8 +414,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       takeUntil(this.ngUnsubscribe)
     )
       .subscribe((onchange: any) => {
+        console.log({onchange});
+
         const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(onchange.value);
-        // console.log('ITEMS PARA AÑADIR', itemsToAutocomplete);
         const s = document.getElementsByClassName('pac-container pac-logo');
         const items = Array.from(s);
 
@@ -542,7 +578,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         if (!circle) {
           const location = this.serviceService.markerOnMapChange$.getValue();
           if (!location) { return; }
-          console.log('POSICION RECUPERADA ===>', location);
           const latlng = new google.maps.LatLng(location.latitude, location.longitude);
           circle = new google.maps.Circle({
             center: latlng,
@@ -564,6 +599,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
+
+        console.log('LISTEN PLACES CHANGES ==>', { place });
 
         if (place.type === 'INITIAL_MARKER') {
           place = {

@@ -99,9 +99,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
    * Initialize the google autocomplete
    */
   buildOriginPlaceAutoComplete(circle?) {
-
     if (!this.originPlaceSearchElementRef) {
-      console.log('TRYING BUILD ORIGIN AUTOCOMPLETE', { showTwoInputs: this.showTwoInputs });
       setTimeout(() => {
         if (this.showTwoInputs) {
           this.buildOriginPlaceAutoComplete(circle);
@@ -172,8 +170,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
   buildDestinationPlaceAutoComplete(circle?) {
     if (!this.destinationPlaceSearchElementRef) {
-      console.log('TRYING BUILD DESTINATION AUTOCOMPLETE', { showTwoInputs: this.showTwoInputs });
-
       setTimeout(() => {
         this.buildDestinationPlaceAutoComplete(circle);
       }, 200);
@@ -266,14 +262,12 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
         } else if (this.showAddress) {
-          console.log('SETTTING STRICT BOUNDS TO ORIGIN AUTOCOMPLETE');
           this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
         if (!this.destinationPlace) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else if (this.showAddress && this.showTwoInputs) {
-          console.log('SETTTING STRICT BOUNDS TO DESTINATION AUTOCOMPLETE');
           this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
@@ -421,7 +415,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         // map(() => this.searchElementRef.nativeElement.value),
         tap(inputValue => {
           const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(inputValue);
-          // console.log('ITEMS PARA AÑADIR', itemsToAutocomplete);
           const s = document.getElementsByClassName('pac-container pac-logo');
           const items = Array.from(s);
 

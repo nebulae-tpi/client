@@ -18,6 +18,7 @@ import {
   toArray,
   delay,
   startWith,
+  distinctUntilChanged,
 } from 'rxjs/operators';
 import { Subject, from, interval, merge, of, combineLatest, defer, Observable, forkJoin } from 'rxjs';
 import { ServiceState } from '../service-state';
@@ -75,12 +76,10 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
     this.serviceService.cancelService$($event)
       .subscribe(res => console.log('Cancela servicio: ', res));
     this.bottomSheetRef.dismiss();
-    // console.log({ $event });
     // event.preventDefault();
   }
 
   ngOnInit(): void {
-    console.log('OnInit');
   }
 
   ngOnDestroy() {
@@ -125,7 +124,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   placeToMoveWithCenter: string = null;
   estimatedTripCost: any = null;
-  minTripCost = 5600; // toddo
+  minTripCost = 4000; // todo query for minimal trip cost
 
   vehicleMarker;
   disableMap = false;
@@ -172,11 +171,10 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.listenOnResume();
     this.listenCenterChanges();
 
-
-
     this.listenOriginDestinationPlaceChanges();
 
     this.listenServiceCommands();
+
 
   }
 
@@ -204,7 +202,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
           // https://icons8.com/icon/set/map-marker/material
           if (places.destination) {
-            console.log('REMOVE THE MARKER ON CENTER MAP');
             this.showCenterMarker = false;
             this.placeToMoveWithCenter = null;
 
@@ -251,9 +248,12 @@ export class LocationComponent implements OnInit, OnDestroy {
 
               this.originMarker.addListener('click', () => {
                 this.originMarkerInfoWindow.open(this.map, this.originMarker);
+
                 setTimeout(() => {
-                  document.getElementById('use-pointer-btn')
-                    .addEventListener('mousedown', () => this.onUsePointerToSetLocation('ORIGIN'));
+                  const buttonHtmlRef = document.getElementById('use-pointer-btn')
+                  if (buttonHtmlRef) {
+                    buttonHtmlRef.addEventListener('mousedown', () => this.onUsePointerToSetLocation('ORIGIN'));
+                  }
                 }, 200);
 
               });
@@ -320,11 +320,6 @@ export class LocationComponent implements OnInit, OnDestroy {
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-
-            console.log('CONFIRMAR LAS UBICACIONES DE LOSMARCADORES');
-
-
-
             this.originPlace = {
               ...this.originPlace,
               location: {
@@ -350,19 +345,18 @@ export class LocationComponent implements OnInit, OnDestroy {
             });
 
             this.serviceService.originPlaceSelected$.next(this.originPlace);
-            
-            console.log(({destinationPlace:  this.destinationPlace}));
-            
-            if(this.destinationMarker){
+
+
+            if (this.destinationMarker) {
               this.calculateRoute();
-            }else{
+            } else {
               this.serviceService.publishCommand({
                 code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
                 args: []
-              })
+              });
             }
 
-            
+
 
             break;
 
@@ -373,8 +367,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   onUsePointerToSetLocation(e: string) {
-    console.log(e);
-
     switch (e) {
       case 'ORIGIN':
         this.originMarkerInfoWindow.close();
@@ -383,7 +375,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         const newMapZoom = this.map.getZoom() + 2;
         // tslint:disable-next-line: no-unused-expression
         newMapZoom < 19 ? this.map.setZoom(newMapZoom) : {};
-        this.placeToMoveWithCenter = e;
+        this.placeToMoveWithCenter = 'ORIGIN';
 
         break;
 
@@ -392,37 +384,19 @@ export class LocationComponent implements OnInit, OnDestroy {
     }
 
   }
-
-  confirmLocationCoords(placeType: string) {
-    console.log('CONFIRMANDO EL PUNTERO DE ', placeType);
-
-    switch (placeType) {
-      case 'ORIGIN':
-        this.placeToMoveWithCenter = null;
-        break;
-
-      default:
-        break;
-    }
-
-
-  }
-
-
 
 
   onDirectionResponse(event) {
-    console.log(' onDirectionResponse ==> ', event);
+    console.log('onDirectionResponse ==> ', event);
   }
 
   reportAgmStatus(event) {
-    console.log(' reportAgmStatus ==> ', event);
+    console.log('reportAgmStatus ==> ', event);
   }
 
   buildDestinationPlaceAutoComplete(circle?) {
     if (!this.destinationPlaceSearchElementRef) {
       setTimeout(() => {
-        console.log('INTENTANDO A CONSTRUIR EL AUTOCIOMPLETE ..............');
         if (this.showDestinationPlaceInput) {
           this.buildDestinationPlaceAutoComplete(circle);
         }
@@ -455,10 +429,8 @@ export class LocationComponent implements OnInit, OnDestroy {
             ? `${name}`.trim()
             : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
 
-          // console.log('OLD NAME IS ==> ', destinationPlaceName);
           this.STRINGS_TO_REMOVE.forEach(s => destinationPlaceName = destinationPlaceName.replace(s, ''));
 
-          // console.log('NEW NAME IS ==> ', destinationPlaceName);
 
           this.destinationPlace.name = destinationPlaceName;
           this.destinationPlaceAddresInput.setValue(destinationPlaceName);
@@ -495,14 +467,16 @@ export class LocationComponent implements OnInit, OnDestroy {
           return isDifferentLocation;
         }),
         tap((center: any) => {
-          console.log('NUEVO CENTER ===> ', center);
-          if (this.placeToMoveWithCenter === 'ORIGIN') {
-            this.originMarker.setPosition({ lat: center.lat, lng: center.lng });
-            this.serviceService.originPlaceSelected$.next({
-              ...this.originPlace,
-              location: { lat: center.lat, lng: center.lng }
-            });
-          }
+
+          // if (this.placeToMoveWithCenter === 'ORIGIN') {
+          //   console.log('MOVER EL MARCADOR DE ORIGEN.... ');
+
+          //   this.originMarker.setPosition({ lat: center.lat, lng: center.lng });
+          //   this.serviceService.originPlaceSelected$.next({
+          //     ...this.originPlace,
+          //     location: { lat: center.lat, lng: center.lng }
+          //   });
+          // }
 
 
 
@@ -588,7 +562,6 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.currentService = this.serviceService.currentService$.getValue();
     const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
 
-    console.log('init location marker on map ==> ', markerOnMap);
 
 
     const { state, pickUp, location } = this.currentService;
@@ -690,7 +663,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenLayoutCommands() {
     this.serviceService.layoutChanges$
       .pipe(
-        tap(R => console.log(R)),
+        tap(R => console.log('listenLayoutCommands ==> ', R)),
         filter(e => e && e.layout),
         map(e => e.layout),
         takeUntil(this.ngUnsubscribe)
@@ -712,7 +685,7 @@ export class LocationComponent implements OnInit, OnDestroy {
    */
   listenOnResume() {
     this.serviceService.onResume$.pipe(
-      tap(R => console.log(R)),
+      tap(R => console.log('listenOnResume ==> ', R)),
       takeUntil(this.ngUnsubscribe)
     ).subscribe(() => {
       this.currentLocation();
@@ -739,45 +712,66 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng) {
-    console.log("&&&&&&&&&&&&& ", { estimatedTripValue });
-
     // recardo de noche 700
 
     return forkJoin(
       of(PLACES_WITH_SPECIAL_FARE
-        .filter(place => this.serviceService.isPointInPolygon({ lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
+        .filter(place => this.isPointInPolygon({ lat: originLatLng.lat(), lng: originLatLng.lng() }, place.points))
       [0]
       ),
       of(PLACES_WITH_SPECIAL_FARE
-        .filter(place => this.serviceService.isPointInPolygon({ lat: destinationLatLng.lat, lng: destinationLatLng.lng }, place.points))
+        .filter(place => this.isPointInPolygon({ lat: destinationLatLng.lat(), lng: destinationLatLng.lng() }, place.points))
       [0]
       ),
     )
       .pipe(
+        tap(r => console.log(r)),
         map(([specialOrigin, specialDestination]) => (specialOrigin && specialDestination)
           ? ORIGIN_DESTINATION_MATRIX_FARE
             .find(item => (specialOrigin.name === item.from && specialDestination.name === item.to))
           : null
         ),
-        tap(aditionalFare => console.log(';;;;;;;; ; ; ; ;; ADDITIONAL FARE ==> ', aditionalFare )),
-        map((additionalFare: any) => !additionalFare 
-        ? estimatedTripValue 
-        : {
-          ...estimatedTripValue,
-          cost: additionalFare.fare
-        }),
-        tap((estimatedResult) => {
-          console.log("ACTUALIZANDO LA TARIFA ESTIMADA ==> ", estimatedResult);
-          
-          this.estimatedTripCost = estimatedResult;
-
-        })
+        tap(r => console.log(r)),
+        map((additionalFare: any) => !additionalFare
+          ? estimatedTripValue
+          : {
+            ...estimatedTripValue,
+            cost: additionalFare.fare
+          }),
+        // tap((estimatedResult) => {
+        //   console.log('------    this.estimatedTripCost = estimatedResult; --------');
+        //   this.estimatedTripCost = estimatedResult;
+        //   console.log('------    this.estimatedTripCost = estimatedResult; --------');
+        // })
       );
 
 
   }
 
+  isPointInPolygon(point, polygonPoints) {
+    // const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
+    // const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
+
+    // return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
+    console.log({...point});
+
+    const qqq = PLACES_WITH_SPECIAL_FARE.find(e => {
+
+
+      const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
+      const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
+
+      return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
+
+    });
+    console.log(qqq);
+    return qqq;
+
+  }
+
   calculateRoute() {
+    console.log('------------------ SE EJECUTA EL METODO  calculateRoute --------------------------');
+
 
     const originLatLng = new google.maps.LatLng(this.originPlace.location.lat, this.originPlace.location.lng);
     const destinationLatLng = new google.maps.LatLng(this.destinationPlace.location.lat, this.destinationPlace.location.lng);
@@ -830,19 +824,19 @@ export class LocationComponent implements OnInit, OnDestroy {
     }).pipe(
       mergeMap(estimatedResult => this.searchAdditionalTripFare$(estimatedResult, originLatLng, destinationLatLng)),
       filter((response: any) => response),
-      mergeMap(result => this.serviceService.getPricePerKilometerOnTrip$()),
+      mergeMap(result => {
+        this.estimatedTripCost = result;
+        return this.serviceService.getPricePerKilometerOnTrip$();
+      }),
       map((result: any) => ((result || {}).data || {}).pricePerKilometerOnTrip || 1410),
       // filter((result: any) => result)
 
     ).subscribe(valuePerKilometer => {
-      console.log('################### ===> ', valuePerKilometer);
-
       let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) +
         50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * valuePerKilometer) % 50));
 
       if (cost < this.minTripCost) {
         cost = this.minTripCost;
-        console.log('VALOR DE LA CARRERA MINIMA', cost);
       }
 
       const formatter = new Intl.NumberFormat('co-COP', {
@@ -850,8 +844,6 @@ export class LocationComponent implements OnInit, OnDestroy {
         currency: 'USD',
       });
 
-      console.log('this.estimatedTripCost.cost ==>', this.estimatedTripCost.cost);
-      
       const priceFormated = formatter.format(cost + this.estimatedTripCost.cost);
       this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
 
@@ -885,8 +877,8 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenMarkerPosition() {
     this.serviceService.markerOnMapChange$
       .pipe(
-        tap(R => console.log(R)),
         filter(evt => evt),
+        tap(R => console.log('listenMarkerPosition ==> ', R)),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
@@ -919,7 +911,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
-        tap(R => console.log(R)),
+        tap(R => console.log('listenServiceChanges ==> ', R)),
         filter(service => service),
         debounceTime(100),
         takeUntil(this.ngUnsubscribe)
@@ -930,6 +922,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
         switch (state) {
           case ServiceState.NO_SERVICE:
+            this.estimatedTripCost = null;
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showDestinationPlaceInput = true;
             }
@@ -943,7 +936,7 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.originMarker.setMap(null);
               this.originMarker = null;
             }
-            if(this.directionsDisplay){
+            if (this.directionsDisplay) {
               this.directionsDisplay.setMap(null);
             }
 
@@ -951,22 +944,26 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.CANCELLED_CLIENT:
             this.showDestinationPlaceInput = true;
+            this.estimatedTripCost = null;
             break;
           case ServiceState.CANCELLED_DRIVER:
             this.showDestinationPlaceInput = true;
+            this.estimatedTripCost = null;
             break;
           case ServiceState.CANCELLED_OPERATOR:
             this.showDestinationPlaceInput = true;
+            this.estimatedTripCost = null;
             break;
           case ServiceState.CANCELLED_SYSTEM:
             this.showDestinationPlaceInput = true;
+            this.estimatedTripCost = null;
             break;
           case ServiceState.DONE:
             this.showDestinationPlaceInput = true;
             break;
           case ServiceState.REQUEST:
             this.showDestinationPlaceInput = false;
-            console.log(' CHANGED TO == ServiceState.REQUEST ==>', this.originMarker, this.originPlace);
+
             break;
           case ServiceState.REQUESTED:
             this.showDestinationPlaceInput = false;
@@ -1035,7 +1032,6 @@ export class LocationComponent implements OnInit, OnDestroy {
                   location.lng
                 );
               } else {
-                console.log('agrega ubicacion del vehiculo: ', location);
                 this.vehicleMarker = new google.maps.Marker({
                   position: new google.maps.LatLng(
                     location.lat,
@@ -1106,8 +1102,10 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.currentService = undefined;
             this.showCenterMarker = true;
             this.nearbyVehiclesEnabled = true;
+            this.estimatedTripCost = null;
             break;
         }
+        console.log('listenServiceChanges =====> ', state, this.estimatedTripCost);
 
         this.lastServiceStateReported = service.state;
 
@@ -1123,7 +1121,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   startNearbyVehicles() {
     interval(5000)
       .pipe(
-        tap(R => console.log(R)),
+        tap(R => console.log('startNearbyVehicles ==> ', R)),
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(() => {
           return this.getNearbyVehicles$();

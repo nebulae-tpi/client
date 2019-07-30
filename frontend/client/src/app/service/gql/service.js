@@ -28,6 +28,7 @@ export const NearbyVehicles = gql`
 export const pricePerKilometerOnTrip = gql`
   query pricePerKilometerOnTrip {
     pricePerKilometerOnTrip
+
   }
 `;
 

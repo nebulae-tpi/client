@@ -59,6 +59,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
   mapRows: number;
   showAddress = true;
 
+  requestStep = 0;
+
   private ngUnsubscribe = new Subject();
 
   LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT = 0;
@@ -92,11 +94,19 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.buildBackgroundListener();
 
 
-    this.serviceService.getPricePerKilometerOnTrip$().subscribe(
-      e => {
-        console.log('#########################', e);
-      }
-    );
+    setTimeout(() => {
+
+      this.serviceService.getPricePerKilometerOnTrip$().subscribe(
+        e => {
+          console.log('------------------------------ PRECIO POR KILOMETRO ==> ', e);
+        }
+      );
+
+
+    }, 3000);
+
+
+    this.listenServiceCommands();
   }
 
 
@@ -117,7 +127,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
           filter(service => service),
           takeUntil(this.ngUnsubscribe)
         )
-        .subscribe(service => this.serviceService.currentService$.next(service));
+        .subscribe(service => this.serviceService.publishServiceChanges(service));
 
 
       this.serviceService.subscribeToClientServiceUpdatedSubscription$()
@@ -126,19 +136,42 @@ export class ServiceComponent implements OnInit, OnDestroy {
           takeUntil(this.ngUnsubscribe)
         )
         .subscribe(service => {
+          console.log('SERVICE UPDATES ==> ', service);
+
           if (service.state === ServiceState.CANCELLED_DRIVER) {
             this.showSnackBar('El conductor ha cancelado el servicio');
-            this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
           } else if ([ServiceState.CANCELLED_OPERATOR, ServiceState.CANCELLED_SYSTEM].includes(service.state)) {
             this.showSnackBar('El sistema ha cancelado el servicio');
-            this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
           } else if (service.state === ServiceState.DONE) {
-            this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
           } else {
-            this.serviceService.currentService$.next(service);
+            this.serviceService.publishServiceChanges(service);
           }
         });
     }
+  }
+
+  listenServiceCommands() {
+    this.serviceService.serviceCommands$
+      .pipe(
+        filter(command => command && command.code)
+
+      ).subscribe(command => {
+        switch (command.code) {
+          case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
+
+            this.requestStep = 2;
+            this.recalculateLayout();
+
+
+            break;
+
+          default:
+            break;
+        }
+      });
   }
 
 
@@ -201,7 +234,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
       )
       .subscribe((service: any) => {
         if (!service && this.currentService.state !== ServiceState.REQUEST) {
-          this.serviceService.currentService$.next({ state: ServiceState.NO_SERVICE });
+          this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
         } else {
           this.serviceService.publishServiceChanges(service);
         }
@@ -226,7 +259,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
    * Recalculate layout type and dimensions
    */
   recalculateLayout() {
-
     switch (this.currentService.state) {
       case ServiceState.NO_SERVICE:
         this.showAddress = true;
@@ -239,7 +271,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.ON_BOARD:
       case ServiceState.REQUEST:
         this.showAddress = this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
-        screenHeightWaste = 136;
+        screenHeightWaste = 120;
+
         break;
       default:
         this.showAddress = true;
@@ -289,8 +322,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
         } else {
           this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
           // don't show addres input in vertical phone layout in NO_SERVICE state
-          this.showAddress = this.currentService.state === ServiceState.NO_SERVICE ? false : true;
-
+          this.showAddress = this.currentService.state !== ServiceState.NO_SERVICE;
+          this.showAddress = this.showAddress && !(this.currentService.state === ServiceState.REQUEST && this.requestStep === 2);
         }
       } else {
         if (this.currentService.state === ServiceState.NO_SERVICE) {
@@ -361,6 +394,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
         return 4;
       case ServiceState.REQUEST:
         if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
+          if (this.currentService.state === ServiceState.REQUEST && this.requestStep === 2) {
+            return 24;
+          }
           return 6;
         }
         return 19;

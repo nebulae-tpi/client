@@ -20,6 +20,9 @@ export class RequestButtonComponent implements OnInit {
 
   async requestTaxi() {
     this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+
+
+
     if (!this.gateway.checkIfUserLogger()) {
       await this.keycloakService.login({ scope: 'offline_access' });
     }

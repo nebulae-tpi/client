@@ -36,7 +36,7 @@ export class ServiceService {
 
   public static COMMAND_REQUEST_ORIGIN_DESTINATION_SELECTION = 201;
   public static COMMAND_REQUEST_STATE_SHOW_FILTERS = 202;
-  
+
 
 
 
@@ -70,12 +70,7 @@ export class ServiceService {
     this.backNavigation$.next(true);
   }
 
-  isPointInPolygon(point, polygonPoints) {
-    const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
-    const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
-    
-    return google.maps.geometry.poly.containsLocation(pointLatLng, placePolygon);
-  }
+
 
   /* #region QUERIES */
   getNearbyVehicles() {
@@ -162,18 +157,18 @@ export class ServiceService {
   }
 
   getPricePerKilometerOnTrip$() {
-    // if (this.userProfile) {
-    //   return this.gateway.apollo
-    //     .query<any>({
-    //       query: pricePerKilometerOnTrip,
-    //       fetchPolicy: 'network-only',
-    //       errorPolicy: 'all'
-    //     });
-    // } else {
-    //   return of(undefined);
-    // }
+    if (this.userProfile) {
+      return this.gateway.apollo
+        .query<any>({
+          query: pricePerKilometerOnTrip,
+          fetchPolicy: 'network-only',
+          errorPolicy: 'all'
+        });
+    } else {
+      return of(undefined);
+    }
 
-    return of(1310);
+    // return of(1310);
   }
   /* #endregion */
 
@@ -282,8 +277,8 @@ export class ServiceService {
     contextWidth?: number,
     contextHeight?: number
   ) {
-    console.log('publishING Layout Changes ...');
-    const layout = {
+    console.log('PUBLISHING LAYOUT COMMANDS ...');
+    this.layoutChanges$.next({
       layout: {
         type,
         address: {
@@ -318,8 +313,7 @@ export class ServiceService {
               : 0)
         }
       }
-    };
-    this.layoutChanges$.next(layout);
+    });
   }
 
   /**
@@ -347,6 +341,14 @@ export class ServiceService {
   }
 
   publishServiceChanges(serviceChanges) {
+    console.log('SERVICE CHANGE REPORTED ==> ', serviceChanges);
+
+    if (JSON.stringify(this.currentService$.getValue()) === JSON.stringify(serviceChanges)) {
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+      return;
+    }
+
     const newService = {
       ...this.currentService$.getValue(),
       ...serviceChanges

@@ -61,9 +61,10 @@
   color: #D1312C;
 }
 
-// ::ng-deep .pac-item {
-//   background: #ffffff;
-// }
+.my-4{
+  margin-top: 4;
+  margin-bottom: 4;
+}
 
 ::ng-deep .pac-icon-marker-fav{
   padding: 0px !important;
