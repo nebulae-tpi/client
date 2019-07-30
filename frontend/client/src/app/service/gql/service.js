@@ -96,20 +96,8 @@ export const CancelServiceByClient = gql`
 `;
 
 export const RequestService = gql`
-  mutation RequestService(
-    $pickUp: LocationInput!
-    $paymentType: String!
-    $requestedFeatures: [String]
-    $dropOff: LocationInput
-    $tip: Int
-  ) {
-    RequestService(
-      pickUp: $pickUp
-      paymentType: $paymentType
-      requestedFeatures: $requestedFeatures
-      dropOff: $dropOff
-      tip: $tip
-    ) {
+  mutation RequestService($pickUp: LocationInput!, $paymentType: String!, $requestedFeatures: [String], $dropOff: LocationInput, $tip: Int, $tripCost: Int ) {
+    RequestService( pickUp: $pickUp, paymentType: $paymentType, requestedFeatures: $requestedFeatures, dropOff: $dropOff, tip: $tip, tripCost: $tripCost ) {
       accepted
     }
   }

@@ -78,7 +78,7 @@
   </div>
 
   <!-- CONFIRM AND CANCEL BUTTONS -->
-  <div fxFlex="100" class="my-4" fxLayout="row wrap" fxLayoutAlign="space-around center">
+  <div *ngIf="showAcceptAndCancelButtons" fxFlex="100" class="my-4" fxLayout="row wrap" fxLayoutAlign="space-around center">
 
     <!-- style="margin-right: 10px" fxFlex="45" -->
     <button type="button" mat-raised-button fxFlex="45" color="warn" (click)="cancel()">
@@ -91,6 +91,16 @@
     </button>
   </div>
   <!-- CONFIRM AND CANCEL BUTTONS -->
+
+   <!-- DONE BUTTON -->
+   <div *ngIf="showDoneButton" fxFlex="100" class="my-4" fxLayout="row wrap" fxLayoutAlign="space-around center">
+
+    <!-- style="margin-right: 10px" fxFlex="45" -->
+    <button type="button" mat-raised-button fxFlex="95" color="confirm-button-color" (click)="confirmMarkerPosition()">
+      Confirmar Ubicación
+    </button>
+  </div>
+  <!-- DONE BUTTON -->
 
 
 

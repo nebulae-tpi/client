@@ -35,6 +35,8 @@ import { FormControl } from '@angular/forms';
 import { ORIGIN_DESTINATION_MATRIX_FARE } from '../specialFarePlaces/originDestinationMatrix';
 import { PLACES_WITH_SPECIAL_FARE } from '../specialFarePlaces/places';
 
+
+
 @Component({
   selector: 'app-cancel-sheet',
   templateUrl: 'cancel-sheet.html',
@@ -86,6 +88,8 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
     this.bottomSheetRef.dismiss();
   }
 }
+
+declare const H: any;
 
 @Component({
   selector: 'app-location',
@@ -146,10 +150,17 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   // direction display Element
-  directionsDisplay: google.maps.DirectionsRenderer;
+  // directionsDisplay: google.maps.DirectionsRenderer;
   directionsService: google.maps.DirectionsService;
 
   originPlace: any;
+
+  // HERE Resources
+  private herePlatform: any;
+  private hereRouter: any;
+  APP_ID = 'QdSYkExZVq0hsyj08FeA';
+  APP_CODE = 'u5BMZRoXK2niQ8RZuHq2mg';
+
 
 
   constructor(
@@ -176,6 +187,8 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.listenServiceCommands();
 
 
+
+
   }
 
   ngOnDestroy() {
@@ -195,10 +208,10 @@ export class LocationComponent implements OnInit, OnDestroy {
         })),
         tap((places: any) => {
 
-          if (this.directionsDisplay) {
-            this.directionsDisplay.setMap(null);
-            this.estimatedTripCost = null;
-          }
+          // if (this.directionsDisplay) {
+          //   this.directionsDisplay.setMap(null);
+          //   this.estimatedTripCost = null;
+          // }
 
           // https://icons8.com/icon/set/map-marker/material
           if (places.destination) {
@@ -358,6 +371,21 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
             break;
+          case ServiceService.COMMAND_MOVING_MARKER_WITH_CENTER:
+
+            if (command.args[0] === undefined) {
+              const markerToUpdatePosition = this.placeToMoveWithCenter;
+              this.showCenterMarker = false;
+              this.placeToMoveWithCenter = null;
+              if (markerToUpdatePosition === 'ORIGIN') {
+                this.originMarker.setOptions({
+                  position: { lat: this.lastCenterReported.lat, lng: this.lastCenterReported.lng },
+                  visible: true
+                });
+              }
+            }
+
+            break;
 
           default:
             break;
@@ -374,7 +402,16 @@ export class LocationComponent implements OnInit, OnDestroy {
         const newMapZoom = this.map.getZoom() + 2;
         // tslint:disable-next-line: no-unused-expression
         newMapZoom < 19 ? this.map.setZoom(newMapZoom) : {};
+        this.serviceService.publishCommand({
+          code: ServiceService.COMMAND_MOVING_MARKER_WITH_CENTER,
+          args: ['ORIGIN']
+        });
+        this.originMarker.setOptions({
+          position: this.originMarker.getPosition(),
+          visible: false
+        });
         this.placeToMoveWithCenter = 'ORIGIN';
+        this.showCenterMarker = true;
 
         break;
 
@@ -385,13 +422,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
 
-  onDirectionResponse(event) {
-    console.log('onDirectionResponse ==> ', event);
-  }
-
-  reportAgmStatus(event) {
-    console.log('reportAgmStatus ==> ', event);
-  }
 
   buildDestinationPlaceAutoComplete(circle?) {
     if (!this.destinationPlaceSearchElementRef) {
@@ -467,18 +497,12 @@ export class LocationComponent implements OnInit, OnDestroy {
         }),
         tap((center: any) => {
 
-          // if (this.placeToMoveWithCenter === 'ORIGIN') {
-          //   console.log('MOVER EL MARCADOR DE ORIGEN.... ');
-
-          //   this.originMarker.setPosition({ lat: center.lat, lng: center.lng });
-          //   this.serviceService.originPlaceSelected$.next({
-          //     ...this.originPlace,
-          //     location: { lat: center.lat, lng: center.lng }
-          //   });
-          // }
-
-
-
+          if (this.originMarker && this.placeToMoveWithCenter === 'ORIGIN') {
+            this.originMarker.setPosition({ lat: center.lat, lng: center.lng });
+          }
+          if (this.destinationMarker && this.placeToMoveWithCenter === 'DESTINATION') {
+            this.destinationMarker.setPosition({ lat: center.lat, lng: center.lng });
+          }
 
         }),
         debounceTime(500),
@@ -488,14 +512,6 @@ export class LocationComponent implements OnInit, OnDestroy {
             latitude: val.lat,
             longitude: val.lng
           });
-
-          if (this.originMarker && this.placeToMoveWithCenter === 'ORIGIN') {
-            this.originMarker.setPosition({ lat: val.lat, lng: val.lng });
-          }
-          if (this.destinationMarker && this.placeToMoveWithCenter === 'DESTINATION') {
-            this.destinationMarker.setPosition({ lat: val.lat, lng: val.lng });
-          }
-
         }
 
 
@@ -662,7 +678,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenLayoutCommands() {
     this.serviceService.layoutChanges$
       .pipe(
-        tap(R => console.log('listenLayoutCommands ==> ', R)),
         filter(e => e && e.layout),
         map(e => e.layout),
         takeUntil(this.ngUnsubscribe)
@@ -715,11 +730,11 @@ export class LocationComponent implements OnInit, OnDestroy {
 
     return forkJoin(
       of(PLACES_WITH_SPECIAL_FARE
-        .filter(place => this.isPointInPolygon({ lat: originLatLng.lat(), lng: originLatLng.lng() }, place.points))
+        .filter(place => this.isPointInPolygon({ lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
       [0]
       ),
       of(PLACES_WITH_SPECIAL_FARE
-        .filter(place => this.isPointInPolygon({ lat: destinationLatLng.lat(), lng: destinationLatLng.lng() }, place.points))
+        .filter(place => this.isPointInPolygon({ lat: destinationLatLng.lat, lng: destinationLatLng.lng }, place.points))
       [0]
       ),
     )
@@ -735,18 +750,13 @@ export class LocationComponent implements OnInit, OnDestroy {
             ...estimatedTripValue,
             cost: additionalFare.fare
           }),
-        // tap((estimatedResult) => {
-        //   console.log('------    this.estimatedTripCost = estimatedResult; --------');
-        //   this.estimatedTripCost = estimatedResult;
-        //   console.log('------    this.estimatedTripCost = estimatedResult; --------');
-        // })
       );
 
 
   }
 
   isPointInPolygon(point, polygonPoints) {
-     return PLACES_WITH_SPECIAL_FARE.find(e => {
+    return PLACES_WITH_SPECIAL_FARE.find(e => {
       const pointLatLng = new google.maps.LatLng(point.lat, point.lng);
       const placePolygon = new google.maps.Polygon({ paths: polygonPoints });
 
@@ -756,68 +766,110 @@ export class LocationComponent implements OnInit, OnDestroy {
   }
 
   calculateRoute() {
-    console.log('------------------ SE EJECUTA EL METODO  calculateRoute --------------------------');
+    this.herePlatform = this.herePlatform || new H.service.Platform({
+      app_id: this.APP_ID,
+      app_code: this.APP_CODE,
+    });
+
+    // Get an instance of the routing service:
+    this.hereRouter = this.hereRouter || this.herePlatform.getRoutingService();
 
 
-    const originLatLng = new google.maps.LatLng(this.originPlace.location.lat, this.originPlace.location.lng);
-    const destinationLatLng = new google.maps.LatLng(this.destinationPlace.location.lat, this.destinationPlace.location.lng);
+    const originLatLng = this.originPlace.location;
+    const destinationLatLng = this.destinationPlace.location;
 
 
-    this.directionsDisplay = this.directionsDisplay || new google.maps.DirectionsRenderer();
-    this.directionsService = this.directionsService || new google.maps.DirectionsService();
+    // this.directionsDisplay = this.directionsDisplay || new google.maps.DirectionsRenderer();
+    // this.directionsService = this.directionsService || new google.maps.DirectionsService();
 
-    this.directionsDisplay.setMap(this.map);
+    // this.directionsDisplay.setMap(this.map);
 
     Observable.create(observer => {
 
-      let tripDuration = 0; // minutes
-      let tripDistance = 0; // Meters
+      const tripDuration = 0; // minutes
+      const tripDistance = 0; // Meters
 
-      const queryArgs: google.maps.DirectionsRequest = {
-        origin: originLatLng,
-        destination: destinationLatLng,
-        travelMode: google.maps.TravelMode.DRIVING
+      // const queryArgs: google.maps.DirectionsRequest = {
+      //   origin: originLatLng,
+      //   destination: destinationLatLng,
+      //   travelMode: google.maps.TravelMode.DRIVING
+      // };
+
+      // this.directionsService.route(queryArgs, (response, status) => {
+      //   if (status === google.maps.DirectionsStatus.OK) {
+
+      //     this.directionsDisplay.setOptions({
+      //       polylineOptions: {
+      //         strokeColor: '#3B4045',
+      //         strokeWeight: 5
+      //       },
+      //       suppressMarkers: true,
+      //       directions: response
+      //     });
+
+      //     response.routes[0].legs.forEach(leg => {
+      //       tripDistance += leg.distance.value;
+      //       tripDuration += leg.duration.value;
+      //     });
+      //     observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
+
+
+      //   } else {
+      //     console.log('ERROR AL HACER EL CALCULO DE LA RUTA', status);
+      //     observer.next(null);
+      //   }
+      //   observer.complete();
+      // });
+
+      const routingParameters = {
+        mode: 'fastest;car;traffic:disabled',
+        waypoint0: `geo!${originLatLng.lat},${originLatLng.lng}`,
+        waypoint1: `geo!${destinationLatLng.lat},${destinationLatLng.lng}`,
+        departure: 'now',
+        // representation: 'display'
       };
 
-      this.directionsService.route(queryArgs, (response, status) => {
-        if (status === google.maps.DirectionsStatus.OK) {
+      this.hereRouter.calculateRoute(routingParameters, (requestResponse) => {
+        console.log('HERE RESPONSE ==> ', requestResponse);
+        if (requestResponse && requestResponse.response && requestResponse.response.route) {
+          const route = requestResponse.response.route;
+          const { leg, summary } = route[0];
+          if (summary) {
+            observer.next({
+              duration: summary.travelTime,
+              distance: Math.floor((summary.distance / 1000) * 100) / 100,
+              cost: 0
+            });
+            observer.complete();
 
-          this.directionsDisplay.setOptions({
-            polylineOptions: {
-              strokeColor: '#3B4045',
-              strokeWeight: 5
-            },
-            suppressMarkers: true,
-            directions: response
-          });
-
-          response.routes[0].legs.forEach(leg => {
-            tripDistance += leg.distance.value;
-            tripDuration += leg.duration.value;
-          });
-          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
-
-
-        } else {
-          console.log('ERROR AL HACER EL CALCULO DE LA RUTA', status);
-          observer.next(null);
+          }
         }
+        observer.next(null);
         observer.complete();
-
-      });
-
-
+      },
+        (error) => {
+          console.log(error);
+          observer.next(null);
+        });
     }).pipe(
+      tap(route => console.log('EL RESULTADO DEL CALCULO DE DISTANCIA ==> ', route)),
       mergeMap(estimatedResult => this.searchAdditionalTripFare$(estimatedResult, originLatLng, destinationLatLng)),
       filter((response: any) => response),
-      mergeMap(result => {
-        this.estimatedTripCost = result;
-        return this.serviceService.getFareSettings$();
-      }),
-      map((result: any) => ((result || {}).data || {}).fareSettings ||
-      { valuePerKilometer: 1410, additionalCost: 0, minimalTripCost: 4000 }),
+      mergeMap(result =>
+        forkJoin(
+          of(result),
+          this.serviceService.getFareSettings$()
+        )
+      ),
+      map(([estimatedFare, fareSettingsResult]) =>
+        [
+          estimatedFare,
+          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1410, additionalCost: 0, minimalTripCost: 4000 },
 
-    ).subscribe(fareSettings => {
+        ]
+      )
+    ).subscribe(([estimatedFare, fareSettings]) => {
+      this.estimatedTripCost = estimatedFare;
       let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) +
         50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) % 50));
       cost = cost + fareSettings.additionalCost;
@@ -833,6 +885,11 @@ export class LocationComponent implements OnInit, OnDestroy {
 
       const priceFormated = formatter.format(cost + this.estimatedTripCost.cost);
       this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
+
+      this.serviceService.publishCommand({
+        code: ServiceService.COMMAND_TRIP_COST_CALCULATED,
+        args: [estimatedFare]
+      });
 
     }
 
@@ -920,9 +977,9 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.originMarker.setMap(null);
               this.originMarker = null;
             }
-            if (this.directionsDisplay) {
-              this.directionsDisplay.setMap(null);
-            }
+            // if (this.directionsDisplay) {
+            //   this.directionsDisplay.setMap(null);
+            // }
 
 
             break;
@@ -947,6 +1004,15 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.REQUEST:
             this.showDestinationPlaceInput = false;
+
+            this.serviceService.originPlaceSelected$.next({
+              name: 'Mi Ubicación',
+              location: {
+                lat: this.lastCenterReported.lat,
+                lng: this.lastCenterReported.lng
+              }
+            });
+
 
             break;
           case ServiceState.REQUESTED:
@@ -1089,7 +1155,6 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.estimatedTripCost = null;
             break;
         }
-        console.log('listenServiceChanges =====> ', state, this.estimatedTripCost);
 
         this.lastServiceStateReported = service.state;
 

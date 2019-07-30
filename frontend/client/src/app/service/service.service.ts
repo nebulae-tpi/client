@@ -37,6 +37,9 @@ export class ServiceService {
   public static COMMAND_REQUEST_ORIGIN_DESTINATION_SELECTION = 201;
   public static COMMAND_REQUEST_STATE_SHOW_FILTERS = 202;
 
+  public static COMMAND_TRIP_COST_CALCULATED = 203;
+  public static COMMAND_MOVING_MARKER_WITH_CENTER = 204;
+
 
 
 
@@ -184,7 +187,7 @@ export class ServiceService {
     });
   }
 
-  createNewService$(clientUsername: string, pickUpLocation, address: string, reference: string, serviceTip) {
+  createNewService$(clientUsername: string, pickUpLocation, address: string, reference: string, serviceTip, tripCost: number) {
     return this.gateway.apollo.mutate<any>({
       mutation: RequestService,
       variables: {
@@ -197,7 +200,8 @@ export class ServiceService {
         },
         paymentType: 'CASH',
         requestFeatures: [],
-        tip: serviceTip > 0 ? serviceTip : undefined
+        tip: serviceTip > 0 ? serviceTip : undefined,
+        tripCost
       },
       errorPolicy: 'all'
     });

@@ -162,6 +162,11 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   destinationPlaceAddresInput = new FormControl();
 
   requestStep = 0;
+  tripCostCalculed: any = null;
+
+  showAcceptAndCancelButtons = true;
+  showDoneButton = false;
+
 
   constructor(
     private bottomSheet: MatBottomSheet,
@@ -238,22 +243,22 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
-    console.log(' =======> ', this.originPlace );
-    console.log('ON_CONFIRM_SERVICE_REQUEST ==> ', this.originPlace);
+    if (!this.originPlace.name) {
+      this.originPlace.name = this.originPlaceAddresInput.value;
+    }
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
       const pickUpMarker = {
         lat: this.originPlace.location.lat,
         lng: this.originPlace.location.lng
       };
 
-      this.serviceService
-        .createNewService$(
-          this.serviceService.userProfile.username,
-          pickUpMarker,
-          this.originPlace.name,
-          this.placeReference,
-          parseInt(this.tipValue, 10)
-        )
+      this.serviceService.createNewService$(
+        this.serviceService.userProfile.username,
+        pickUpMarker,
+        this.originPlace.name,
+        this.placeReference,
+        parseInt(this.tipValue, 10)
+      )
         .pipe(
           tap(resp => {
             if (
@@ -335,7 +340,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
               switch (this.requestStep) {
                 case 0:
                   this.showFilterSection = true;
-                  console.log('TO_REQUEST_STEP_2');
                   this.requestStep = 2;
                   this.serviceService.publishCommand({
                     code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
@@ -345,9 +349,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                   break;
 
                 case 2:
-
-
-
                   this.confirmServiceRequest();
                   break;
 
@@ -359,14 +360,12 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
               this.requestStep++;
               switch (this.requestStep) {
                 case 1:
-                  console.log('HACIENDO EL CALCULO DE LA TARIFA Y MOSTRAR EL CAMINO');
                   this.serviceService.publishCommand({
                     code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
                     args: []
                   });
                   break;
                 case 2:
-                  console.log('haciendoe el request .....');
                   this.confirmServiceRequest();
                   break;
 
@@ -380,6 +379,19 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
             this.showFilterSection = true;
             break;
+          case ServiceService.COMMAND_TRIP_COST_CALCULATED:
+            this.tripCostCalculed = command.args[0];
+            break;
+
+          case ServiceService.COMMAND_MOVING_MARKER_WITH_CENTER:
+            if (command.args[0]) {
+              this.showAcceptAndCancelButtons = false;
+              this.showDoneButton = true;
+            } else {
+              this.showAcceptAndCancelButtons = true;
+              this.showDoneButton = false;
+            }
+            break;
 
           default:
             break;
@@ -387,8 +399,14 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       });
   }
 
+  confirmMarkerPosition() {
+    this.serviceService.publishCommand({
+      code: ServiceService.COMMAND_MOVING_MARKER_WITH_CENTER,
+      args: []
+    });
+  }
+
   onConfirmButton() {
-    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ onConfirmButton ==> ');
 
     this.serviceService.publishCommand({
       code: ServiceService.COMMAND_ON_CONFIRM_BTN,
@@ -414,7 +432,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       takeUntil(this.ngUnsubscribe)
     )
       .subscribe((onchange: any) => {
-        console.log({onchange});
 
         const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(onchange.value);
         const s = document.getElementsByClassName('pac-container pac-logo');
@@ -600,7 +617,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
 
-        console.log('LISTEN PLACES CHANGES ==>', { place });
 
         if (place.type === 'INITIAL_MARKER') {
           place = {
