@@ -257,7 +257,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         pickUpMarker,
         this.originPlace.name,
         this.placeReference,
-        parseInt(this.tipValue, 10)
+        parseInt(this.tipValue, 10),
+        (this.tripCostCalculed || {}).cost
       )
         .pipe(
           tap(resp => {

@@ -1,9 +1,9 @@
 export const environment = {
   production: true,
   keycloak: {
-    url: 'https://lab.nebulae.nebulae.com.co/auth', // 'https://tpi-dev.nebulae.com.co/auth', //
+    url:  'https://tpi-dev.nebulae.com.co/auth', // 'https://lab.nebulae.nebulae.com.co/auth'
     realm: 'TPI',
-    clientId: 'CLIENT_APP', // 'CLIENT-APP-LOCAL',
+    clientId: 'CLIENT-APP-LOCAL', // 'CLIENT_APP'
     onLoad: 'check-sso',
     checkLoginIframe: false,
     enableBearerInterceptor: true,
@@ -24,7 +24,7 @@ export const environment = {
   },
   google: {
     maps: {
-      key: 'AIzaSyANnp365UIdC9Q4cf0F0HKashKZZNvIog0'//'AIzaSyByGMKwZIYXqcPONjNSX-KHJ9kbP5tBu5I'
+      key: 'AIzaSyC1VkMKnBB_TATeaszTe_a8phyo-B8DSVg'
     }
   }
 };

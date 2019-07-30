@@ -187,7 +187,7 @@ export class ServiceService {
     });
   }
 
-  createNewService$(clientUsername: string, pickUpLocation, address: string, reference: string, serviceTip, tripCost: number) {
+  createNewService$(clientUsername: string, pickUpLocation, address: string, reference: string, serviceTip, tripCost?: number) {
     return this.gateway.apollo.mutate<any>({
       mutation: RequestService,
       variables: {
