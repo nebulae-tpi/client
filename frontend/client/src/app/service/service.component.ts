@@ -271,7 +271,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.ON_BOARD:
       case ServiceState.REQUEST:
         this.showAddress = this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
-        screenHeightWaste = 120;
+        screenHeightWaste = 130;
 
         break;
       default:

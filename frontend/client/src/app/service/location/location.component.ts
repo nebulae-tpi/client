@@ -150,7 +150,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   // direction display Element
-  // directionsDisplay: google.maps.DirectionsRenderer;
+  directionsDisplay: google.maps.DirectionsRenderer;
   directionsService: google.maps.DirectionsService;
 
   originPlace: any;
@@ -208,10 +208,10 @@ export class LocationComponent implements OnInit, OnDestroy {
         })),
         tap((places: any) => {
 
-          // if (this.directionsDisplay) {
-          //   this.directionsDisplay.setMap(null);
-          //   this.estimatedTripCost = null;
-          // }
+          if (this.directionsDisplay) {
+            this.directionsDisplay.setMap(null);
+            this.estimatedTripCost = null;
+          }
 
           // https://icons8.com/icon/set/map-marker/material
           if (places.destination) {
@@ -779,78 +779,79 @@ export class LocationComponent implements OnInit, OnDestroy {
     const destinationLatLng = this.destinationPlace.location;
 
 
-    // this.directionsDisplay = this.directionsDisplay || new google.maps.DirectionsRenderer();
-    // this.directionsService = this.directionsService || new google.maps.DirectionsService();
+    this.directionsDisplay = this.directionsDisplay || new google.maps.DirectionsRenderer();
+    this.directionsService = this.directionsService || new google.maps.DirectionsService();
 
-    // this.directionsDisplay.setMap(this.map);
+    this.directionsDisplay.setMap(this.map);
 
     Observable.create(observer => {
 
-      const tripDuration = 0; // minutes
-      const tripDistance = 0; // Meters
+      let tripDuration = 0; // minutes
+      let tripDistance = 0; // Meters
 
-      // const queryArgs: google.maps.DirectionsRequest = {
-      //   origin: originLatLng,
-      //   destination: destinationLatLng,
-      //   travelMode: google.maps.TravelMode.DRIVING
-      // };
-
-      // this.directionsService.route(queryArgs, (response, status) => {
-      //   if (status === google.maps.DirectionsStatus.OK) {
-
-      //     this.directionsDisplay.setOptions({
-      //       polylineOptions: {
-      //         strokeColor: '#3B4045',
-      //         strokeWeight: 5
-      //       },
-      //       suppressMarkers: true,
-      //       directions: response
-      //     });
-
-      //     response.routes[0].legs.forEach(leg => {
-      //       tripDistance += leg.distance.value;
-      //       tripDuration += leg.duration.value;
-      //     });
-      //     observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
-
-
-      //   } else {
-      //     console.log('ERROR AL HACER EL CALCULO DE LA RUTA', status);
-      //     observer.next(null);
-      //   }
-      //   observer.complete();
-      // });
-
-      const routingParameters = {
-        mode: 'fastest;car;traffic:disabled',
-        waypoint0: `geo!${originLatLng.lat},${originLatLng.lng}`,
-        waypoint1: `geo!${destinationLatLng.lat},${destinationLatLng.lng}`,
-        departure: 'now',
-        // representation: 'display'
+      const queryArgs: google.maps.DirectionsRequest = {
+        origin: originLatLng,
+        destination: destinationLatLng,
+        travelMode: google.maps.TravelMode.DRIVING
       };
 
-      this.hereRouter.calculateRoute(routingParameters, (requestResponse) => {
-        console.log('HERE RESPONSE ==> ', requestResponse);
-        if (requestResponse && requestResponse.response && requestResponse.response.route) {
-          const route = requestResponse.response.route;
-          const { leg, summary } = route[0];
-          if (summary) {
-            observer.next({
-              duration: summary.travelTime,
-              distance: Math.floor((summary.distance / 1000) * 100) / 100,
-              cost: 0
-            });
-            observer.complete();
+      this.directionsService.route(queryArgs, (response, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
 
-          }
-        }
-        observer.next(null);
-        observer.complete();
-      },
-        (error) => {
-          console.log(error);
+          this.directionsDisplay.setOptions({
+            polylineOptions: {
+              strokeColor: '#3B4045',
+              strokeWeight: 5
+            },
+            suppressMarkers: true,
+            directions: response
+          });
+
+          response.routes[0].legs.forEach(leg => {
+            tripDistance += leg.distance.value;
+            tripDuration += leg.duration.value;
+          });
+          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
+
+
+
+        } else {
+          console.log('ERROR AL HACER EL CALCULO DE LA RUTA', status);
           observer.next(null);
-        });
+        }
+        observer.complete();
+      });
+
+      // const routingParameters = {
+      //   mode: 'fastest;car;traffic:disabled',
+      //   waypoint0: `geo!${originLatLng.lat},${originLatLng.lng}`,
+      //   waypoint1: `geo!${destinationLatLng.lat},${destinationLatLng.lng}`,
+      //   departure: 'now',
+      //   // representation: 'display'
+      // };
+
+      // this.hereRouter.calculateRoute(routingParameters, (requestResponse) => {
+      //   console.log('HERE RESPONSE ==> ', requestResponse);
+      //   if (requestResponse && requestResponse.response && requestResponse.response.route) {
+      //     const route = requestResponse.response.route;
+      //     const { leg, summary } = route[0];
+      //     if (summary) {
+      //       observer.next({
+      //         duration: summary.travelTime,
+      //         distance: Math.floor((summary.distance / 1000) * 100) / 100,
+      //         cost: 0
+      //       });
+      //       observer.complete();
+
+      //     }
+      //   }
+      //   observer.next(null);
+      //   observer.complete();
+      // },
+      //   (error) => {
+      //     console.log(error);
+      //     observer.next(null);
+      //   });
     }).pipe(
       tap(route => console.log('EL RESULTADO DEL CALCULO DE DISTANCIA ==> ', route)),
       mergeMap(estimatedResult => this.searchAdditionalTripFare$(estimatedResult, originLatLng, destinationLatLng)),
@@ -888,7 +889,10 @@ export class LocationComponent implements OnInit, OnDestroy {
 
       this.serviceService.publishCommand({
         code: ServiceService.COMMAND_TRIP_COST_CALCULATED,
-        args: [estimatedFare]
+        args: [{
+          ...estimatedFare,
+          rawCost: cost
+        }]
       });
 
     }
@@ -977,9 +981,9 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.originMarker.setMap(null);
               this.originMarker = null;
             }
-            // if (this.directionsDisplay) {
-            //   this.directionsDisplay.setMap(null);
-            // }
+            if (this.directionsDisplay) {
+              this.directionsDisplay.setMap(null);
+            }
 
 
             break;

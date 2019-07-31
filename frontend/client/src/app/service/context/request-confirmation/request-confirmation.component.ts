@@ -243,6 +243,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
+    console.log('-------- confirmServiceRequest ---------------');
+
     if (!this.originPlace.name) {
       this.originPlace.name = this.originPlaceAddresInput.value;
     }
@@ -258,9 +260,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         this.originPlace.name,
         this.placeReference,
         parseInt(this.tipValue, 10),
-        (this.tripCostCalculed || {}).cost
+        (this.tripCostCalculed || {}).rawCost
       )
         .pipe(
+          tap(rr  => console.log('request response ==> ', rr)),
           tap(resp => {
             if (
               resp.errors &&
