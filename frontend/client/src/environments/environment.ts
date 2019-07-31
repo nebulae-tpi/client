@@ -26,7 +26,7 @@ export const environment = {
   },
   google: {
     maps: {
-      key: 'AIzaSyDwM1MMRbzgNt1xqRn3FAYk5Bn_89lso1E'
+      key: 'AIzaSyC1VkMKnBB_TATeaszTe_a8phyo-B8DSVg'
     }
   }
 };
