@@ -265,6 +265,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
         screenHeightWaste = 65;
         break;
       case ServiceState.REQUESTED:
+        screenHeightWaste = 65;
         break;
       case ServiceState.ASSIGNED:
       case ServiceState.ARRIVED:
