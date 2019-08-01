@@ -35,6 +35,8 @@ import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog
 import { OnboardComponent } from './service/context/onboard/onboard.component';
 import { ContactUsComponent } from './contact-us/contact-us.component';
 import { MenuService } from './menu/menu.service';
+import { HistoryService } from './history/history.service';
+import { ServiceDetailComponent } from './history/service-detail/service-detail.component';
 
 @NgModule({
   declarations: [
@@ -56,6 +58,7 @@ import { MenuService } from './menu/menu.service';
     DialogArrivedComponent,
     OnboardComponent,
     ContactUsComponent,
+    ServiceDetailComponent
   ],
   imports: [
     BrowserModule,
@@ -90,7 +93,8 @@ import { MenuService } from './menu/menu.service';
       deps: [KeycloakService]
     },
     GatewayService,
-    MenuService
+    MenuService,
+    HistoryService
   ],
   entryComponents: [FilterSheetComponent, CancelSheetComponent, DialogArrivedComponent, ContactUsComponent],
   bootstrap: [AppComponent]
