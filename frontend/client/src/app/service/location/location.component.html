@@ -24,6 +24,7 @@
   </div>
   <!-- DESTINATION ADDRESS INPUT FOR PSEUDO-XS-LAYOUT -->
 
+  <!-- TRIP COST -->
   <div id="estimated-cost-result" *ngIf="estimatedTripCost" [ngStyle]="{ 'width.px': widthMapContent - 50}">
     <div class="results" fxLayout="column" fxLayoutAlign="center center">
       <span>Distacia: {{ estimatedTripCost.distance + ' Km' }} </span>
@@ -31,5 +32,6 @@
     </div>
 
   </div>
+  <!-- TRIP COST -->
 </div>
 

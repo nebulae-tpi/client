@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { GatewayService } from '../../api/gateway.service';
-import { ClientFavoritePlaces, AddFavoritePlace, UpdateFavoritePlace, RemoveFavoritePlace } from './gql/favorites';
+import { ClientFavoritePlaces, ClientFavoritePlace, AddFavoritePlace, UpdateFavoritePlace, RemoveFavoritePlace } from './gql/favorites';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClienFavoriteService {
-  constructor(private gateway: GatewayService) {}
+  constructor(private gateway: GatewayService) { }
 
   /**
    *
@@ -48,6 +48,17 @@ export class ClienFavoriteService {
   getFavoritePlaces$() {
     return this.gateway.apollo.query<any>({
       query: ClientFavoritePlaces,
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all'
+    });
+  }
+
+  getFavoritePlaceById$(id: string) {
+    return this.gateway.apollo.query<any>({
+      query: ClientFavoritePlace,
+      variables: {
+        id
+      },
       fetchPolicy: 'network-only',
       errorPolicy: 'all'
     });

@@ -14,6 +14,21 @@ export const ClientFavoritePlaces = gql`
   }
 `;
 
+export const ClientFavoritePlace = gql`
+  query ClientFavoritePlace($id: String) {
+    ClientFavoritePlace(id: $id) {
+      id
+      type
+      name
+      location {
+        lat
+        lng
+      }
+    }
+  }
+`;
+
+
 export const AddFavoritePlace = gql`
   mutation AddFavoritePlace($favoritePlace: FavoritePlaceInput) {
     AddFavoritePlace(favoriteType: $favoriteType) {
@@ -25,7 +40,7 @@ export const AddFavoritePlace = gql`
 
 export const UpdateFavoritePlace = gql`
   mutation UpdateFavoritePlace($favoritePlace: FavoritePlaceInput) {
-    UpdateFavoritePlace(favoriteType: $favoriteType) {
+    UpdateFavoritePlace(favoritePlace: $favoritePlace) {
       code
       message
     }

@@ -56,3 +56,6 @@
   padding-bottom: 5px;
   font-size: 24px;
 }
+.favorite-text:hover{
+  cursor: pointer;
+}

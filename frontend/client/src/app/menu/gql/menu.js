@@ -1,9 +1,9 @@
-import gql from 'graphql-tag';
+import gql from "graphql-tag";
 
 // QUERY SECTION
 export const ClientProfile = gql`
   query ClientProfile {
-    ClientProfile{
+    ClientProfile {
       id
       businessId
       name
@@ -11,12 +11,13 @@ export const ClientProfile = gql`
       email
       active
       satelliteId
-      favoritePlaces{
+      favoritePlaces {
         id
         type
+        address
         name
         referenceName
-        location{
+        location {
           lat
           lng
         }
@@ -27,7 +28,7 @@ export const ClientProfile = gql`
 
 export const ClientLinkedSatellite = gql`
   query ClientLinkedSatellite($satelliteId: String!) {
-    ClientLinkedSatellite(satelliteId: $satelliteId){
+    ClientLinkedSatellite(satelliteId: $satelliteId) {
       businessId
       _id
       name
@@ -40,7 +41,7 @@ export const ClientLinkedSatellite = gql`
       addressLine2
       zone
       active
-      location{
+      location {
         lat
         lng
       }
@@ -54,12 +55,12 @@ export const ClientLinkedSatellite = gql`
 
 export const ClientWallet = gql`
   query ClientWallet {
-    ClientWallet{
+    ClientWallet {
       _id
       fullname
       documentId
       type
-      pockets{
+      pockets {
         main
         bonus
       }
@@ -83,7 +84,7 @@ export const ValidateNewClient = gql`
 // SUBSCRIPTION SECTION
 export const ClientWalletUpdates = gql`
   subscription ClientWalletUpdates {
-    ClientWalletUpdates{
+    ClientWalletUpdates {
       _id
       documentId
       type
@@ -97,5 +98,3 @@ export const ClientWalletUpdates = gql`
     }
   }
 `;
-
-

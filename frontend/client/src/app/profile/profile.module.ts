@@ -7,6 +7,8 @@ import { MatAutocompleteModule } from '@angular/material';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ClientFavoritesComponent } from './favorites/client-favorites.component';
 import { ClientFavoritesDetailComponent } from './favorites/favorite-detail/favorite-detail.component';
+import { AgmCoreModule } from '@agm/core';
+import { environment } from 'src/environments/environment';
 
 const routes: Routes = [
   { path: '', component: ProfileComponent },
@@ -22,7 +24,11 @@ const routes: Routes = [
     RouterModule.forChild(routes),
     CustomMaterialModule,
     MatAutocompleteModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AgmCoreModule.forRoot({
+      apiKey: environment.google.maps.key,
+      libraries: ['places']
+    }),
   ],
   declarations: [
     ProfileComponent,

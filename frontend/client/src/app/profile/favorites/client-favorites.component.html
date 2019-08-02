@@ -5,7 +5,7 @@
   <div ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" style="padding-bottom: 10px" fxFlex="100"
     fxLayoutAlign="start center">
     <!-- [routerLink]="['/profile']" -->
-    <button mat-icon-button fxHide.gt-xs style="margin-right: 5px" fxlayoutAlign="center center" >
+    <button mat-icon-button fxHide.gt-xs style="margin-right: 5px" fxlayoutAlign="center center">
       <mat-icon>arrow_back_ios</mat-icon>
     </button>
     <div fxFlex>
@@ -54,13 +54,14 @@
     <div *ngFor="let favorite of othersFavorites" ngClass.xs="xs-fav-item">
       <div fxLayout="row" fxLayoutAlign="start center">
         <mat-icon style="padding-right: 10px;">location_on</mat-icon>
-        <div fxLayout="column">
+        <div class="favorite-text" [routerLink]="['/profile/favorite', favorite.id]"  fxLayout="column">
           <div style="font-size: 18px">{{ favorite.name }}</div>
           <div style="font-size: 14px"> {{ favorite.address }} </div>
         </div>
 
         <div fxFlex></div>
-        <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{favoriteId: favorite.id, type: favorite.type}">
+        <button mat-icon-button [matMenuTriggerFor]="menu"
+          [matMenuTriggerData]="{favoriteId: favorite.id, type: favorite.type}">
           <mat-icon>more_vert</mat-icon>
         </button>
       </div>
@@ -69,10 +70,10 @@
 
   <mat-menu #menu="matMenu">
     <ng-template matMenuContent let-favoriteId="favoriteId" let-type="type">
-      <!-- <button mat-menu-item [routerLink]="['/profile/favorite', favoriteId]">
+      <button mat-menu-item [routerLink]="['/profile/favorite', favoriteId]">
         <mat-icon>edit</mat-icon>
         <span>Editar</span>
-      </button> -->
+      </button>
       <button mat-menu-item (click)="deleteFavoritePlace(favoriteId, type)">
         <mat-icon>delete</mat-icon>
         <span>Eliminar</span>
