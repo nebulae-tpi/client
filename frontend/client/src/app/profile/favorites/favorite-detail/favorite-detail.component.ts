@@ -13,7 +13,8 @@ import {
   tap,
   filter,
   debounceTime,
-  distinctUntilChanged
+  distinctUntilChanged,
+  startWith
 } from 'rxjs/operators';
 import {
   of,
@@ -53,6 +54,7 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
   favoriteAddress = new FormControl();
   map: google.maps.Map;
   mapZoom = 16;
+  mapHeight = 415;
   initialLat = 3.416652; // todo
   initialLng = -76.524436; // todo
   favoriteMarker: google.maps.Marker;
@@ -67,12 +69,35 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    this.listenscreenSizeChanges();
     this.loadFavorite();
     this.loadUserProfile();
   }
 
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
+  }
+
+  listenscreenSizeChanges() {
+    fromEvent(window, 'resize')
+      .pipe(
+        debounceTime(50),
+        map(event => event.currentTarget),
+        map((target: any) => ({ height: target.innerHeight, width: target.innerWidth })),
+      ).subscribe(size => {
+        this.calculateHeihtUsage(size);
+      });
+  }
+
+  calculateHeihtUsage(sizes) {
+
+    const wasteHeight = 100;
+    const inputsOnTopHeight = document.getElementById('input-fields').offsetHeight;
+    const confirmationButtonHeight = document.getElementById('save-button').offsetHeight;
+
+    this.mapHeight = sizes.height - (inputsOnTopHeight + confirmationButtonHeight + wasteHeight);
+
+
   }
 
   loadUserProfile() {
@@ -108,11 +133,11 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
   }
 
   mapReady(mapRef) {
-    console.log('on map ready');
 
     this.map = mapRef;
     this.listenSelectedFavoritePlace();
     this.listenMapCenterChanged();
+    this.calculateHeihtUsage({ height: innerHeight, width: innerWidth });
 
   }
 

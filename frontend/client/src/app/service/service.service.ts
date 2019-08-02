@@ -94,6 +94,7 @@ export class ServiceService {
     } else {
       return of(undefined);
     }
+    // return of(undefined);
   }
 
   getCurrentService$() {

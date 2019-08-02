@@ -20,6 +20,10 @@ export class RequestButtonComponent implements OnInit {
 
   async requestTaxi() {
     this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+    this.serviceService.publishCommand({
+      code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
+      args: []
+     });
 
 
 

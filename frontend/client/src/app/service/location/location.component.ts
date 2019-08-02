@@ -332,6 +332,8 @@ export class LocationComponent implements OnInit, OnDestroy {
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
+            console.log('ON LOCATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>', );
+
             this.originPlace = {
               ...this.originPlace,
               location: {
@@ -528,6 +530,8 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region TOOLS */
   currentLocation() {
+    console.log('ON CURRRENT LOCATION ===> ');
+
 
     const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
 
@@ -537,33 +541,34 @@ export class LocationComponent implements OnInit, OnDestroy {
         lng: this.currentService.pickUp.marker.lng
       });
       this.map.setZoom(17);
-    } else if (
-      this.map !== undefined &&
-      this.currentService &&
-      this.currentService.state === ServiceState.ON_BOARD
-    ) {
+    } else if (this.map !== undefined && this.currentService && this.currentService.state === ServiceState.ON_BOARD) {
       this.map.setCenter({
         lat: this.currentService.location.lat,
         lng: this.currentService.location.lng
       });
       this.map.setZoom(17);
     } else if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          if (this.map) {
-            this.map.setCenter({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
-            this.map.setZoom(17);
+      console.log(' $$$$$ navigator.geolocation ==> ', navigator.geolocation);
 
-            this.serviceService.markerOnMapChange$.next({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            });
+      navigator.geolocation.getCurrentPosition(position => {
+        console.log('POSICION REPORTADO DEL NAVEGADOR ==> ', position);
 
-          }
-        },
+        if (this.map) {
+          this.map.setCenter({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          this.map.setZoom(17);
+
+          this.serviceService.markerOnMapChange$.next({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+
+        } else {
+          console.log('MAPA INDEFINIDO');
+        }
+      },
         error => console.log('getCurrentPosition error: ', error),
         { maximumAge: 60000, timeout: 5000, enableHighAccuracy: true }
       );

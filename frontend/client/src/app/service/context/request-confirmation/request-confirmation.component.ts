@@ -263,7 +263,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         (this.tripCostCalculed || {}).rawCost
       )
         .pipe(
-          tap(rr  => console.log('request response ==> ', rr)),
+          tap(rr => console.log('request response ==> ', rr)),
           tap(resp => {
             if (
               resp.errors &&
@@ -337,8 +337,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         filter(command => command && command.code),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(command => {
+
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
+            console.log('ON REQUEST-CONFIRMATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>');
             // no Destination place given
             if (!this.destinationPlace.location) {
               switch (this.requestStep) {
@@ -349,6 +351,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                     code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
                     args: []
                   });
+                  this.buildOriginPlaceAutoComplete();
 
                   break;
 
@@ -534,6 +537,16 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
             this.originPlace.name = originPlaceName;
 
+            console.log({
+              ...this.originPlace,
+              name: this.originPlace.name,
+              location: {
+                lat: geometry.location.lat(),
+                lng: geometry.location.lng()
+              }
+            });
+
+
             this.serviceService.originPlaceSelected$.next({
               ...this.originPlace,
               name: this.originPlace.name,
@@ -620,7 +633,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-
+        console.log('listenOriginPlaceChanges ==> ', place);
 
         if (place.type === 'INITIAL_MARKER') {
           place = {

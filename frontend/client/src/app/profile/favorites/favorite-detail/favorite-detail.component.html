@@ -2,55 +2,59 @@
 <!-- DESKTOP LAYOUT gt-xs media query -->
 <div ngClass.xs="xs-content" ngClass.gt-xs="gt-xs-content" fxFlex="100" fxLayout="row wrap">
 
-  <!-- FAVORITE NAME -->
-  <div fxHide.xs ngClass.gt-xs="gt-xs-mff-input" fxFlex.gt-xs="45">
-    <mat-form-field fxFill>
-      <input required matInput [formControl]="favoriteName" placeholder="Nombre">
-      <button *ngIf="favoriteName.value" mat-button  matSuffix mat-icon-button (click)="favoriteName.setValue('')">
-        <mat-icon>close</mat-icon>
-      </button>
-    </mat-form-field>
-  </div>
-  <div fxHide.gt-xs class="form-steps" ngClass.xs="xs-mff-input" fxFlex.xs="100"  fxLayoutAlign="center center">
-    <input id="addressInput" placeholder="Nombre" autocorrect="off" autocapitalize="off"
-      [formControl]="favoriteName" spellcheck="off" type="text" class="address-input"
-      #destinationPlaceSearch />
-  </div>
-  <!-- FAVORITE NAME -->
-  <!-- FAVORITE ADDRESS -->
-  <div fxHide.xs ngClass.gt-xs="gt-xs-mff-input" fxFlex.gt-xs="45">
-    <mat-form-field fxFill>
-      <input required matInput [formControl]="favoriteAddress" placeholder="Dirección">
-      <button mat-button *ngIf="favoriteAddress.value" matSuffix mat-icon-button (click)="favoriteAddress.setValue('')">
-        <mat-icon>close</mat-icon>
-      </button>
-    </mat-form-field>
-  </div>
-  <div fxHide.gt-xs class="form-steps" ngClass.xs="xs-mff-input" fxFlex.xs="100" fxLayoutAlign="center center">
-    <input id="addressInput" placeholder="Dirección" autocorrect="off" autocapitalize="off"
-      [formControl]="favoriteAddress" spellcheck="off" type="text" class="address-input"
-      #destinationPlaceSearch />
-  </div>
-  <!-- FAVORITE ADDRESS -->
+  <div id="input-fields" fxLayout="row wrap" fxFlex="100">
 
-  <!-- SAVE BUTTON -->
-  <div fxHide.xs fxFlex.gt-xs="10" fxLayoutAlign="center center" >
-    <button [disabled]="!favoriteName.valid" mat-stroked-button color="primary">Guardar</button>
+    <!-- FAVORITE NAME -->
+    <div fxHide.xs ngClass.gt-xs="gt-xs-mff-input" fxFlex.gt-xs="45">
+      <mat-form-field fxFill>
+        <input required matInput [formControl]="favoriteName" placeholder="Nombre">
+        <button *ngIf="favoriteName.value" mat-button matSuffix mat-icon-button (click)="favoriteName.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+    <div fxHide.gt-xs class="form-steps" ngClass.xs="xs-mff-input" fxFlex.xs="100" fxLayoutAlign="center center">
+      <input id="addressInput" placeholder="Nombre" autocorrect="off" autocapitalize="off" [formControl]="favoriteName"
+        spellcheck="off" type="text" class="address-input" #destinationPlaceSearch />
+    </div>
+    <!-- FAVORITE NAME -->
+    <!-- FAVORITE ADDRESS -->
+    <div fxHide.xs ngClass.gt-xs="gt-xs-mff-input" fxFlex.gt-xs="45">
+      <mat-form-field fxFill>
+        <input required matInput [formControl]="favoriteAddress" placeholder="Dirección">
+        <button mat-button *ngIf="favoriteAddress.value" matSuffix mat-icon-button
+          (click)="favoriteAddress.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+    <div fxHide.gt-xs class="form-steps" ngClass.xs="xs-mff-input" fxFlex.xs="100" fxLayoutAlign="center center">
+      <input id="addressInput" placeholder="Dirección" autocorrect="off" autocapitalize="off"
+        [formControl]="favoriteAddress" spellcheck="off" type="text" class="address-input" #destinationPlaceSearch />
+    </div>
+    <!-- FAVORITE ADDRESS -->
+
+    <!-- SAVE BUTTON -->
+    <div fxHide.xs fxFlex.gt-xs="10" fxLayoutAlign="center center">
+      <button [disabled]="!favoriteName.valid" mat-stroked-button color="primary">Guardar</button>
+    </div>
+    <!-- SAVE BUTTON -->
+
   </div>
-  <!-- SAVE BUTTON -->
 
   <!-- MAP -->
-  <div fxFlex="100">
-    <agm-map [ngStyle]="{ 'height.px': 415 }" (mapReady)="mapReady($event)" [clickableIcons]="false"
-      [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="initialLat" [longitude]="initialLng" [zoom]="mapZoom"
-      (centerChange)="onCenterChange($event)">
+  <div fxFlex="100" style="margin-bottom: 5px">
+    <agm-map [ngStyle.xs]="{'height.px': mapHeight }" [ngStyle.gt-xs]="{'height.px': mapHeight - 10 }"  (mapReady)="mapReady($event)" [clickableIcons]="false"
+      [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="initialLat" [longitude]="initialLng"
+      [zoom]="mapZoom" (centerChange)="onCenterChange($event)">
     </agm-map>
   </div>
   <!-- MAP -->
 
   <!-- SAVE BUTTON -->
-  <div style="margin-top: 8px" fxHide fxShow.xs fxFlex="100">
-    <button [disabled]="!favoriteName.valid" fxFill mat-stroked-button color="primary" (click)="saveFavorite()">Guardar</button>
+  <div id="save-button" style="margin-top: 8px" fxHide fxShow.xs fxFlex="100">
+    <button [disabled]="!favoriteName.valid" fxFill mat-stroked-button color="primary"
+      (click)="saveFavorite()">Guardar</button>
   </div>
   <!-- SAVE BUTTON -->
 

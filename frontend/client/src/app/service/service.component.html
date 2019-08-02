@@ -1,6 +1,5 @@
 <div class="page-layout blank p-24" fusePerfectScrollbar>
-  <mat-grid-list
-    *ngIf="layoutType === LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT || layoutType === LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT"
+  <mat-grid-list *ngIf="layoutType === LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT || layoutType === LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT"
     [cols]="[screenCols]" rowHeight="10px" gutterSize="0px">
     <mat-grid-tile [colspan]="[addressCols]" [rowspan]="[addressRows]">
       <app-address class="container"></app-address>
