@@ -243,7 +243,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
-    console.log('-------- confirmServiceRequest ---------------');
+    // console.log('-------- confirmServiceRequest ---------------');
 
     if (!this.originPlace.name) {
       this.originPlace.name = this.originPlaceAddresInput.value;
@@ -263,7 +263,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         (this.tripCostCalculed || {}).rawCost
       )
         .pipe(
-          tap(rr => console.log('request response ==> ', rr)),
+          // tap(rr => console.log('request response ==> ', rr)),
           tap(resp => {
             if (
               resp.errors &&
@@ -321,7 +321,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
             this.showSnackMessage(
               'Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde'
             );
-            console.log('Error solicitando servicio: ', error);
+            // console.log('Error solicitando servicio: ', error);
           }
         );
     } else {
@@ -340,28 +340,31 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            console.log('ON REQUEST-CONFIRMATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>');
+            // console.log('ON REQUEST-CONFIRMATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>');
             // no Destination place given
             if (!this.destinationPlace.location) {
-              switch (this.requestStep) {
-                case 0:
-                  this.showFilterSection = true;
-                  this.requestStep = 2;
-                  this.serviceService.publishCommand({
-                    code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
-                    args: []
-                  });
-                  this.buildOriginPlaceAutoComplete();
+              this.showFilterSection = true;
+              this.requestStep = 2;
+              this.confirmServiceRequest();
+              // switch (this.requestStep) {
+              //   case 0:
+              //     this.showFilterSection = true;
+              //     this.requestStep = 2;
+              //     this.serviceService.publishCommand({
+              //       code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
+              //       args: []
+              //     });
+              //     this.buildOriginPlaceAutoComplete();
 
-                  break;
+              //     break;
 
-                case 2:
-                  this.confirmServiceRequest();
-                  break;
+              //   case 2:
+              //     this.confirmServiceRequest();
+              //     break;
 
-                default:
-                  break;
-              }
+              //   default:
+              //     break;
+              // }
             } else {
 
               this.requestStep++;
@@ -537,14 +540,14 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
             this.originPlace.name = originPlaceName;
 
-            console.log({
-              ...this.originPlace,
-              name: this.originPlace.name,
-              location: {
-                lat: geometry.location.lat(),
-                lng: geometry.location.lng()
-              }
-            });
+            // console.log({
+            //   ...this.originPlace,
+            //   name: this.originPlace.name,
+            //   location: {
+            //     lat: geometry.location.lat(),
+            //     lng: geometry.location.lng()
+            //   }
+            // });
 
 
             this.serviceService.originPlaceSelected$.next({
@@ -633,7 +636,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-        console.log('listenOriginPlaceChanges ==> ', place);
+        // console.log('listenOriginPlaceChanges ==> ', place);
 
         if (place.type === 'INITIAL_MARKER') {
           place = {
@@ -751,7 +754,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     if (placeType !== 'ORIGIN' && placeType !== 'DESTINATION') { return; }
     if (placeType === 'ORIGIN') {
       if (!this.originPlace || !this.originPlace.name || !this.originPlace.location) {
-        console.log('MISSING INFO IN SELECTED PLACE');
+        // console.log('MISSING INFO IN SELECTED PLACE');
         return;
       }
       this.originPlace.favorite = !this.originPlace.favorite;
@@ -760,7 +763,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
     if (placeType === 'DESTINATION') {
       if (!this.destinationPlace || !this.destinationPlace.name || !this.destinationPlace.location) {
-        console.log('MISSING INFO IN SELECTED PLACE');
+        // console.log('MISSING INFO IN SELECTED PLACE');
         return;
       }
       this.destinationPlace = !this.destinationPlace.favorite;

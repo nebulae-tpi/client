@@ -76,7 +76,9 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
 
   onNgModelChange($event) {
     this.serviceService.cancelService$($event)
-      .subscribe(res => console.log('Cancela servicio: ', res));
+      .subscribe(res => {}
+        // console.log('Cancela servicio: ', res)
+        );
     this.bottomSheetRef.dismiss();
     // event.preventDefault();
   }
@@ -332,7 +334,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            console.log('ON LOCATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>', );
+            // console.log('ON LOCATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>', );
 
             this.originPlace = {
               ...this.originPlace,
@@ -530,7 +532,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region TOOLS */
   currentLocation() {
-    console.log('ON CURRRENT LOCATION ===> ');
+    // console.log('ON CURRRENT LOCATION ===> ');
 
 
     const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
@@ -548,10 +550,10 @@ export class LocationComponent implements OnInit, OnDestroy {
       });
       this.map.setZoom(17);
     } else if (navigator.geolocation) {
-      console.log(' $$$$$ navigator.geolocation ==> ', navigator.geolocation);
+      // console.log(' $$$$$ navigator.geolocation ==> ', navigator.geolocation);
 
       navigator.geolocation.getCurrentPosition(position => {
-        console.log('POSICION REPORTADO DEL NAVEGADOR ==> ', position);
+        // console.log('POSICION REPORTADO DEL NAVEGADOR ==> ', position);
 
         if (this.map) {
           this.map.setCenter({
@@ -566,7 +568,7 @@ export class LocationComponent implements OnInit, OnDestroy {
           });
 
         } else {
-          console.log('MAPA INDEFINIDO');
+          // console.log('MAPA INDEFINIDO');
         }
       },
         error => console.log('getCurrentPosition error: ', error),
@@ -704,7 +706,7 @@ export class LocationComponent implements OnInit, OnDestroy {
    */
   listenOnResume() {
     this.serviceService.onResume$.pipe(
-      tap(R => console.log('listenOnResume ==> ', R)),
+      // tap(R => console.log('listenOnResume ==> ', R)),
       takeUntil(this.ngUnsubscribe)
     ).subscribe(() => {
       this.currentLocation();
@@ -961,7 +963,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
-        tap(R => console.log('listenServiceChanges ==> ', R)),
+        // tap(R => console.log('listenServiceChanges ==> ', R)),
         filter(service => service),
         debounceTime(100),
         takeUntil(this.ngUnsubscribe)

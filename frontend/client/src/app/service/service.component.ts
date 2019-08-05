@@ -151,7 +151,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
           takeUntil(this.ngUnsubscribe)
         )
         .subscribe((service: any) => {
-          console.log('SERVICE UPDATES ==> ', service);
+          // console.log('SERVICE UPDATES ==> ', service);
 
           switch (service.state) {
             case ServiceState.CANCELLED_DRIVER:
@@ -239,7 +239,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
-        console.log('SERVICE COMPONENT  ON listenServiceChanges ==> ', service);
+        // console.log('SERVICE COMPONENT  ON listenServiceChanges ==> ', service);
 
         this.currentService = service;
         this.recalculateLayout();
@@ -258,7 +258,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe((service: any) => {
-        console.log('SERVICE COMPONENT ON listenSubscriptionReconnection ===> ', service);
+        // console.log('SERVICE COMPONENT ON listenSubscriptionReconnection ===> ', service);
 
         if (!service && this.currentService.state !== ServiceState.REQUEST) {
           this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
