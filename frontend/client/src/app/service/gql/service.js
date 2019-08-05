@@ -122,3 +122,58 @@ export const RemoveFavoritePlace = gql`
 `;
 
 /* #endregion */
+
+/* #region  subscriptions */
+
+export const ClientServiceUpdatedSubscription = gql`
+subscription ClientServiceUpdatedSubscription {
+  ClientServiceUpdatedSubscription {
+    _id
+    timestamp
+    vehicle {
+      plate
+    }
+    driver {
+      fullname
+    }
+    pickUp {
+      marker {
+        lat
+        lng
+      }
+      addressLine1
+      addressLine2
+    }
+    pickUpETA
+    dropOff {
+      marker {
+        lat
+        lng
+      }
+      addressLine1
+      addressLine2
+    }
+    location {
+      lat
+      lng
+    }
+    dropOffSpecialType
+    verificationCode
+    requestedFeatures
+    paymentType
+    fareDiscount
+    fare
+    tip
+    route {
+      lat
+      lng
+    }
+    lastModificationTimestamp
+    state
+  }
+}
+`
+
+/* #endregion */
+
+

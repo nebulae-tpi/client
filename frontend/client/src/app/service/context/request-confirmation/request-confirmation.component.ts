@@ -645,7 +645,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           };
         }
 
-        this.originPlace.name = place.name;
+        this.originPlace.name = place.name || this.originPlaceAddresInput.value
         this.originPlace.location = place.location;
         this.originPlaceAddresInput.setValue(this.originPlace.name);
 

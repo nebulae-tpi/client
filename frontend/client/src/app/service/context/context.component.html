@@ -1,10 +1,10 @@
-<app-request-button *ngIf="currentService.state === 'NO_SERVICE' ||
- currentService.state === 'CANCELLED_CLIENT' ||
- currentService.state === 'CANCELLED_DRIVER' ||
- currentService.state === 'CANCELLED_OPERATOR' ||
- currentService.state === 'CANCELLED_SYSTEM' ||
- currentService.state === 'DONE'"></app-request-button>
+<app-request-button *ngIf="serviceState === 'NO_SERVICE' ||
+ serviceState === 'CANCELLED_CLIENT' ||
+ serviceState === 'CANCELLED_DRIVER' ||
+ serviceState === 'CANCELLED_OPERATOR' ||
+ serviceState === 'CANCELLED_SYSTEM' ||
+ serviceState === 'DONE'"></app-request-button>
 
-<app-request-confirmation *ngIf="currentService.state === 'REQUEST'"></app-request-confirmation>
-<app-requested *ngIf="currentService.state === 'REQUESTED'"></app-requested>
-<app-assigned *ngIf="currentService.state === 'ASSIGNED' || currentService.state === 'ARRIVED' || currentService.state === 'ON_BOARD'"></app-assigned>
+<app-request-confirmation *ngIf="serviceState === 'REQUEST'"></app-request-confirmation>
+<app-requested *ngIf="serviceState === 'REQUESTED'"></app-requested>
+<app-assigned *ngIf="serviceState === 'ASSIGNED' || serviceState === 'ARRIVED' || serviceState === 'ON_BOARD'"></app-assigned>

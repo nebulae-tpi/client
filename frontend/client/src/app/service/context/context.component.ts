@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ServiceService } from '../service.service';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -10,7 +10,7 @@ import { Subject } from 'rxjs';
 })
 export class ContextComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
-  currentService;
+  serviceState = null;
 
   constructor(private serviceService: ServiceService) {}
   ngOnInit() {
@@ -24,10 +24,13 @@ export class ContextComponent implements OnInit, OnDestroy {
 
   listenServiceChanges() {
     this.serviceService.currentService$
-      .pipe(takeUntil(this.ngUnsubscribe))
+      .pipe(
+        distinctUntilChanged((a, b) => a.state === b.state ),
+        takeUntil(this.ngUnsubscribe)
+      )
       .subscribe(service => {
         if (service) {
-          this.currentService = service;
+          this.serviceState = service.state
         }
       });
   }

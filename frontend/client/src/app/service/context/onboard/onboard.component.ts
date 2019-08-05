@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ServiceService } from '../../service.service';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-onboard',
@@ -9,17 +9,23 @@ import { takeUntil } from 'rxjs/operators';
   styleUrls: ['./onboard.component.scss']
 })
 export class OnboardComponent implements OnInit, OnDestroy {
-  tipValue = '';
   currentService;
   private ngUnsubscribe = new Subject();
   constructor(private serviceService: ServiceService) {}
 
   ngOnInit() {
     this.serviceService.currentService$
-      .pipe(takeUntil(this.ngUnsubscribe))
+      .pipe(
+        distinctUntilChanged((a, b) => {
+          const  diffVehicle = a.vehicle === b.vehicle;
+          const  diffDriver = a.driver === b.driver;
+          return diffVehicle && diffDriver;
+        }),
+        takeUntil(this.ngUnsubscribe)
+      )
       .subscribe(service => {
-        this.currentService = service;
-        this.tipValue = service && service.tip ? service.tip : '';
+        const { vehicle, driver, tip='' } = service;
+        this.currentService = { vehicle, driver, tip };
       });
   }
 

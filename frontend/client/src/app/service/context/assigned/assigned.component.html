@@ -40,7 +40,7 @@
     <div *ngIf="currentService.tip" fxLayout="row" [fxFlex]="fxFlexTip" fxLayoutAlign="start center"
       class="flex-no-wrap" style="margin-right: 20px; margin-top: 5px">
       <mat-icon style="margin-right: 10px; color: white">monetization_on</mat-icon>
-      <label style="color: white">{{ tipValue | currency: 'COP':'' }}</label>
+      <label style="color: white">{{ currentService.tip | currency: 'COP':'' }}</label>
     </div>
 
     <button fxFlex="100" style="margin-top: 10px; margin-right: 10px" (click)="openCancelSheet()" mat-raised-button

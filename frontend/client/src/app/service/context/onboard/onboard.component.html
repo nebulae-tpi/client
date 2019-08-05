@@ -8,7 +8,7 @@
       <input matInput placeholder="Conductor" readonly="true" [(ngModel)]="currentService.driver.fullname" />
     </mat-form-field>
 
-    <mat-form-field *ngIf="tipValue" fxFlex="100">
+    <mat-form-field *ngIf="currentService.tip" fxFlex="100">
       <input matInput placeholder="Propina" readonly="true" [(ngModel)]="tipValue" currencyMask
         [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }" />
     </mat-form-field>

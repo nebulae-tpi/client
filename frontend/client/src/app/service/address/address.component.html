@@ -1,17 +1,17 @@
 <div *ngIf="showAddress && showTwoInputs" class="input-address-xs" [ngClass]="{'mt-8': showTwoInputs}" >
   <input placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text"
-    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()"/>
+    onfocus="this.value=''" #originPlaceSearch />
 </div>
 
 <div *ngIf="showAddress" [ngClass]="{'input-address-xs': showTwoInputs, 'form-group': !showTwoInputs}">
   <input [ngClass]="{'address-input': !showTwoInputs}" placeholder="Destino" autocorrect="off"
     autocapitalize="off" spellcheck="off" type="text"  onfocus="this.value=''"
-    #destinationPlaceSearch [formControl]="destinationPlaceAddresInput" (change)="onBlurAddress()" />
+    #destinationPlaceSearch />
 </div>
 
 <!-- <div *ngIf="showAddress && !showTwoInputs" class="form-group">
   <input placeholder="Origen" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="address-input"
-    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput" (change)="onBlurAddress()" />
+    onfocus="this.value=''" #originPlaceSearch [formControl]="originPlaceAddresInput"/>
 </div> -->
 
 <div *ngIf="showWithoutService" fxLayout="row" fxLayoutAlign="center center" class="tittle-content">

@@ -25,8 +25,6 @@ export class RequestButtonComponent implements OnInit {
       args: []
      });
 
-
-
     if (!this.gateway.checkIfUserLogger()) {
       await this.keycloakService.login({ scope: 'offline_access' });
     }

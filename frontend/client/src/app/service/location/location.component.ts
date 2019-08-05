@@ -1043,6 +1043,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.ARRIVED:
             this.showDestinationPlaceInput = true;
+            this.showDestinationPlaceInput = false;
             break;
           case ServiceState.ASSIGNED:
             this.showDestinationPlaceInput = false;

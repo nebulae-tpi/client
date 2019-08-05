@@ -13,7 +13,6 @@ import {
   takeUntil,
   debounceTime,
   tap,
-  map,
   distinctUntilChanged
 } from 'rxjs/operators';
 
@@ -33,7 +32,6 @@ import { ServiceState } from './service-state';
 import { KeycloakService } from 'keycloak-angular';
 import { GatewayService } from '../api/gateway.service';
 import { MatSnackBar } from '@angular/material';
-import { LocationStrategy } from '@angular/common';
 
 /* #endregion */
 
@@ -51,12 +49,16 @@ export class ServiceComponent implements OnInit, OnDestroy {
   /* #region  VARIABLES*/
   layoutType: number;
   screenCols: number;
+
   addressCols: number;
   addressRows = 6;
+
   contextCols: number;
   contextRows: number;
+
   mapCols: number;
   mapRows: number;
+
   showAddress = true;
 
   requestStep = 0;
@@ -93,25 +95,13 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.checkIfUserIsLoggedAndListenServiceUpdates();
     this.buildBackgroundListener();
 
-
-    setTimeout(() => {
-
-      this.serviceService.getFareSettings$().subscribe(
-        e => {
-          console.log('------------------------------ CONFIGURACION DE TARIFA ==> ', e);
-        }
-      );
-
-
-    }, 3000);
-
-
     this.listenServiceCommands();
   }
 
 
   checkIfUserIsLoggedAndListenServiceUpdates() {
     if (this.gateway.checkIfUserLogger()) {
+
       of(this.keycloakService.getKeycloakInstance().tokenParsed)
         .pipe(
           mergeMap((tokenParsed: any) => (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated)
@@ -133,21 +123,55 @@ export class ServiceComponent implements OnInit, OnDestroy {
       this.serviceService.subscribeToClientServiceUpdatedSubscription$()
         .pipe(
           filter(service => service),
+          distinctUntilChanged((a, b) => {
+
+            const diffId = a._id === b._id;
+            const diffState = a.state === b.state;
+            /*
+              timestamp
+              vehicle
+              driver
+              pickUp
+              pickUpETA
+              dropOff
+              location
+              dropOffSpecialType
+              verificationCode
+              requestedFeatures
+              paymentType
+              fareDiscount
+              fare
+              tip
+              route
+              lastModificationTimestamp
+             */
+            return diffId && diffState
+
+          }),
           takeUntil(this.ngUnsubscribe)
         )
-        .subscribe(service => {
+        .subscribe((service: any) => {
           console.log('SERVICE UPDATES ==> ', service);
 
-          if (service.state === ServiceState.CANCELLED_DRIVER) {
-            this.showSnackBar('El conductor ha cancelado el servicio');
-            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
-          } else if ([ServiceState.CANCELLED_OPERATOR, ServiceState.CANCELLED_SYSTEM].includes(service.state)) {
-            this.showSnackBar('El sistema ha cancelado el servicio');
-            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
-          } else if (service.state === ServiceState.DONE) {
-            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
-          } else {
-            this.serviceService.publishServiceChanges(service);
+          switch (service.state) {
+            case ServiceState.CANCELLED_DRIVER:
+              this.showSnackBar('El conductor ha cancelado el servicio');
+              this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
+              break;
+
+            case ServiceState.CANCELLED_OPERATOR:
+              this.showSnackBar('El sistema ha cancelado el servicio');
+              this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
+              break;
+            case ServiceState.CANCELLED_SYSTEM:
+              this.showSnackBar('El sistema ha cancelado el servicio');
+              this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
+              break;
+            case ServiceState.DONE:
+              this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
+              break;
+            default:
+              this.serviceService.publishServiceChanges(service);
           }
         });
     }
@@ -157,7 +181,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.serviceService.serviceCommands$
       .pipe(
         filter(command => command && command.code)
-
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
@@ -187,9 +210,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.currentService = this.serviceService.currentService$.getValue();
     fromEvent(window, 'resize')
       .pipe(
-        debounceTime(50),
-        tap(() => this.recalculateLayout())
-      ).subscribe();
+        debounceTime(50)
+      ).subscribe(() => {
+        this.recalculateLayout();
+      });
   }
 
   /**
@@ -211,13 +235,14 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.serviceService.currentService$
       .pipe(
         // distinctUntilChanged(),
+        filter((service: any) => service),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
-        if (service) {
-          this.currentService = service;
-          this.recalculateLayout();
-        }
+        console.log('SERVICE COMPONENT  ON listenServiceChanges ==> ', service);
+
+        this.currentService = service;
+        this.recalculateLayout();
       });
   }
 
@@ -233,6 +258,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe((service: any) => {
+        console.log('SERVICE COMPONENT ON listenSubscriptionReconnection ===> ', service);
+
         if (!service && this.currentService.state !== ServiceState.REQUEST) {
           this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
         } else {

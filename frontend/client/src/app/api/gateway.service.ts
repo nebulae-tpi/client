@@ -53,13 +53,13 @@ export class GatewayService {
 
         // Create a WebSocket link:
         const ws: any = new WebSocketLink({
-          uri: environment.api.gateway.graphql.wsEndPoint,
+          uri: environment.api.gateway.graphql.wsEndPoint,          
           options: {
             reconnect: true,
             // lazy: true,
             connectionParams: {
-              authToken: token,
-            },
+              authToken: token
+            }            
           }
         });
 

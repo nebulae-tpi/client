@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, of, Observable, iif, throwError } from 'rxjs';
 import { ServiceState } from './service-state';
 import { GatewayService } from '../api/gateway.service';
-import gql from 'graphql-tag';
 import {
   NearbyVehicles,
   ValidateNewClient,
@@ -12,15 +11,16 @@ import {
   BusinessContactInfo,
   RemoveFavoritePlace,
   AddFavoritePlace,
-  fareSettings
+  fareSettings,
+  ClientServiceUpdatedSubscription
 } from './gql/service.js';
-import { map, tap, retryWhen, concatMap, delay } from 'rxjs/operators';
+import { map, tap, retryWhen, concatMap, delay, distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ServiceService {
-  /* #region  VARIABLES*/
+  // LAYOUT MODES
   public static LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT = 0;
   public static LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT = 1;
   public static LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT = 2;
@@ -28,7 +28,9 @@ export class ServiceService {
   public static LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT = 4;
   public static LAYOUT_DESKTOP_MAP_CONTENT = 5;
   public static LAYOUT_ADDRESS_MAP_CONTENT = 6;
+  // LAYOUT MODES
 
+  // COMMANDS TYPES
   public static LAYOUT_COMMAND_SHOW_ADDRESS = 100;
   public static LAYOUT_COMMAND_HIDE_ADDRESS = 101;
 
@@ -39,9 +41,7 @@ export class ServiceService {
 
   public static COMMAND_TRIP_COST_CALCULATED = 203;
   public static COMMAND_MOVING_MARKER_WITH_CENTER = 204;
-
-
-
+  // COMMANDS TYPES
 
   layoutChanges$ = new BehaviorSubject(undefined);
   serviceCommands$ = new BehaviorSubject(undefined);
@@ -64,27 +64,22 @@ export class ServiceService {
   originPlaceSelected$ = new BehaviorSubject(undefined);
   destinationPlaceSelected$ = new BehaviorSubject(undefined);
 
-  //
-  /* #endregion */
-
   constructor(private gateway: GatewayService) { }
 
   notifyBackNavigation() {
     this.backNavigation$.next(true);
   }
 
-
-
   /* #region QUERIES */
   getNearbyVehicles() {
-    this.markerOnMapChange$.getValue();
-    if (this.markerOnMapChange$.getValue()) {
+    const marker = this.markerOnMapChange$.getValue();
+    if (marker) {
       return this.gateway.apollo.query<any>({
         query: NearbyVehicles,
         variables: {
           clientLocation: {
-            lat: this.markerOnMapChange$.getValue().latitude,
-            lng: this.markerOnMapChange$.getValue().longitude
+            lat: marker.latitude,
+            lng: marker.longitude
           },
           filters: []
         },
@@ -94,7 +89,6 @@ export class ServiceService {
     } else {
       return of(undefined);
     }
-    // return of(undefined);
   }
 
   getCurrentService$() {
@@ -107,13 +101,12 @@ export class ServiceService {
         })
         .pipe(
           map(result => {
-            if (result.data && result.data.CurrentServices) {
+            if ((result.data || {}).CurrentServices) {
               return result.data.CurrentServices.length > 0
                 ? result.data.CurrentServices[0]
                 : undefined;
-            } else {
-              return undefined;
             }
+            return undefined;
           }),
           retryWhen(errors =>
             errors.pipe(
@@ -132,7 +125,7 @@ export class ServiceService {
         );
     } else {
       return of(undefined);
-    }
+    }    
   }
 
   getBusinessContactInfo$() {
@@ -144,13 +137,7 @@ export class ServiceService {
           errorPolicy: 'all'
         })
         .pipe(
-          map(result => {
-            if (result.data && result.data.BusinessContactInfo) {
-              return result.data.BusinessContactInfo;
-            } else {
-              return undefined;
-            }
-          }),
+          map(result => (result.data || {}).BusinessContactInfo ),
           tap(business => {
             this.businessContactInfo = business;
           })
@@ -178,10 +165,11 @@ export class ServiceService {
 
   /* #region  MUTATIONS */
   cancelService$(reason) {
+    const currentService = this.currentService$.getValue();
     return this.gateway.apollo.mutate<any>({
       mutation: CancelServiceByClient,
       variables: {
-        id: this.currentService$.getValue()._id,
+        id: currentService._id,
         reason
       },
       errorPolicy: 'all'
@@ -213,66 +201,16 @@ export class ServiceService {
   subscribeToClientServiceUpdatedSubscription$(): Observable<any> {
     return this.gateway.apollo
       .subscribe({
-        query: gql`
-          subscription ClientServiceUpdatedSubscription {
-            ClientServiceUpdatedSubscription {
-              _id
-              timestamp
-              vehicle {
-                plate
-              }
-              driver {
-                fullname
-              }
-              pickUp {
-                marker {
-                  lat
-                  lng
-                }
-                addressLine1
-                addressLine2
-              }
-              pickUpETA
-              dropOff {
-                marker {
-                  lat
-                  lng
-                }
-                addressLine1
-                addressLine2
-              }
-              location {
-                lat
-                lng
-              }
-              dropOffSpecialType
-              verificationCode
-              requestedFeatures
-              paymentType
-              fareDiscount
-              fare
-              tip
-              route {
-                lat
-                lng
-              }
-              lastModificationTimestamp
-              state
-            }
-          }
-        `
+        query: ClientServiceUpdatedSubscription
       })
       .pipe(
-        map(result => {
-          return result.data && result.data.ClientServiceUpdatedSubscription
-            ? result.data.ClientServiceUpdatedSubscription
-            : undefined;
-        })
+        map(result => (result.data || {}).ClientServiceUpdatedSubscription )
       );
+    // return of(null)
   }
   /* #endregion */
 
-  // tslint:disable-next-line:max-line-length
+
   publishLayoutChange(
     type: number,
     addressWidth: number,
@@ -302,20 +240,17 @@ export class ServiceService {
           visible: contextHeight && contextWidth
         },
         total: {
-          width:
-            addressWidth +
-            mapWidth +
-            (contextWidth &&
-              type === ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT
+          width: addressWidth + mapWidth +
+            (contextWidth && type === ServiceService.LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT
               ? contextWidth
-              : 0),
-          height:
-            addressHeight +
-            mapHeight +
+              : 0
+            ),
+          height: addressHeight + mapHeight +
             (contextHeight &&
               type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
               ? contextHeight
-              : 0)
+              : 0
+            )
         }
       }
     });
@@ -346,11 +281,7 @@ export class ServiceService {
   }
 
   publishServiceChanges(serviceChanges) {
-    console.log('SERVICE CHANGE REPORTED ==> ', serviceChanges);
-
     if (JSON.stringify(this.currentService$.getValue()) === JSON.stringify(serviceChanges)) {
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
       return;
     }
 

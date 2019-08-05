@@ -7,11 +7,10 @@ import {
   OnDestroy,
   AfterViewInit
 } from '@angular/core';
-import { FormControl } from '@angular/forms';
 import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
-import { filter, takeUntil, tap, map, startWith } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { filter, takeUntil, tap, map, startWith, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Subject, fromEvent, BehaviorSubject, merge, of } from 'rxjs';
 import { ServiceState } from '../service-state';
 import { MenuService } from 'src/app/menu/menu.service';
 
@@ -26,16 +25,15 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('originPlaceSearch') originPlaceSearchElementRef: ElementRef;
   originPlace: any = {};
   originPlaceAutocomplete: any;
-  originPlaceAddresInput = new FormControl();
 
   @ViewChild('destinationPlaceSearch') destinationPlaceSearchElementRef: ElementRef;
   destinationPlace: any = {};
   destinationPlaceAutocomplete: any;
-  destinationPlaceAddresInput = new FormControl();
 
   STRINGS_TO_REMOVE = [', Antioquia', ', Valle del Cauca', ', Colombia'];
 
   private ngUnsubscribe = new Subject();
+  private updateListenersOnInputs = new Subject();
 
   layoutType = null;
 
@@ -47,9 +45,11 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   showOnBoardHeader = false;
 
   userProfile: any; // User profile
-  selectedPlace: any = {}; // selected place.
+  // selectedPlace: any = {}; // selected place.
 
   showTwoInputs = false;
+  currentServiceState = null;
+  mapsApiLoaded$ = new BehaviorSubject(null);
 
   constructor(
     private mapsAPILoader: MapsAPILoader,
@@ -61,13 +61,12 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.loadUserProfile();
 
+    this.mapsAPILoader.load().then(() => this.mapsApiLoaded$.next(true));
+
     this.listenServiceChanges();
     this.listenLayoutChanges();
 
     this.listenMarkerPositionChanges();
-
-    // this.buildOriginPlaceAutoComplete();
-    this.buildDestinationPlaceAutoComplete();
 
     this.listenOriginPlaceChanges();
     this.listenDestinationPlaceChanges();
@@ -75,8 +74,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.listenChangesOnAddressSearchInput();
-
+    this.listenChangesOnOriginaAndDestinationPlaceInput();
   }
 
   ngOnDestroy() {
@@ -101,53 +99,133 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   buildOriginPlaceAutoComplete(circle?) {
     if (!this.originPlaceSearchElementRef) {
       setTimeout(() => {
-        if (this.showTwoInputs) {
+        if (this.showAddress && this.showTwoInputs) {
           this.buildOriginPlaceAutoComplete(circle);
         }
-      }, 1000);
+      }, 500);
       return;
     }
 
+    this.mapsApiLoaded$
+      .pipe(
+        filter(loaded => loaded),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe(() => {
+        this.originPlaceAutocomplete = new google.maps.places.Autocomplete(
+          this.originPlaceSearchElementRef.nativeElement,
+          { componentRestrictions: { country: 'co' } }
+        );
 
-    this.mapsAPILoader.load().then(() => {
-      this.originPlaceAutocomplete = new google.maps.places.Autocomplete(
-        this.originPlaceSearchElementRef.nativeElement,
-        { componentRestrictions: { country: 'co' } }
+        this.originPlaceAutocomplete.addListener('place_changed', () => {
+          this.ngZone.run(() => {
+            // get the place result
+            const place: google.maps.places.PlaceResult = this.originPlaceAutocomplete.getPlace();
+            // verify result
+            if (!place || place.geometry === undefined || place.geometry === null) {
+              return;
+            }
+            const { address_components, name, formatted_address } = place;
+            if (this.originPlace.favorite) {
+              // this.originPlaceAddresInput.setValue(`${name}`.trim());
+              this.originPlaceSearchElementRef.nativeElement.value = `${name}`.trim();
+            } else {
+              this.originPlaceSearchElementRef.nativeElement.value = `${name}, ${formatted_address.split(',').slice(1)}`.trim();
+            }
+
+            let valueForOriginPlace = this.originPlaceSearchElementRef.nativeElement.value;
+            this.STRINGS_TO_REMOVE.forEach(s =>
+              // this.originPlaceAddresInput.setValue(this.originPlaceAddresInput.value.replace(s, ''))
+              valueForOriginPlace = valueForOriginPlace.replace(s, '')
+            );
+            this.originPlaceSearchElementRef.nativeElement.value = valueForOriginPlace;
+
+
+            this.serviceService.originPlaceSelected$.next({
+              name: this.originPlaceSearchElementRef.nativeElement.value,
+              location: {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+              }
+            });
+
+            // this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+            // todo enable when develop eviroment is on
+            // if (!this.gateway.checkIfUserLogger()) {
+            //    defer(() => this.keycloakService.login({ scope: 'offline_access' }) ).pipe().subscribe();
+            // }
+
+          });
+        });
+
+        if (!circle) {
+          const location = this.serviceService.markerOnMapChange$.getValue();
+          if (!location) { return; }
+          circle = new google.maps.Circle({
+            center: { lat: location.latitude, lng: location.longitude },
+            radius: 20000 // meters
+          });
+        }
+
+        if (circle) {
+          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.originPlaceAutocomplete.setBounds(circle.getBounds());
+        }
+
+      });
+
+  }
+
+  buildDestinationPlaceAutoComplete(circle?) {
+    if (!this.destinationPlaceSearchElementRef) {
+      setTimeout(() => {
+        if (this.showAddress) {
+          this.buildDestinationPlaceAutoComplete(circle);
+        }
+      }, 500);
+      return;
+    }
+
+    this.mapsApiLoaded$.pipe(
+      filter(loaded => loaded)
+    ).subscribe(() => {
+      this.destinationPlaceAutocomplete = new google.maps.places.Autocomplete(
+        this.destinationPlaceSearchElementRef.nativeElement,
+        {
+          componentRestrictions: { country: 'co' }
+        }
       );
 
-      this.originPlaceAutocomplete.addListener('place_changed', () => {
+      this.destinationPlaceAutocomplete.addListener('place_changed', () => {
         this.ngZone.run(() => {
           // get the place result
-          const place: google.maps.places.PlaceResult = this.originPlaceAutocomplete.getPlace();
+          const place: google.maps.places.PlaceResult = this.destinationPlaceAutocomplete.getPlace();
           // verify result
           if (!place || place.geometry === undefined || place.geometry === null) {
             return;
           }
-          const { address_components, name, formatted_address } = place;
-          // this.searchControl.setValue(`${place.name}, ${place.formatted_address.split(',').slice(1)}`);
 
-          if (this.selectedPlace.favorite) {
-            this.originPlaceAddresInput.setValue(`${name}`.trim());
-          } else {
-            this.originPlaceAddresInput.setValue(`${name}, ${formatted_address.split(',').slice(1)}`.trim());
-          }
+          // this.addressInputValue = place.formatted_address.split(',')[0];
 
-          this.STRINGS_TO_REMOVE.forEach(s => this.originPlaceAddresInput.setValue(this.originPlaceAddresInput.value.replace(s, '')));
+          const { address_components, name, formatted_address, geometry } = place;
 
-          this.serviceService.originPlaceSelected$.next({
-            name: this.originPlaceAddresInput.value,
+
+          this.destinationPlace.favorite = (formatted_address === '[FAVORITE]');
+          let destinationPlaceName = this.destinationPlace.favorite
+            ? `${name}`.trim()
+            : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
+
+          this.STRINGS_TO_REMOVE.forEach(s => destinationPlaceName = destinationPlaceName.replace(s, ''));
+
+          this.destinationPlace.name = destinationPlaceName;
+
+          this.serviceService.destinationPlaceSelected$.next({
+            ...this.destinationPlace,
+            name: this.destinationPlace.name,
             location: {
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
+              lat: geometry.location.lat(),
+              lng: geometry.location.lng()
             }
           });
-
-          // this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
-          // todo enable when develop eviroment is on
-          // if (!this.gateway.checkIfUserLogger()) {
-          //    defer(() => this.keycloakService.login({ scope: 'offline_access' }) ).pipe().subscribe();
-          // }
-
         });
       });
 
@@ -162,81 +240,10 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       if (circle) {
-        this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
 
     });
-  }
-
-  buildDestinationPlaceAutoComplete(circle?) {
-    if (!this.destinationPlaceSearchElementRef) {
-      setTimeout(() => {
-        this.buildDestinationPlaceAutoComplete(circle);
-      }, 200);
-      return;
-    }
-
-    if (this.destinationPlaceSearchElementRef) {
-      this.mapsAPILoader.load().then(() => {
-        this.destinationPlaceAutocomplete = new google.maps.places.Autocomplete(
-          this.destinationPlaceSearchElementRef.nativeElement,
-          {
-            componentRestrictions: { country: 'co' }
-          }
-        );
-
-        this.destinationPlaceAutocomplete.addListener('place_changed', () => {
-          this.ngZone.run(() => {
-            // get the place result
-            const place: google.maps.places.PlaceResult = this.destinationPlaceAutocomplete.getPlace();
-            // verify result
-            if (!place || place.geometry === undefined || place.geometry === null) {
-              return;
-            }
-
-            // this.addressInputValue = place.formatted_address.split(',')[0];
-
-            const { address_components, name, formatted_address, geometry } = place;
-
-
-            this.destinationPlace.favorite = (formatted_address === '[FAVORITE]');
-            let destinationPlaceName = this.destinationPlace.favorite
-              ? `${name}`.trim()
-              : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
-
-            this.STRINGS_TO_REMOVE.forEach(s => destinationPlaceName = destinationPlaceName.replace(s, ''));
-
-            this.destinationPlace.name = destinationPlaceName;
-
-            this.serviceService.destinationPlaceSelected$.next({
-              ...this.destinationPlace,
-              name: this.destinationPlace.name,
-              location: {
-                lat: geometry.location.lat(),
-                lng: geometry.location.lng()
-              }
-            });
-          });
-        });
-
-        if (!circle) {
-          const location = this.serviceService.markerOnMapChange$.getValue();
-          if (!location) { return; }
-          const latlng = new google.maps.LatLng(location.latitude, location.longitude);
-          circle = new google.maps.Circle({
-            center: latlng,
-            radius: 20000 // meters
-          });
-        }
-
-        if (circle) {
-          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
-        }
-      });
-    } else {
-      console.log('destinationPlaceSearchElementRef IS NO DEFINED!!!!!!!! ');
-
-    }
   }
 
   /**
@@ -249,25 +256,21 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        const latlng = new google.maps.LatLng(
-          location.latitude,
-          location.longitude
-        );
         const circle = new google.maps.Circle({
-          center: latlng,
+          center: { lat: location.latitude, lng: location.longitude },
           radius: 20000 // meters
         });
 
 
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
-        } else if (this.showAddress) {
+        } else if (this.showAddress && this.showTwoInputs) {
           this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
         if (!this.destinationPlace) {
           this.buildDestinationPlaceAutoComplete(circle);
-        } else if (this.showAddress && this.showTwoInputs) {
+        } else if (this.showAddress && this.destinationPlaceAutocomplete ) {
           this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
@@ -278,10 +281,12 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
     this.serviceService.currentService$
       .pipe(
         takeUntil(this.ngUnsubscribe),
-        filter(service => service)
+        filter(service => service),
+        distinctUntilChanged((a, b) => a.state === b.state)
       )
       .subscribe(service => {
-        switch (service.state) {
+        this.currentServiceState = service.state;
+        switch (this.currentServiceState) {
           case ServiceState.NO_SERVICE:
             this.showTwoInputs = false;
             break;
@@ -319,7 +324,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               this.buildOriginPlaceAutoComplete();
 
             }
-
             break;
           case ServiceState.REQUESTED:
             this.showOfferHeader = true;
@@ -382,14 +386,9 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         const { type } = layout;
         this.layoutType = type;
 
-        const serviceState = this.serviceService.currentService$.getValue().state;
-        this.showTwoInputs = (serviceState === ServiceState.REQUEST && type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
+        this.showTwoInputs = (this.currentServiceState === ServiceState.REQUEST && type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
 
       });
-  }
-
-  onBlurAddress() {
-    // this.serviceService.addressChange$.next(this.addressInputValue);
   }
 
   /**
@@ -408,55 +407,84 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       : [];
   }
 
-  listenChangesOnAddressSearchInput() {
-    if (!this.showAddress) { return; }
-    this.originPlaceAddresInput.valueChanges
-      .pipe(
-        // map(() => this.searchElementRef.nativeElement.value),
-        tap(inputValue => {
-          const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(inputValue);
-          const s = document.getElementsByClassName('pac-container pac-logo');
-          const items = Array.from(s);
+  listenChangesOnOriginaAndDestinationPlaceInput() {
 
-          items.forEach(optionsParent => {
-            // remove all previuos favorite options
-            const itemsToRemove = optionsParent.getElementsByClassName('favorite-place');
-            while (itemsToRemove[0]) {
-              itemsToRemove[0].parentNode.removeChild(itemsToRemove[0]);
-            }
+    this.updateListenersOnInputs.next(true);
 
-            itemsToAutocomplete.forEach(e => {
-              const node = document.createElement('div');
-              node.setAttribute('class', 'pac-item');
-              node.addEventListener('mousedown', () => this.onFavoriteResultClick(e));
-              node.setAttribute('class', 'pac-item favorite-place');
-              node.innerHTML = `
-              <span class="pac-icon pac-icon-marker-fav"></span>
-              <span class="pac-item-query">
-              <span class="pac-matched">${e.name}</span></span>
-              `;
-              optionsParent.insertBefore(node, optionsParent.firstChild);
-            });
-          });
-        }),
-        takeUntil(this.ngUnsubscribe)
-      )
-      .subscribe();
+    merge(
+      (this.originPlaceSearchElementRef || { nativeElement: null}).nativeElement
+        ? fromEvent(this.originPlaceSearchElementRef.nativeElement, 'keyup').pipe(
+          map(input => ({ type: 'ORIGIN', value: input }))
+        )
+        : of(null),
+      (this.destinationPlaceSearchElementRef || { nativeElement: null}).nativeElement
+        ? fromEvent(this.destinationPlaceSearchElementRef.nativeElement, 'keyup').pipe(
+          map(input => ({ type: 'DESTINATION', value: input }))
+        )
+        : of(null)
+    ).pipe(
+      filter(value => value),
+      takeUntil(this.ngUnsubscribe),
+      takeUntil(this.updateListenersOnInputs)
+    ).subscribe(input => {
+      const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(input.value);
+      const s = document.getElementsByClassName('pac-container pac-logo');
+      const items = Array.from(s);
+
+      items.forEach(optionsParent => {
+        // remove all previuos favorite options
+        const itemsToRemove = optionsParent.getElementsByClassName('favorite-place');
+        while (itemsToRemove[0]) {
+          itemsToRemove[0].parentNode.removeChild(itemsToRemove[0]);
+        }
+
+        itemsToAutocomplete.forEach(e => {
+          const node = document.createElement('div');
+          node.setAttribute('class', 'pac-item');
+          node.addEventListener('mousedown', () => this.onFavoriteResultClick(e, input.type));
+          node.setAttribute('class', 'pac-item favorite-place');
+          node.innerHTML = `
+            <span class="pac-icon pac-icon-marker-fav"></span>
+            <span class="pac-item-query">
+            <span class="pac-matched">${e.name}</span></span>
+            `;
+          optionsParent.insertBefore(node, optionsParent.firstChild);
+        });
+      });
+
+    });
   }
 
-  onFavoriteResultClick(favoriteSelected) {
-    this.selectedPlace.favorite = true;
+  onFavoriteResultClick(favoriteSelected, type: string) {
+    switch (type) {
+      case 'ORIGIN':
+        this.originPlace.favorite = true;
+        this.originPlaceAutocomplete.set('place', {
+          name: favoriteSelected.name,
+          formatted_address: '[FAVORITE]', // todo check
+          geometry: {
+            location: {
+              lat: () => favoriteSelected.location.lat,
+              lng: () => favoriteSelected.location.lng
+            }
+          }
+        });
+        break;
+      case 'DESTINATION':
+        this.destinationPlace.favorite = true;
+        this.destinationPlaceAutocomplete.set('place', {
+          name: favoriteSelected.name,
+          formatted_address: '[FAVORITE]', // todo check
+          geometry: {
+            location: {
+              lat: () => favoriteSelected.location.lat,
+              lng: () => favoriteSelected.location.lng
+            }
+          }
+        });
+        break;
+    }
 
-    this.originPlaceAutocomplete.set('place', {
-      name: favoriteSelected.name,
-      formatted_address: '[FAVORITE]', // todo check
-      geometry: {
-        location: {
-          lat: () => favoriteSelected.location.lat,
-          lng: () => favoriteSelected.location.lng
-        }
-      }
-    });
   }
 
   listenOriginPlaceChanges() {
@@ -481,23 +509,25 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.originPlace.name = place.name;
         this.originPlace.location = place.location;
-        this.originPlaceAddresInput.setValue(this.originPlace.name);
-
-
-        if (!startWithElement) {
-          const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
-          const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
-
-          // if (!this.originPlaceAutocomplete) {
-          //   this.buildOriginPlaceAutoComplete(circle);
-          // } else {
-          //   this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
-          // }
+        if(this.originPlaceSearchElementRef){
+          this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
         }
+        
+
+
+        // if (!startWithElement) {
+        //   const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
+        //   const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
+
+        //   // if (!this.originPlaceAutocomplete) {
+        //   //   this.buildOriginPlaceAutoComplete(circle);
+        //   // } else {
+        //   //   this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        //   // }
+        // }
 
       });
   }
-
 
   listenDestinationPlaceChanges() {
     this.serviceService.destinationPlaceSelected$
@@ -507,18 +537,21 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       ).subscribe((place: any) => {
 
         this.destinationPlace.name = place.name;
-        this.destinationPlaceAddresInput.setValue(this.destinationPlace.name);
+        if(this.destinationPlaceSearchElementRef){
+          this.destinationPlaceSearchElementRef.nativeElement.value = this.destinationPlace.name;
+        }
+        
         this.destinationPlace.location = place.location;
 
-        const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
-        const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
+        // const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
+        // const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
 
 
-        // if (!this.destinationPlaceAutocomplete) {
-        //   this.buildDestinationPlaceAutoComplete(circle);
-        // } else {
-        //   this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
-        // }
+        // // if (!this.destinationPlaceAutocomplete) {
+        // //   this.buildDestinationPlaceAutoComplete(circle);
+        // // } else {
+        // //   this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        // // }
 
       });
   }

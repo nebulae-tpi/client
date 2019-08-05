@@ -80,12 +80,10 @@
   <!-- CONFIRM AND CANCEL BUTTONS -->
   <div *ngIf="showAcceptAndCancelButtons" fxFlex="100" class="my-4" fxLayout="row wrap" fxLayoutAlign="space-around center">
 
-    <!-- style="margin-right: 10px" fxFlex="45" -->
     <button type="button" mat-raised-button fxFlex="45" color="warn" (click)="cancel()">
       Cancelar
     </button>
 
-    <!-- style="margin-right: 10px"  -->
     <button type="button" mat-raised-button fxFlex="45" color="confirm-button-color" (click)="onConfirmButton()">
       Confirmar
     </button>
