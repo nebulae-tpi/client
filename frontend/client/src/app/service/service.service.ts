@@ -41,6 +41,8 @@ export class ServiceService {
 
   public static COMMAND_TRIP_COST_CALCULATED = 203;
   public static COMMAND_MOVING_MARKER_WITH_CENTER = 204;
+
+  public static COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE = 205;
   // COMMANDS TYPES
 
   layoutChanges$ = new BehaviorSubject(undefined);
@@ -176,17 +178,21 @@ export class ServiceService {
     });
   }
 
-  createNewService$(clientUsername: string, pickUpLocation, address: string, reference: string, serviceTip, tripCost?: number) {
+  createNewService$(clientUsername: string, pickUp, dropOff, serviceTip, tripCost?: number) {
     return this.gateway.apollo.mutate<any>({
       mutation: RequestService,
       variables: {
-        pickUp: {
+        pickUp,
+        /*
+        : {
           marker: pickUpLocation,
           addressLine1: address,
           addressLine2: reference,
           neighborhood: 'Solicitud app cliente',
           zone: ''
-        },
+        }
+         */
+        dropOff,
         paymentType: 'CASH',
         requestFeatures: [],
         tip: serviceTip > 0 ? serviceTip : undefined,

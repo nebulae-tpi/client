@@ -194,6 +194,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.buildOriginPlaceAutoComplete();
     this.buildDestinationPlaceAutoComplete();
 
+
+
     this.listenChangesOnOriginAndDestinationSearchInput();
   }
 
@@ -244,22 +246,40 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
-    // console.log('-------- confirmServiceRequest ---------------');
+    console.log('-------- confirmServiceRequest ---------------');
 
     if (!this.originPlace.name) {
       this.originPlace.name = this.originPlaceSearchElementRef.nativeElement.value;
     }
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
-      const pickUpMarker = {
-        lat: this.originPlace.location.lat,
-        lng: this.originPlace.location.lng
+
+
+      const pickUp = {
+        marker: {
+          lat: this.originPlace.location.lat,
+          lng: this.originPlace.location.lng
+        },
+        addressLine1: this.originPlace.name,
+        addressLine2: this.placeReference,
+        neighborhood: 'Solicitud app cliente',
       };
+
+      let dropOff;
+      if (this.destinationPlace) {
+        dropOff = {
+          marker: {
+            lat: this.destinationPlace.location.lat,
+            lng: this.destinationPlace.location.lng
+          },
+          addressLine1: this.destinationPlace.name,
+        };
+
+      }
 
       this.serviceService.createNewService$(
         this.serviceService.userProfile.username,
-        pickUpMarker,
-        this.originPlace.name,
-        this.placeReference,
+        pickUp,
+        dropOff,
         parseInt(this.tipValue, 10),
         (this.tripCostCalculed || {}).rawCost
       )
@@ -650,7 +670,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-        // console.log('listenOriginPlaceChanges ==> ', place);
+        console.log('listenOriginPlaceChanges ==> ', place);
 
         if (place.type === 'INITIAL_MARKER') {
           place = {

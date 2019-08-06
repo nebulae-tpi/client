@@ -17,9 +17,8 @@
   <div id="test-form-on-map" [ngStyle]="{ 'width.px': widthMapContent }"
     [ngClass]="{'hide-item': !showDestinationPlaceInput}">
     <div class="form-steps" fxLayoutAlign="center center">
-      <input id="addressInput" placeholder="¿A dónde vás?" autocorrect="off" autocapitalize="off"
-        [formControl]="destinationPlaceAddresInput" spellcheck="off" type="text" class="address-input"
-        onfocus="this.value=''" #destinationPlaceSearch />
+      <input #destinationPlaceSearch id="addressInput" placeholder="¿A dónde vás?" autocorrect="off"
+        autocapitalize="off"spellcheck="off" type="text" class="address-input" onfocus="this.value=''"  />
     </div>
   </div>
   <!-- DESTINATION ADDRESS INPUT FOR PSEUDO-XS-LAYOUT -->

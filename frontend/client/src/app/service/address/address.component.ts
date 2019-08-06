@@ -61,6 +61,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.loadUserProfile();
 
+    this.listenServiceCommands();
+
     this.mapsAPILoader.load().then(() => this.mapsApiLoaded$.next(true));
 
     this.listenServiceChanges();
@@ -70,6 +72,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.listenOriginPlaceChanges();
     this.listenDestinationPlaceChanges();
+
+
 
   }
 
@@ -396,6 +400,32 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
+  listenServiceCommands() {
+    this.serviceService.serviceCommands$
+      .pipe(
+        filter((command: any) => command && command.code)
+      ).subscribe((command: any) => {
+        switch (command.code) {
+          case ServiceService.COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE:
+            const place = command.args[0].place;
+            if (command.args[0] && command.args[0].type === 'ORIGIN' && place) {
+              this.originPlace = {
+                name: place.address,
+                location: place.location
+              };
+              this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+              this.serviceService.originPlaceSelected$.next(this.originPlace);
+            }
+            console.log('USAR EL ===> ', command.args[0]);
+
+            break;
+
+          default:
+            break;
+        }
+      });
+  }
+
   /**
    * search favorite places using the filter text
    * @param filterText filter to search in favorite places
@@ -431,7 +461,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         : of(null)
     ).pipe(
       filter(value => value),
-      takeUntil(merge(this.ngUnsubscribe, this.updateListenersOnInputs )),
+      takeUntil(merge(this.ngUnsubscribe, this.updateListenersOnInputs)),
     ).subscribe(input => {
       console.log('########### ', input);
       const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(input.value);
@@ -459,7 +489,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       });
 
-    }, e => console.log(e), () =>  console.log('Completado '));
+    }, e => console.log(e), () => console.log('Completado '));
   }
 
   onFavoriteResultClick(favoriteSelected, type: string) {

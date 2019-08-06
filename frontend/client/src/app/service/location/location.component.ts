@@ -106,7 +106,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   @ViewChild('destinationPlaceSearch') destinationPlaceSearchElementRef: ElementRef;
   destinationPlace: any = {};
   destinationPlaceAutocomplete: any;
-  destinationPlaceAddresInput = new FormControl();
 
 
   lat = 3.416652; // todo
@@ -455,7 +454,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
           const { address_components, name, formatted_address, geometry } = place;
 
-          this.destinationPlace.favorite = (formatted_address === '[FAVORITE]');
+          (this.destinationPlace || {}).favorite = (formatted_address === '[FAVORITE]');
           let destinationPlaceName = this.destinationPlace.favorite
             ? `${name}`.trim()
             : `${name}, ${formatted_address.split(',').slice(1)}`.trim();
@@ -464,7 +463,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
           this.destinationPlace.name = destinationPlaceName;
-          this.destinationPlaceAddresInput.setValue(destinationPlaceName);
+          this.destinationPlaceSearchElementRef.nativeElement.value = destinationPlaceName;
 
           this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
 
@@ -995,7 +994,8 @@ export class LocationComponent implements OnInit, OnDestroy {
           case ServiceState.CANCELLED_CLIENT:
             this.showDestinationPlaceInput = true;
             this.estimatedTripCost = null;
-            this.serviceService.publishServiceChanges({state: ServiceState.NO_SERVICE})
+            this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
+            this.clearOriginDestinationPlacesAndMarkers();
             break;
           case ServiceState.CANCELLED_DRIVER:
             this.showDestinationPlaceInput = true;
@@ -1175,6 +1175,19 @@ export class LocationComponent implements OnInit, OnDestroy {
       });
   }
 
+  clearOriginDestinationPlacesAndMarkers() {
+    if (this.originMarker) {
+      this.originMarker.setMap(null);
+    }
+    this.originPlace = null;
+
+
+    if (this.destinationMarker) {
+      this.destinationMarker.setMap(null);
+    }
+    this.destinationPlace = null;
+  }
+
 
 
 
@@ -1182,7 +1195,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region QUERIES */
   startNearbyVehicles() {
-    interval(5000)
+    interval(20000) // todo set in 5000 for production
       .pipe(
         filter(() => this.nearbyVehiclesEnabled),
         mergeMap(() => this.getNearbyVehicles$()),

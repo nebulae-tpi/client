@@ -13,7 +13,9 @@ import {
   takeUntil,
   debounceTime,
   tap,
-  distinctUntilChanged
+  distinctUntilChanged,
+  map,
+  delay
 } from 'rxjs/operators';
 
 import {
@@ -21,7 +23,8 @@ import {
   of,
   defer,
   interval,
-  fromEvent
+  fromEvent,
+  forkJoin
 } from 'rxjs';
 /* #endregion */
 
@@ -32,6 +35,8 @@ import { ServiceState } from './service-state';
 import { KeycloakService } from 'keycloak-angular';
 import { GatewayService } from '../api/gateway.service';
 import { MatSnackBar } from '@angular/material';
+import { ActivatedRoute } from '@angular/router';
+import { MenuService } from '../menu/menu.service';
 
 /* #endregion */
 
@@ -82,12 +87,16 @@ export class ServiceComponent implements OnInit, OnDestroy {
     protected serviceService: ServiceService,
     private keycloakService: KeycloakService,
     private gateway: GatewayService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private route: ActivatedRoute,
+    private menuService: MenuService,
   ) {
 
   }
 
   ngOnInit() {
+
+    this.listenRouteParams();
     this.listenServiceChanges();
     this.listenResizeEvent();
     this.listenSubscriptionReconnection();
@@ -175,6 +184,49 @@ export class ServiceComponent implements OnInit, OnDestroy {
           }
         });
     }
+  }
+
+
+  listenRouteParams() {
+    this.route.params
+      .pipe(
+        filter((params: any) => params.origin || params.destination),
+        mergeMap(params => this.menuService.currentUserProfile$
+          .pipe(
+            filter((userProfile: any) => userProfile),
+            map((userProfile: any) => ({ favoritePlaces: userProfile.favoritePlaces, params }))
+          )
+        ),
+        map((data: any) => {
+          let favoritePlace;
+          let favoritePlaceType;
+          if (data.params.origin) {
+            favoritePlaceType = 'ORIGIN';
+            favoritePlace = data.favoritePlaces.find(fp => fp.id === data.params.origin);
+          }
+          if (data.params.destination) {
+            favoritePlaceType = 'DESTINATION';
+            favoritePlace = data.favoritePlaces.find(fp => fp.id === data.params.destination);
+          }
+
+          return ({
+            type: favoritePlaceType,
+            place: favoritePlace
+          });
+        }),
+        tap(() => this.serviceService.publishServiceChanges({state: ServiceState.REQUEST}) ),
+        delay(100),
+        takeUntil(this.ngUnsubscribe)
+      ).subscribe(data => {
+        console.log(data);
+
+        this.recalculateLayout();
+        this.serviceService.publishCommand({
+          code: ServiceService.COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE,
+          args: [{ ...data }]
+        });
+
+      }, e => console.log(e), () => console.log('ESCUCHADOR DE ORIGIN COMPLETADO') );
   }
 
   listenServiceCommands() {
@@ -302,6 +354,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
       case ServiceState.ON_BOARD:
       case ServiceState.REQUEST:
         this.showAddress = this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
+
+        screenHeightWaste = this.showAddress ? 56 : 130;
         screenHeightWaste = 130;
 
         break;

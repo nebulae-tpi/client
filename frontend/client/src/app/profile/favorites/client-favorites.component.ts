@@ -12,6 +12,7 @@ import { Subject, } from 'rxjs';
 import { ProfileService } from '../profile.service';
 import { MenuService } from 'src/app/menu/menu.service';
 import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-client-favorites',
@@ -32,7 +33,9 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
   constructor(
     private profileService: ProfileService,
     private menuService: MenuService,
-    private location: Location
+    private location: Location,
+    private router: Router,
+
   ) { }
 
   ngOnInit() {
@@ -101,6 +104,14 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(() => { }, e => { }, () => { });
+  }
+
+  useAsOriginPlace(favoriteId) {
+    // tslint:disable-next-line: max-line-length
+    const favoriteToUse = [...this.mainFavorites, ...this.othersFavorites].find(f => f.id === favoriteId);
+
+    this.router.navigate([ 'service', { origin: favoriteToUse.id } ]);
+
   }
 
   backClicked() {
