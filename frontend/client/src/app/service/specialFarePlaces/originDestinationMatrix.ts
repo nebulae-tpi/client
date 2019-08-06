@@ -12,17 +12,17 @@ export const ORIGIN_DESTINATION_MATRIX_FARE = [
   { from: 'AERO', to: 'JAMUNDI', fare: null },
   { from: 'AERO', to: 'YUMBO',   fare: null },
 
-  { from: 'PALMIRA', to: 'CALI',    fare: null },
+  { from: 'PALMIRA', to: 'CALI',    fare: 60000 },
   { from: 'PALMIRA', to: 'AERO',    fare: null },
   { from: 'PALMIRA', to: 'JAMUNDI', fare: null },
   { from: 'PALMIRA', to: 'YUMBO',   fare: null },
 
-  { from: 'JAMUNDI', to: 'CALI',    fare: null },
+  { from: 'JAMUNDI', to: 'CALI',    fare: 20000 },
   { from: 'JAMUNDI', to: 'AERO',    fare: null },
   { from: 'JAMUNDI', to: 'PALMIRA', fare: null },
   { from: 'JAMUNDI', to: 'YUMBO',   fare: null },
 
-  { from: 'YUMBO', to: 'CALI',      fare: null },
+  { from: 'YUMBO', to: 'CALI',      fare: 20000 },
   { from: 'YUMBO', to: 'AERO',      fare: null },
   { from: 'YUMBO', to: 'PALMIRA',   fare: null },
   { from: 'YUMBO', to: 'JAMUNDI',   fare: null }

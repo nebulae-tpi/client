@@ -1139,15 +1139,18 @@ export class LocationComponent implements OnInit, OnDestroy {
               }
             }
             this.showCenterMarker = false;
+            // console.log('ANTES DEL FAREDISCOUNT ====>', service)
             if (this.lastServiceStateReported !== service.state) {
-              // TODO read farediscount
+              if(service.fareDiscount && service.fareDiscount > 0 ){
+                // TODO read farediscount
               this.snackBar.open(
-                'Recuerde que tiene 15% de dcto sobre el valor total del servicio',
+                `Recuerde que tiene ${service.fareDiscount * 100}% de dcto sobre el valor total del servicio`,
                 'Cerrar',
-                {
-                  duration: 10000
-                }
+                { duration: 10000 }
               );
+
+              }
+              
             }
             break;
           default:
