@@ -167,7 +167,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
         if (circle) {
-          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
           // this.originPlaceAutocomplete.setBounds(circle.getBounds());
         }
 
@@ -240,7 +240,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       if (circle) {
-        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
 
     });
@@ -265,13 +265,13 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
         } else if (this.showAddress && this.showTwoInputs) {
-          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
         if (!this.destinationPlace) {
           this.buildDestinationPlaceAutoComplete(circle);
-        } else if (this.showAddress && this.destinationPlaceAutocomplete ) {
-          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        } else if (this.showAddress && this.destinationPlaceAutocomplete) {
+          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -310,6 +310,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             this.showArrivedHeader = false;
             this.showOnBoardHeader = true;
             this.showTwoInputs = false;
+            // this.listenChangesOnOriginaAndDestinationPlaceInput();
             break;
           case ServiceState.REQUEST:
             this.showWithoutService = false;
@@ -322,8 +323,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showTwoInputs = true;
               this.buildOriginPlaceAutoComplete();
-
             }
+            // this.listenChangesOnOriginaAndDestinationPlaceInput();
             break;
           case ServiceState.REQUESTED:
             this.showOfferHeader = true;
@@ -386,7 +387,11 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         const { type } = layout;
         this.layoutType = type;
 
-        this.showTwoInputs = (this.currentServiceState === ServiceState.REQUEST && type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT);
+        this.showTwoInputs = (
+          this.currentServiceState === ServiceState.REQUEST
+          && type === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
+        );
+        // this.listenChangesOnOriginaAndDestinationPlaceInput();
 
       });
   }
@@ -408,25 +413,27 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   listenChangesOnOriginaAndDestinationPlaceInput() {
+    console.log('listenChangesOnOriginaAndDestinationPlaceInput');
+
 
     this.updateListenersOnInputs.next(true);
 
     merge(
-      (this.originPlaceSearchElementRef || { nativeElement: null}).nativeElement
+      (this.originPlaceSearchElementRef || { nativeElement: null }).nativeElement
         ? fromEvent(this.originPlaceSearchElementRef.nativeElement, 'keyup').pipe(
-          map(input => ({ type: 'ORIGIN', value: input }))
+          map(input => ({ type: 'ORIGIN', value: this.originPlaceSearchElementRef.nativeElement.value }))
         )
         : of(null),
-      (this.destinationPlaceSearchElementRef || { nativeElement: null}).nativeElement
+      (this.destinationPlaceSearchElementRef || { nativeElement: null }).nativeElement
         ? fromEvent(this.destinationPlaceSearchElementRef.nativeElement, 'keyup').pipe(
-          map(input => ({ type: 'DESTINATION', value: input }))
+          map(input => ({ type: 'DESTINATION', value: this.destinationPlaceSearchElementRef.nativeElement.value }))
         )
         : of(null)
     ).pipe(
       filter(value => value),
-      takeUntil(this.ngUnsubscribe),
-      takeUntil(this.updateListenersOnInputs)
+      takeUntil(merge(this.ngUnsubscribe, this.updateListenersOnInputs )),
     ).subscribe(input => {
+      console.log('########### ', input);
       const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(input.value);
       const s = document.getElementsByClassName('pac-container pac-logo');
       const items = Array.from(s);
@@ -452,7 +459,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       });
 
-    });
+    }, e => console.log(e), () =>  console.log('Completado '));
   }
 
   onFavoriteResultClick(favoriteSelected, type: string) {
@@ -509,10 +516,10 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.originPlace.name = place.name;
         this.originPlace.location = place.location;
-        if(this.originPlaceSearchElementRef){
+        if (this.originPlaceSearchElementRef) {
           this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
         }
-        
+
 
 
         // if (!startWithElement) {
@@ -537,10 +544,10 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       ).subscribe((place: any) => {
 
         this.destinationPlace.name = place.name;
-        if(this.destinationPlaceSearchElementRef){
+        if (this.destinationPlaceSearchElementRef) {
           this.destinationPlaceSearchElementRef.nativeElement.value = this.destinationPlace.name;
         }
-        
+
         this.destinationPlace.location = place.location;
 
         // const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);

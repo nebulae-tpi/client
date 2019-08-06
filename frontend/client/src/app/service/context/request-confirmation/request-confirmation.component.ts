@@ -139,6 +139,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
 
   private ngUnsubscribe = new Subject();
+  private updateInputListeners = new Subject();
+
   STRINGS_TO_REMOVE = [', Antioquia', ', Valle del Cauca', ', Colombia'];
   tipValue = '0';
   placeReference = '';
@@ -154,12 +156,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   @ViewChild('originPlaceSearch') originPlaceSearchElementRef: ElementRef;
   originPlace: any = {};
   originPlaceAutocomplete: any;
-  originPlaceAddresInput = new FormControl();
 
   @ViewChild('destinationPlaceSearch') destinationPlaceSearchElementRef: ElementRef;
   destinationPlace: any = {};
   destinationPlaceAutocomplete: any;
-  destinationPlaceAddresInput = new FormControl();
 
   requestStep = 0;
   tripCostCalculed: any = null;
@@ -200,6 +200,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+    this.updateInputListeners.complete();
   }
 
   openBottomSheet(): void {
@@ -246,7 +247,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     // console.log('-------- confirmServiceRequest ---------------');
 
     if (!this.originPlace.name) {
-      this.originPlace.name = this.originPlaceAddresInput.value;
+      this.originPlace.name = this.originPlaceSearchElementRef.nativeElement.value;
     }
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
       const pickUpMarker = {
@@ -313,14 +314,18 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                   break;
               }
             }
+            console.log('SERVICIO ENVIADO SIN ERRORES');
+            this.requestStep = 0;
+            this.tripCostCalculed = null;
+            this.originPlace = null;
+            this.destinationPlace = null;
+            // this.showFilterSection = false;
           })
         )
         .subscribe(
           res => { },
           error => {
-            this.showSnackMessage(
-              'Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde'
-            );
+            this.showSnackMessage('Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde');
             // console.log('Error solicitando servicio: ', error);
           }
         );
@@ -427,21 +432,30 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
 
   listenChangesOnOriginAndDestinationSearchInput() {
-    if (!this.showPlacesInputs) {
-      return;
-    }
+    console.log('### listenChangesOnOriginAndDestinationSearchInput');
+
+    this.updateInputListeners.next(true);
+
     merge(
-      fromEvent(this.originPlaceSearchElementRef.nativeElement, 'keyup').pipe(
-        map(input => ({ type: 'ORIGIN', value: input }))
-      ),
-      fromEvent(this.destinationPlaceSearchElementRef.nativeElement, 'keyup').pipe(
-        map(input => ({ type: 'DESTINATION', value: input }))
-      )
+      this.originPlaceSearchElementRef
+        ? fromEvent(this.originPlaceSearchElementRef.nativeElement, 'keyup').pipe(
+          map(input => ({ type: 'ORIGIN', value: input }))
+        )
+        : of(null),
+      this.destinationPlaceSearchElementRef
+        ? fromEvent(this.destinationPlaceSearchElementRef.nativeElement, 'keyup').pipe(
+          map(input => ({ type: 'DESTINATION', value: input }))
+        )
+        : of(null)
     ).pipe(
       filter((change: any) => change && change.value),
-      takeUntil(this.ngUnsubscribe)
+      takeUntil(this.ngUnsubscribe),
+      takeUntil(this.updateInputListeners)
     )
       .subscribe((onchange: any) => {
+
+        console.log('on keyp ==> ', onchange);
+
 
         const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(onchange.value);
         const s = document.getElementsByClassName('pac-container pac-logo');
@@ -562,7 +576,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         });
 
         if (circle) {
-          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
       });
     }
@@ -623,7 +637,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         }
 
         if (circle) {
-          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
       });
     }
@@ -648,9 +662,12 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           };
         }
 
-        this.originPlace.name = place.name || this.originPlaceAddresInput.value
+        this.originPlace.name = place.name || '';
         this.originPlace.location = place.location;
-        this.originPlaceAddresInput.setValue(this.originPlace.name);
+        if (this.originPlaceSearchElementRef) {
+          this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+        }
+
 
         const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
         const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
@@ -659,7 +676,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
         } else {
-          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -673,17 +690,23 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       ).subscribe((place: any) => {
 
         this.destinationPlace.name = place.name;
-        this.destinationPlaceAddresInput.setValue(this.destinationPlace.name);
+        if (this.destinationPlaceSearchElementRef) {
+          this.destinationPlaceSearchElementRef.nativeElement.value = this.destinationPlace.name;
+        }
+
         this.destinationPlace.location = place.location;
 
-        const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
-        const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
+        const circle = new google.maps.Circle({
+          center: { lat: place.location.lat, lng: place.location.lng },
+          radius: 20000
+        }
+        ); // radius in meters
 
 
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else {
-          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -726,6 +749,11 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       );
   }
 
+  publishOriginChanges(e) {
+    console.log(e);
+
+  }
+
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
@@ -739,6 +767,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           this.serviceState === ServiceState.REQUEST &&
           this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
         );
+
+        this.listenChangesOnOriginAndDestinationSearchInput();
 
 
       });

@@ -32,7 +32,7 @@
           <mat-icon>account_circle</mat-icon>
           <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['/profile']">Perfil</a>
         </mat-list-item>
-        <mat-list-item>
+        <mat-list-item *ngIf="userDetails">
           <mat-icon>star_rate</mat-icon>
           <a (click)="closeMenu()" mat-list-item class="ml-2" [routerLink]="['/profile/favorites']">Favoritos</a>
         </mat-list-item>

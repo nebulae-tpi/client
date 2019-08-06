@@ -5,7 +5,7 @@
   <div ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" style="padding-bottom: 10px" fxFlex="100"
     fxLayoutAlign="start center">
     <!-- [routerLink]="['/profile']" -->
-    <button mat-icon-button fxHide.gt-xs style="margin-right: 5px" fxlayoutAlign="center center">
+    <button (click)="backClicked()" mat-icon-button fxHide.gt-xs style="margin-right: 5px" fxlayoutAlign="center center">
       <mat-icon>arrow_back_ios</mat-icon>
     </button>
     <div fxFlex>

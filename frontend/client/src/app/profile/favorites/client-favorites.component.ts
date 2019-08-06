@@ -1,31 +1,17 @@
 import {
   Component,
   OnInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef
+  OnDestroy
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import {
   map,
-  mergeMap,
-  takeUntil,
   tap,
-  filter,
-  debounceTime,
-  distinctUntilChanged
+  filter
 } from 'rxjs/operators';
-import {
-  of,
-  Subject,
-  Observable,
-  combineLatest,
-  fromEvent,
-  forkJoin
-} from 'rxjs';
-import { FormControl } from '@angular/forms';
+import { Subject, } from 'rxjs';
 import { ProfileService } from '../profile.service';
 import { MenuService } from 'src/app/menu/menu.service';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-client-favorites',
@@ -44,10 +30,10 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
 
   constructor(
-    private route: ActivatedRoute,
     private profileService: ProfileService,
-    private menuService: MenuService
-  ) {}
+    private menuService: MenuService,
+    private location: Location
+  ) { }
 
   ngOnInit() {
     this.loadUserProfile();
@@ -73,21 +59,21 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
           this.mainFavorites = [homeFavoritePlace, workFavoritePlace];
         })
       )
-      .subscribe(ev => {}, e => console.log(e), () => {});
+      .subscribe(ev => { }, e => console.log(e), () => { });
   }
 
-  deleteFavoritePlace(favoriteId, type ) {
+  deleteFavoritePlace(favoriteId, type) {
 
     console.log(favoriteId, type);
 
-    const mainFavorite = this.mainFavorites.find(f => f.id === favoriteId );
+    const mainFavorite = this.mainFavorites.find(f => f.id === favoriteId);
     let oldOtherFavorite = null;
 
     if (!mainFavorite) {
-      oldOtherFavorite = this.othersFavorites.find(f => ( (f.id === favoriteId) || ( f.name === favoriteId ) ) );
+      oldOtherFavorite = this.othersFavorites.find(f => ((f.id === favoriteId) || (f.name === favoriteId)));
       this.othersFavorites = this.othersFavorites.filter(f => f.id !== favoriteId);
     }
-    this.profileService.removeFavoritePlace$(favoriteId, oldOtherFavorite.name )
+    this.profileService.removeFavoritePlace$(favoriteId, oldOtherFavorite.name)
       .pipe(
         map((response: any) => ((response || {}).data || {}).RemoveFavoritePlace),
         tap(result => {
@@ -114,7 +100,11 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
 
         })
       )
-      .subscribe(() => {}, e => {}, () => {});
+      .subscribe(() => { }, e => { }, () => { });
+  }
+
+  backClicked() {
+    this.location.back();
   }
 
 }

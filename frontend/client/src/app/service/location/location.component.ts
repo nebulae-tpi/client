@@ -76,9 +76,9 @@ export class CancelSheetComponent implements OnInit, OnDestroy {
 
   onNgModelChange($event) {
     this.serviceService.cancelService$($event)
-      .subscribe(res => {}
+      .subscribe(res => { }
         // console.log('Cancela servicio: ', res)
-        );
+      );
     this.bottomSheetRef.dismiss();
     // event.preventDefault();
   }
@@ -334,8 +334,6 @@ export class LocationComponent implements OnInit, OnDestroy {
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            // console.log('ON LOCATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>', );
-
             this.originPlace = {
               ...this.originPlace,
               location: {
@@ -485,7 +483,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       });
 
       if (circle) {
-        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
     });
   }
@@ -954,7 +952,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else if (this.showDestinationPlaceInput) {
-          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -997,6 +995,7 @@ export class LocationComponent implements OnInit, OnDestroy {
           case ServiceState.CANCELLED_CLIENT:
             this.showDestinationPlaceInput = true;
             this.estimatedTripCost = null;
+            this.serviceService.publishServiceChanges({state: ServiceState.NO_SERVICE})
             break;
           case ServiceState.CANCELLED_DRIVER:
             this.showDestinationPlaceInput = true;
@@ -1141,16 +1140,16 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.showCenterMarker = false;
             // console.log('ANTES DEL FAREDISCOUNT ====>', service)
             if (this.lastServiceStateReported !== service.state) {
-              if(service.fareDiscount && service.fareDiscount > 0 ){
+              if (service.fareDiscount && service.fareDiscount > 0) {
                 // TODO read farediscount
-              this.snackBar.open(
-                `Recuerde que tiene ${service.fareDiscount * 100}% de dcto sobre el valor total del servicio`,
-                'Cerrar',
-                { duration: 10000 }
-              );
+                this.snackBar.open(
+                  `Recuerde que tiene ${service.fareDiscount * 100}% de dcto sobre el valor total del servicio`,
+                  'Cerrar',
+                  { duration: 10000 }
+                );
 
               }
-              
+
             }
             break;
           default:

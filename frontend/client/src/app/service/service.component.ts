@@ -145,7 +145,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
               route
               lastModificationTimestamp
              */
-            return diffId && diffState
+            return diffId && diffState;
 
           }),
           takeUntil(this.ngUnsubscribe)
@@ -242,6 +242,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
         // console.log('SERVICE COMPONENT  ON listenServiceChanges ==> ', service);
 
         this.currentService = service;
+        if (service.state === ServiceState.NO_SERVICE) {
+          this.requestStep = 0;
+        }
         this.recalculateLayout();
       });
   }

@@ -125,7 +125,7 @@ export class ServiceService {
         );
     } else {
       return of(undefined);
-    }    
+    }
   }
 
   getBusinessContactInfo$() {
@@ -284,7 +284,7 @@ export class ServiceService {
     if (JSON.stringify(this.currentService$.getValue()) === JSON.stringify(serviceChanges)) {
       return;
     }
-
+    console.log('NEW SERVICE ===> ', serviceChanges);
     const newService = {
       ...this.currentService$.getValue(),
       ...serviceChanges
