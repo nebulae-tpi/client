@@ -1,10 +1,3 @@
-// .address-input-label {
-//   color: #444;
-//   font-family: Roboto, "Helvetica Neue", sans-serif;
-//   font-size: 14px;
-//   margin-left: 10px;
-// }
-
 .address-input {
   border: 0;
   border-bottom: 2px solid #1976d2;
@@ -59,4 +52,39 @@
 
 .mt-8 {
   margin-top: 8px;
+}
+
+.hide-element {
+  display: none;
+}
+
+#input-place {
+  display: flex;
+  flex-direction: row;
+
+  /* This bit draws the box around it */
+  // border: 1px solid grey;
+  /* I've used padding so you can see the edges of the elements. */
+  padding: 2px;
+
+  input {
+    /* Tell the input to use all the available space */
+    flex-grow:2;
+    /* And hide the input's outline, so the form looks like the outline */
+    border:none;
+  }
+
+  button {
+    height: 29px;
+    width: 29px;
+    margin-left: -30px;
+    margin-top: -5px;
+    font-size: 10px;
+    mat-icon{
+      border: 0px;
+      margin: 0px;
+      padding: 0px;
+    }
+  }
+
 }

@@ -7,9 +7,8 @@ import {
   OnDestroy,
   AfterViewInit
 } from '@angular/core';
-import { MapsAPILoader } from '@agm/core';
 import { ServiceService } from '../service.service';
-import { filter, takeUntil, tap, map, startWith, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { filter, takeUntil, tap, map, startWith, distinctUntilChanged, switchMap, mergeMap } from 'rxjs/operators';
 import { Subject, fromEvent, BehaviorSubject, merge, of } from 'rxjs';
 import { ServiceState } from '../service-state';
 import { MenuService } from 'src/app/menu/menu.service';
@@ -49,21 +48,18 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
   showTwoInputs = false;
   currentServiceState = null;
-  mapsApiLoaded$ = new BehaviorSubject(null);
 
   constructor(
-    private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private serviceService: ServiceService,
     private menuService: MenuService
   ) { }
 
   ngOnInit() {
+    console.log('on init');
+
     this.loadUserProfile();
 
-    this.listenServiceCommands();
-
-    this.mapsAPILoader.load().then(() => this.mapsApiLoaded$.next(true));
 
     this.listenServiceChanges();
     this.listenLayoutChanges();
@@ -73,12 +69,14 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
     this.listenOriginPlaceChanges();
     this.listenDestinationPlaceChanges();
 
+    this.listenServiceCommands();
 
 
   }
 
   ngAfterViewInit(): void {
     this.listenChangesOnOriginaAndDestinationPlaceInput();
+
   }
 
   ngOnDestroy() {
@@ -110,7 +108,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.mapsApiLoaded$
+    this.serviceService.mapsApiLoaded$
       .pipe(
         filter(loaded => loaded),
         takeUntil(this.ngUnsubscribe)
@@ -144,7 +142,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             this.originPlaceSearchElementRef.nativeElement.value = valueForOriginPlace;
 
 
-            this.serviceService.originPlaceSelected$.next({
+            this.serviceService.publishOriginPlace({
               name: this.originPlaceSearchElementRef.nativeElement.value,
               location: {
                 lat: place.geometry.location.lat(),
@@ -189,7 +187,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.mapsApiLoaded$.pipe(
+    this.serviceService.mapsApiLoaded$.pipe(
       filter(loaded => loaded)
     ).subscribe(() => {
       this.destinationPlaceAutocomplete = new google.maps.places.Autocomplete(
@@ -286,9 +284,10 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(
         takeUntil(this.ngUnsubscribe),
         filter(service => service),
-        distinctUntilChanged((a, b) => a.state === b.state)
+        // distinctUntilChanged((a, b) => a.state === b.state)
       )
       .subscribe(service => {
+
         this.currentServiceState = service.state;
         switch (this.currentServiceState) {
           case ServiceState.NO_SERVICE:
@@ -317,6 +316,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             // this.listenChangesOnOriginaAndDestinationPlaceInput();
             break;
           case ServiceState.REQUEST:
+
             this.showWithoutService = false;
             this.showOfferHeader = false;
             this.showAddress = true;
@@ -401,22 +401,35 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   listenServiceCommands() {
+
     this.serviceService.serviceCommands$
       .pipe(
         filter((command: any) => command && command.code)
       ).subscribe((command: any) => {
+
+
+
         switch (command.code) {
           case ServiceService.COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE:
+
             const place = command.args[0].place;
             if (command.args[0] && command.args[0].type === 'ORIGIN' && place) {
               this.originPlace = {
                 name: place.address,
-                location: place.location
+                location: place.location,
+                favorite: true
               };
-              this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
-              this.serviceService.originPlaceSelected$.next(this.originPlace);
+              console.log('COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE');
+
+              this.serviceService.publishOriginPlace(this.originPlace);
+
+              this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
+              this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+              this.buildDestinationPlaceAutoComplete();
+
+
             }
-            console.log('USAR EL ===> ', command.args[0]);
+
 
             break;
 
@@ -443,8 +456,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   listenChangesOnOriginaAndDestinationPlaceInput() {
-    console.log('listenChangesOnOriginaAndDestinationPlaceInput');
-
 
     this.updateListenersOnInputs.next(true);
 
@@ -463,7 +474,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       filter(value => value),
       takeUntil(merge(this.ngUnsubscribe, this.updateListenersOnInputs)),
     ).subscribe(input => {
-      console.log('########### ', input);
       const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(input.value);
       const s = document.getElementsByClassName('pac-container pac-logo');
       const items = Array.from(s);
@@ -489,7 +499,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       });
 
-    }, e => console.log(e), () => console.log('Completado '));
+    });
   }
 
   onFavoriteResultClick(favoriteSelected, type: string) {
@@ -531,7 +541,6 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-
         let startWithElement = false;
         if (place.type === 'INITIAL_MARKER') {
           startWithElement = true;
@@ -546,9 +555,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.originPlace.name = place.name;
         this.originPlace.location = place.location;
-        if (this.originPlaceSearchElementRef) {
-          this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
-        }
+        this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+
 
 
 
@@ -591,6 +599,48 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         // // }
 
       });
+  }
+
+  toogleFavoritePlace(type: string) {
+
+    const place = type === 'ORIGIN' ? this.originPlace : this.destinationPlace;
+
+    if (type === 'ORIGIN') {
+      this.originPlace.favorite = !this.originPlace.favorite;
+    } else {
+      this.destinationPlace.favorite = !this.destinationPlace.favorite;
+    }
+
+    of(place.favorite)
+      .pipe(
+        mergeMap(newState => newState
+          ? this.serviceService.addFavoritePlace$({
+            type: 'other',
+            name: place.name,
+            lat: place.location.lat,
+            lng: place.location.lng
+          })
+          : this.serviceService.removeFavoritePlace$(place.id, place.name)
+        ),
+        map(response => ({
+          operation: (response.data || {}).AddFavoritePlace ? 'ADD' : (response.data || {}).RemoveFavoritePlace ? 'REMOVE' : undefined,
+          result: ((response.data || {}).AddFavoritePlace || (response.data || {}).RemoveFavoritePlace || {}).code
+        }))
+      ).subscribe(data => {
+
+        if (data.result === 200) {
+
+
+        } else {
+          if (type === 'ORIGIN') {
+            this.originPlace.favorite = !this.originPlace.favorite;
+          } else {
+            this.destinationPlace.favorite = !this.destinationPlace.favorite;
+          }
+        }
+
+      });
+
   }
 
 }

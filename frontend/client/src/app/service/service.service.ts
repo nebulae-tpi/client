@@ -57,6 +57,7 @@ export class ServiceService {
   });
 
   backNavigation$ = new BehaviorSubject<any>(undefined);
+  mapsApiLoaded$ = new BehaviorSubject(null);
 
   userProfile;
   businessContactInfo;
@@ -227,6 +228,7 @@ export class ServiceService {
     contextHeight?: number
   ) {
     console.log('PUBLISHING LAYOUT COMMANDS ...');
+
     this.layoutChanges$.next({
       layout: {
         type,
@@ -262,6 +264,10 @@ export class ServiceService {
     });
   }
 
+  publishOriginPlace(place) {
+    this.originPlaceSelected$.next(place);
+  }
+
   /**
    *
    * @param satelliteId satellite to link to client
@@ -287,6 +293,7 @@ export class ServiceService {
   }
 
   publishServiceChanges(serviceChanges) {
+
     if (JSON.stringify(this.currentService$.getValue()) === JSON.stringify(serviceChanges)) {
       return;
     }

@@ -159,7 +159,7 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
         this.favoriteName.setValue(favorite.name);
         this.favoriteAddress.setValue(favorite.address);
 
-        this.favoriteMarker = new google.maps.Marker({
+        this.favoriteMarker = this.favoriteMarker || new google.maps.Marker({
           position: { lat: favorite.location.lat, lng: favorite.location.lng },
           icon: '../../../../assets/icons/location/destination-place-30.png',
           map: this.map
@@ -193,6 +193,24 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
       lng: (this.lastCenterReported || {}).lng || this.selectedFavorite.location.lng
     };
 
+    const newFavoritePlaces = this.userProfile.favoritePlaces.map((fp) => {
+      if (fp.id === favoritePlaceUpdated.id) {
+        return {
+          address: favoritePlaceUpdated.address,
+          id: favoritePlaceUpdated.id,
+          location: {
+            lat: favoritePlaceUpdated.lat,
+            lng: favoritePlaceUpdated.lng
+          },
+          name: favoritePlaceUpdated.name,
+          referenceName: favoritePlaceUpdated.referenceName,
+          type: favoritePlaceUpdated.type
+        };
+      }
+      return fp;
+    });
+
+
     console.log(favoritePlaceUpdated);
 
     this.clienFavoriteService.updateFavoritePlace$(favoritePlaceUpdated)
@@ -201,6 +219,10 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
 
       ).subscribe(result => {
         if (result.code === 200) {
+          this.menuService.currentUserProfile$.next({
+            ...this.userProfile,
+            favoritePlaces: newFavoritePlaces
+          });
           this.showSnackBar('El lugar favorito ha sido actualizado exitosamente', false);
         }
       });

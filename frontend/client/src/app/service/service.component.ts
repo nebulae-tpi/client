@@ -15,7 +15,9 @@ import {
   tap,
   distinctUntilChanged,
   map,
-  delay
+  delay,
+  switchMap,
+  take
 } from 'rxjs/operators';
 
 import {
@@ -37,6 +39,7 @@ import { GatewayService } from '../api/gateway.service';
 import { MatSnackBar } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { MenuService } from '../menu/menu.service';
+import { MapsAPILoader } from '@agm/core';
 
 /* #endregion */
 
@@ -90,13 +93,15 @@ export class ServiceComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private route: ActivatedRoute,
     private menuService: MenuService,
+    private mapsAPILoader: MapsAPILoader
   ) {
 
   }
 
   ngOnInit() {
 
-    this.listenRouteParams();
+    this.mapsAPILoader.load().then(() => this.serviceService.mapsApiLoaded$.next(true));
+
     this.listenServiceChanges();
     this.listenResizeEvent();
     this.listenSubscriptionReconnection();
@@ -105,6 +110,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.buildBackgroundListener();
 
     this.listenServiceCommands();
+    this.listenRouteParams();
   }
 
 
@@ -114,7 +120,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
       of(this.keycloakService.getKeycloakInstance().tokenParsed)
         .pipe(
           mergeMap((tokenParsed: any) => (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated)
-            // console.log('tokenParsed => ', tokenParsed.clientId,
             // (tokenParsed.clientId == null && this.keycloakService.getKeycloakInstance().authenticated),
             // (!tokenParsed.clientId && this.keycloakService.getKeycloakInstance().authenticated));
 
@@ -160,8 +165,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
           takeUntil(this.ngUnsubscribe)
         )
         .subscribe((service: any) => {
-          // console.log('SERVICE UPDATES ==> ', service);
-
           switch (service.state) {
             case ServiceState.CANCELLED_DRIVER:
               this.showSnackBar('El conductor ha cancelado el servicio');
@@ -188,8 +191,13 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
 
   listenRouteParams() {
-    this.route.params
+    console.log('..........listenRouteParams........');
+
+    this.serviceService.mapsApiLoaded$
       .pipe(
+        filter(loaded => loaded),
+        take(1),
+        mergeMap(() => this.route.params),
         filter((params: any) => params.origin || params.destination),
         mergeMap(params => this.menuService.currentUserProfile$
           .pipe(
@@ -204,6 +212,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
             favoritePlaceType = 'ORIGIN';
             favoritePlace = data.favoritePlaces.find(fp => fp.id === data.params.origin);
           }
+
           if (data.params.destination) {
             favoritePlaceType = 'DESTINATION';
             favoritePlace = data.favoritePlaces.find(fp => fp.id === data.params.destination);
@@ -214,19 +223,15 @@ export class ServiceComponent implements OnInit, OnDestroy {
             place: favoritePlace
           });
         }),
-        tap(() => this.serviceService.publishServiceChanges({state: ServiceState.REQUEST}) ),
-        delay(100),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(data => {
-        console.log(data);
+        console.log({data});
 
-        this.recalculateLayout();
         this.serviceService.publishCommand({
           code: ServiceService.COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE,
           args: [{ ...data }]
         });
-
-      }, e => console.log(e), () => console.log('ESCUCHADOR DE ORIGIN COMPLETADO') );
+      });
   }
 
   listenServiceCommands() {
@@ -291,8 +296,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
-        // console.log('SERVICE COMPONENT  ON listenServiceChanges ==> ', service);
-
         this.currentService = service;
         if (service.state === ServiceState.NO_SERVICE) {
           this.requestStep = 0;
@@ -313,7 +316,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe((service: any) => {
-        // console.log('SERVICE COMPONENT ON listenSubscriptionReconnection ===> ', service);
 
         if (!service && this.currentService.state !== ServiceState.REQUEST) {
           this.serviceService.publishServiceChanges({ state: ServiceState.NO_SERVICE });
@@ -509,11 +511,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
       switch (this.currentService.state) {
         case ServiceState.REQUEST:
-          // console.log('calculateAddressRows ==>', 8);
           return 8;
 
         default:
-          // console.log('calculateAddressRows ==>', ADDRESS_ROWS);
           return ADDRESS_ROWS;
       }
 

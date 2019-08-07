@@ -246,10 +246,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
-    console.log('-------- confirmServiceRequest ---------------');
 
     if (!this.originPlace.name) {
-      this.originPlace.name = this.originPlaceSearchElementRef.nativeElement.value;
+      this.originPlace.name = (this.originPlaceSearchElementRef || {nativeElement: {}}).nativeElement.value;
     }
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
 
@@ -266,6 +265,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
       let dropOff;
       if (this.destinationPlace) {
+        console.log(this.destinationPlace);
+
         dropOff = {
           marker: {
             lat: this.destinationPlace.location.lat,
@@ -284,7 +285,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         (this.tripCostCalculed || {}).rawCost
       )
         .pipe(
-          // tap(rr => console.log('request response ==> ', rr)),
           tap(resp => {
             if (
               resp.errors &&
@@ -334,7 +334,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                   break;
               }
             }
-            console.log('SERVICIO ENVIADO SIN ERRORES');
+
             this.requestStep = 0;
             this.tripCostCalculed = null;
             this.originPlace = null;
@@ -346,7 +346,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           res => { },
           error => {
             this.showSnackMessage('Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde');
-            // console.log('Error solicitando servicio: ', error);
           }
         );
     } else {
@@ -365,7 +364,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            // console.log('ON REQUEST-CONFIRMATION listenServiceCommands.COMMAND_ON_CONFIRM_BTN ==>');
             // no Destination place given
             if (!this.destinationPlace.location) {
               this.showFilterSection = true;
@@ -452,7 +450,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
 
   listenChangesOnOriginAndDestinationSearchInput() {
-    console.log('### listenChangesOnOriginAndDestinationSearchInput');
 
     this.updateInputListeners.next(true);
 
@@ -473,8 +470,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       takeUntil(this.updateInputListeners)
     )
       .subscribe((onchange: any) => {
-
-        console.log('on keyp ==> ', onchange);
 
 
         const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(onchange.value);
@@ -574,17 +569,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
             this.originPlace.name = originPlaceName;
 
-            // console.log({
-            //   ...this.originPlace,
-            //   name: this.originPlace.name,
-            //   location: {
-            //     lat: geometry.location.lat(),
-            //     lng: geometry.location.lng()
-            //   }
-            // });
-
-
-            this.serviceService.originPlaceSelected$.next({
+            this.serviceService.publishOriginPlace({
               ...this.originPlace,
               name: this.originPlace.name,
               location: {
@@ -664,23 +649,23 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   listenOriginPlaceChanges() {
+
     this.serviceService.originPlaceSelected$
       .pipe(
         filter(place => place),
-        startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
+        // startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
-        console.log('listenOriginPlaceChanges ==> ', place);
 
-        if (place.type === 'INITIAL_MARKER') {
-          place = {
-            name: 'Mi Posición',
-            location: {
-              lat: place.latitude,
-              lng: place.longitude
-            }
-          };
-        }
+        // if (place.type === 'INITIAL_MARKER') {
+        //   place = {
+        //     name: 'Mi Posición',
+        //     location: {
+        //       lat: place.latitude,
+        //       lng: place.longitude
+        //     }
+        //   };
+        // }
 
         this.originPlace.name = place.name || '';
         this.originPlace.location = place.location;
@@ -770,7 +755,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   publishOriginChanges(e) {
-    console.log(e);
 
   }
 
@@ -788,6 +772,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT
         );
 
+
         this.listenChangesOnOriginAndDestinationSearchInput();
 
 
@@ -804,7 +789,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     if (placeType !== 'ORIGIN' && placeType !== 'DESTINATION') { return; }
     if (placeType === 'ORIGIN') {
       if (!this.originPlace || !this.originPlace.name || !this.originPlace.location) {
-        // console.log('MISSING INFO IN SELECTED PLACE');
         return;
       }
       this.originPlace.favorite = !this.originPlace.favorite;
@@ -813,7 +797,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
     if (placeType === 'DESTINATION') {
       if (!this.destinationPlace || !this.destinationPlace.name || !this.destinationPlace.location) {
-        // console.log('MISSING INFO IN SELECTED PLACE');
         return;
       }
       this.destinationPlace = !this.destinationPlace.favorite;

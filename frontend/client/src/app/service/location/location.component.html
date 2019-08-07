@@ -1,6 +1,6 @@
 <div style="padding: 0px; margin: 0px">
   <agm-map [ngStyle]="{ 'height.px': heightMapContent }" (mapReady)="mapReady($event)" [clickableIcons]="false"
-    [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="lat" [longitude]="lng" [zoom]="zoom"
+    [disableDefaultUI]="true" [streetViewControl]="false" [latitude]="lat" [longitude]="lng"
     (centerChange)="onCenterChange($event)">
   </agm-map>
   <img *ngIf="showCenterMarker" src="../../assets/icons/location/origin-place-30.png" class="vertical-center"

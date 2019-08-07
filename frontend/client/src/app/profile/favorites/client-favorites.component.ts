@@ -13,6 +13,7 @@ import { ProfileService } from '../profile.service';
 import { MenuService } from 'src/app/menu/menu.service';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material';
 
 @Component({
   selector: 'app-client-favorites',
@@ -35,6 +36,7 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
     private menuService: MenuService,
     private location: Location,
     private router: Router,
+    private snackBar: MatSnackBar,
 
   ) { }
 
@@ -66,9 +68,6 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
   }
 
   deleteFavoritePlace(favoriteId, type) {
-
-    console.log(favoriteId, type);
-
     const mainFavorite = this.mainFavorites.find(f => f.id === favoriteId);
     let oldOtherFavorite = null;
 
@@ -97,9 +96,8 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
             }
           }
 
-
-          // this.userProfile.favoritePlaces = [...this.mainFavorites, ...this.othersFavorites];
-          // this.menuService.currentUserProfile$.next(this.userProfile);
+          this.userProfile.favoritePlaces = [...this.mainFavorites, ...this.othersFavorites];
+          this.menuService.currentUserProfile$.next(this.userProfile);
 
         })
       )
@@ -110,12 +108,25 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
     // tslint:disable-next-line: max-line-length
     const favoriteToUse = [...this.mainFavorites, ...this.othersFavorites].find(f => f.id === favoriteId);
 
-    this.router.navigate([ 'service', { origin: favoriteToUse.id } ]);
+    if (favoriteToUse.address) {
+      this.router.navigate(['service', { origin: favoriteToUse.id }]);
+    } else {
+      this.showSnackMessage('Por favor dale una dirección a el lugar favorito que deseas usar', 5000);
+    }
+
+
 
   }
 
   backClicked() {
     this.location.back();
+  }
+
+
+  showSnackMessage(message, timeout = 3000) {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: timeout
+    });
   }
 
 }
