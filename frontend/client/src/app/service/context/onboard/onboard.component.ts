@@ -24,7 +24,7 @@ export class OnboardComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(service => {
-        const { vehicle, driver, tip='' } = service;
+        const { vehicle, driver, tip = '' } = service;
         this.currentService = { vehicle, driver, tip };
       });
   }

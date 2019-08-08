@@ -1,9 +1,7 @@
 import {
   Component,
   OnInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef
+  OnDestroy
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -12,17 +10,14 @@ import {
   takeUntil,
   tap,
   filter,
-  debounceTime,
-  distinctUntilChanged,
-  startWith
+  debounceTime
 } from 'rxjs/operators';
 import {
-  of,
   Subject,
   Observable,
   combineLatest,
   fromEvent,
-  forkJoin,
+  of,
   BehaviorSubject
 } from 'rxjs';
 import { FormControl } from '@angular/forms';
@@ -51,6 +46,7 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
 
   mapCenter$ = new Subject();
   favoriteName = new FormControl();
+  readOnlyName = false;
   favoriteAddress = new FormControl();
   map: google.maps.Map;
   mapZoom = 16;
@@ -148,13 +144,16 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
   listenSelectedFavoritePlace() {
     this.selectedFavorite$
       .pipe(
-        filter(favoritePlace => favoritePlace)
+        filter(favoritePlace => favoritePlace),
+        mergeMap(favoriteplace => this.validateLocation$(favoriteplace) )
       ).subscribe((favorite: any) => {
         console.log('selectedFavorite$ ===> ', favorite);
 
         this.map.setCenter({ lat: favorite.location.lat, lng: favorite.location.lng });
 
         this.selectedFavorite = favorite;
+
+        this.readOnlyName = favorite.type === 'home' || favorite.type === 'work';
 
         this.favoriteName.setValue(favorite.name);
         this.favoriteAddress.setValue(favorite.address);
@@ -167,6 +166,25 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
 
         this.favoriteMarker.setPosition({ lat: favorite.location.lat, lng: favorite.location.lng });
       });
+  }
+
+  validateLocation$(favoritePlace) {
+    if (!favoritePlace.location.lat || favoritePlace.location.lat === 0) {
+      return this.mapCenter$
+      .pipe(
+        filter((center: any) => center),
+        map(center => ({
+          ...favoritePlace,
+          location: {
+            lat: center.lat,
+            lng: center.lng
+          }
+        }))
+      );
+    } else {
+      return of(favoritePlace);
+    }
+
   }
 
   listenMapCenterChanged() {

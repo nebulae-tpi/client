@@ -59,3 +59,7 @@
 .favorite-text:hover{
   cursor: pointer;
 }
+
+.hide-element{
+  display: none;
+}

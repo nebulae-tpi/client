@@ -9,7 +9,7 @@
     </mat-form-field>
 
     <mat-form-field *ngIf="currentService.tip" fxFlex="100">
-      <input matInput placeholder="Propina" readonly="true" [(ngModel)]="tipValue" currencyMask
+      <input matInput placeholder="Propina" readonly="true" [(ngModel)]="currentService.tip" currencyMask
         [options]="{ prefix: '$ ', thousands: '.', precision: '0', align: 'left' }" />
     </mat-form-field>
 

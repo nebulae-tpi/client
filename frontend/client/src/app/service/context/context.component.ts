@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ServiceService } from '../service.service';
-import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged, filter } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -25,12 +25,13 @@ export class ContextComponent implements OnInit, OnDestroy {
   listenServiceChanges() {
     this.serviceService.currentService$
       .pipe(
+        filter((service: any) => service),
         distinctUntilChanged((a, b) => a.state === b.state ),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(service => {
+      .subscribe((service: any) => {
         if (service) {
-          this.serviceState = service.state
+          this.serviceState = service.state;
         }
       });
   }

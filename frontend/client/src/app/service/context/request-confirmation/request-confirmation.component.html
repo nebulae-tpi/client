@@ -21,11 +21,12 @@
   <div fxFlex="100" style="margin-top: 5px" fxLayout="row wrap" fxLayoutAlign="start start">
 
     <!-- ORIGIN PLACE -->
+    <!-- [ngClass]="{'hide-element': !showFilterSection}"  -->
     <div *ngIf="showFilterSection" fxLayout="row" fxFlex="100" fxLayoutAlign="start center" class="flex-no-wrap">
       <mat-icon style="margin-right: 10px">location_on</mat-icon>
 
       <mat-form-field class="input-service" fxFlex="100">
-        <input #originPlaceSearch matInput id="addressInput" placeholder="Dirección Origen" autocorrect="off"
+        <input #originPlaceSearch required matInput placeholder="Dirección Origen" autocorrect="off"
           autocapitalize="off" spellcheck="off" type="text" />
       </mat-form-field>
       <!-- <button mat-icon-button>
@@ -39,7 +40,7 @@
       <mat-icon style="margin-right: 10px">location_on</mat-icon>
 
       <mat-form-field class="input-service" fxFlex="100">
-        <input #destinationPlaceSearch matInput id="addressInput" placeholder="Dirección Destino" autocorrect="off"
+        <input #destinationPlaceSearch matInput placeholder="Dirección Destino" autocorrect="off"
           autocapitalize="off" spellcheck="off" type="text" />
       </mat-form-field>
       <!-- <button mat-icon-button>

@@ -215,9 +215,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     });
   }
 
-  showSnackMessage(message) {
+  showSnackMessage(message, duration = 3000) {
     this.snackBar.open(message, 'Cerrar', {
-      duration: 2000
+      duration
     });
   }
 
@@ -246,9 +246,10 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
+    console.log('***[RequestConfirmation].confirmServiceRequest***', );
 
     if (!this.originPlace.name) {
-      this.originPlace.name = (this.originPlaceSearchElementRef || {nativeElement: {}}).nativeElement.value;
+      this.originPlace.name = (this.originPlaceSearchElementRef || { nativeElement: {} }).nativeElement.value;
     }
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
 
@@ -264,8 +265,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       };
 
       let dropOff;
-      if (this.destinationPlace) {
-        console.log(this.destinationPlace);
+      if ((this.destinationPlace || {}).location && (this.destinationPlace || {}).name) {
 
         dropOff = {
           marker: {
@@ -277,30 +277,32 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
       }
 
+      console.log({pickUp, dropOff});
+
+
       this.serviceService.createNewService$(
-        this.serviceService.userProfile.username,
+        this.serviceService.userProfile$.getValue().username,
         pickUp,
         dropOff,
         parseInt(this.tipValue, 10),
         (this.tripCostCalculed || {}).rawCost
       )
         .pipe(
-          tap(resp => {
-            if (
-              resp.errors &&
-              resp.errors.extensions &&
-              resp.errors.extensions.exception &&
-              resp.errors.extensions.exception.code
-            ) {
-              switch (resp.errors.extensions.exception.code) {
+          tap(response => {
+            console.log('***[RequestConfirmation].confirmServiceRequest*** RESPONSE ==> ', response );
+            if (response && response.errors ) {
+
+              const exception = (((response.errors[0] || {}).extensions || {}).exception || {}).message || {};
+
+              console.log('***[RequestConfirmation].confirmServiceRequest*** ERROR ', exception );
+
+              switch (exception.code) {
                 case 23002:
                   this.showSnackMessage(`Usuario no tiene privilegios para crear servicios, solo los usuarios
                   creados desde el app cliente pueden realizar esta acción`);
                   break;
                 case 23002:
-                  this.showSnackMessage(
-                    'Datos insuficientes para crear el servicio'
-                  );
+                  this.showSnackMessage('Datos insuficientes para crear el servicio');
                   break;
                 case 23201:
                   this.showSnackMessage('Nombre del cliente inválido');
@@ -315,35 +317,29 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
                   this.showSnackMessage('Ubicación de recogida indefinida');
                   break;
                 case 23205:
-                  this.showSnackMessage(
-                    'Dirección de recogida no especificada'
-                  );
+                  this.showSnackMessage('Dirección de recogida no especificada');
                   break;
                 case 23206:
                   this.showSnackMessage('Tipo de pago inválido');
                   break;
                 case 23212:
                   this.showSnackMessage(
-                    'Actualmente ya se tiene una solicitud pendiente, por favor finalizar la actual para poder solicitar una nueva'
+                    'Actualmente ya se tiene una solicitud pendiente, por favor finalizar la actual para poder solicitar una nueva',
+                    5000
                   );
                   break;
                 default:
-                  this.showSnackMessage(
-                    'Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde'
-                  );
+                  this.showSnackMessage('Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde');
                   break;
               }
             }
-
-            this.requestStep = 0;
-            this.tripCostCalculed = null;
-            this.originPlace = null;
-            this.destinationPlace = null;
-            // this.showFilterSection = false;
+            this.showFilterSection = false;
           })
         )
         .subscribe(
-          res => { },
+          res => {
+
+           },
           error => {
             this.showSnackMessage('Fallo al solicitar el servicio, por favor intalo de nuevo mas tarde');
           }
@@ -364,11 +360,18 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
+            console.log('***[RequestConfirmation]*** COMMAND_ON_CONFIRM_BTN ==> ');
+            console.log(this.originPlace);
+
+
             // no Destination place given
             if (!this.destinationPlace.location) {
               this.showFilterSection = true;
               this.requestStep = 2;
               this.confirmServiceRequest();
+              setTimeout(() => {
+                this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+              }, 100);
               // switch (this.requestStep) {
               //   case 0:
               //     this.showFilterSection = true;
@@ -393,6 +396,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
               this.requestStep++;
               switch (this.requestStep) {
                 case 1:
+                  console.log('MOSTRAR EL FILTRO DEL SERVICIO');
                   this.serviceService.publishCommand({
                     code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
                     args: []
@@ -411,6 +415,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
             break;
           case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
             this.showFilterSection = true;
+            setTimeout(() => {
+              this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+            }, 100);
             break;
           case ServiceService.COMMAND_TRIP_COST_CALCULATED:
             this.tripCostCalculed = command.args[0];
@@ -656,6 +663,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         // startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
+        console.log('***[RequestConfirmation]*** originPlaceSelected$', place );
+
 
         // if (place.type === 'INITIAL_MARKER') {
         //   place = {
@@ -766,6 +775,19 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       ).subscribe(service => {
         const { state } = service;
         this.serviceState = state;
+        switch (state) {
+          case ServiceState.NO_SERVICE:
+
+            this.requestStep = 0;
+            this.tripCostCalculed = null;
+            this.originPlace = null;
+            this.destinationPlace = null;
+
+            break;
+
+          default:
+            break;
+        }
 
         this.showPlacesInputs = !(
           this.serviceState === ServiceState.REQUEST &&

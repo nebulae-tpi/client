@@ -6,14 +6,16 @@ import {
 import {
   map,
   tap,
-  filter
+  filter,
+  mergeMap
 } from 'rxjs/operators';
-import { Subject, } from 'rxjs';
+import { Subject, forkJoin, of, } from 'rxjs';
 import { ProfileService } from '../profile.service';
 import { MenuService } from 'src/app/menu/menu.service';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material';
+import { ClienFavoriteService } from './client-favorites.service';
 
 @Component({
   selector: 'app-client-favorites',
@@ -34,6 +36,7 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
   constructor(
     private profileService: ProfileService,
     private menuService: MenuService,
+    private favoriteService: ClienFavoriteService,
     private location: Location,
     private router: Router,
     private snackBar: MatSnackBar,
@@ -51,22 +54,54 @@ export class ClientFavoritesComponent implements OnInit, OnDestroy {
   loadUserProfile() {
     this.menuService.currentUserProfile$
       .pipe(
-        filter(profile => profile && true),
-        tap(r => {
-          this.userProfile = r;
-          this.userProfile.favoritePlaces.forEach((favorite: any) => {
-            if (favorite.type === 'other') {
-              this.othersFavorites.push(favorite);
-            }
-          });
-          const homeFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'home') || { type: 'home' };
-          const workFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'work') || { type: 'work' };
-          this.mainFavorites = [homeFavoritePlace, workFavoritePlace];
-        })
+        filter((profile: any) => profile),
+         mergeMap(userProfile => this.validateHomeAndWorkFavorites$(userProfile))
       )
-      .subscribe(ev => { }, e => console.log(e), () => { });
+      .subscribe(userProfile => {
+
+        this.userProfile = userProfile;
+        this.othersFavorites = [];
+
+        this.userProfile.favoritePlaces.forEach((favorite: any) => {
+          if (favorite.type === 'other') {
+            this.othersFavorites.push(favorite);
+          }
+        });
+        const homeFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'home');
+        const workFavoritePlace = this.userProfile.favoritePlaces.find(fp => fp.type === 'work');
+        this.mainFavorites = [homeFavoritePlace, workFavoritePlace];
+      }, e => console.log(e), () => { });
   }
 
+  validateHomeAndWorkFavorites$(userProfile) {
+    let homeFavorite = userProfile.favoritePlaces.find(fp => fp.type === 'home');
+    let workFavorite = userProfile.favoritePlaces.find(fp => fp.type === 'work');
+    return forkJoin(
+      !homeFavorite
+        ? this.favoriteService.addFavoritePlace$({
+          type: 'home', name: 'CASA', address: '', lat: 0, lng: 0
+        })
+          .pipe(map(response => (response.data || {}).AddFavoritePlace))
+        : of(null),
+      !workFavorite
+        ? this.favoriteService.addFavoritePlace$({
+          type: 'work', name: 'TRABAJO', address: '', lat: 0, lng: 0
+        }).pipe(map(response => (response.data || {}).AddFavoritePlace))
+        : of(null),
+    ).pipe(
+      map(([homeAdded, workAdded]) => {
+        if (homeAdded && homeAdded.code === 200) {
+          homeFavorite = {  type: 'home', name: 'CASA', address: '', lat: 0, lng: 0 };
+          userProfile.favoritePlaces.push(homeFavorite);
+        }
+        if (workAdded && workAdded.code === 200) {
+          workFavorite = { type: 'home', name: 'CASA', address: '', lat: 0, lng: 0 };
+          userProfile.favoritePlaces.push(workFavorite);
+        }
+      }),
+      map(() => userProfile)
+    );
+  }
   deleteFavoritePlace(favoriteId, type) {
     const mainFavorite = this.mainFavorites.find(f => f.id === favoriteId);
     let oldOtherFavorite = null;

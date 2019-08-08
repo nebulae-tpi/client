@@ -78,7 +78,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     if (this.gateway.checkIfUserLogger()) {
       this.userDetails = await this.keycloakService.loadUserProfile();
-      this.serviceService.userProfile = this.userDetails;
+      this.serviceService.updateUserProfileUpdate(this.userDetails);
 
       this.menuService.validateNewClient$()
         .pipe(
@@ -92,7 +92,7 @@ export class MenuComponent implements OnInit, OnDestroy {
           map(r => r && r.data && r.data.ClientProfile ? r.data.ClientProfile : null),
           tap((clientProfile: any) => {
             this.menuService.currentUserProfile$.next(clientProfile);
-            if ( clientProfile && clientProfile.satelliteId) {
+            if (clientProfile && clientProfile.satelliteId) {
               this.router.navigate(['/satellite']);
             }
           }),
@@ -104,8 +104,12 @@ export class MenuComponent implements OnInit, OnDestroy {
           map(resp => ((resp || {}).data || {}).ClientLinkedSatellite),
           tap(ls => this.menuService.currentLinkedSatellite$.next(ls))
         )
-        .subscribe(r => {}, e => console.log(e), () => {});
+        .subscribe(r => { }, e => console.log(e), () => { });
+    } else {
+      this.serviceService.updateUserProfileUpdate(null);
     }
+
+
 
     this.listenSatelliteChanges();
   }
@@ -126,18 +130,18 @@ export class MenuComponent implements OnInit, OnDestroy {
             this.listenWalletUpdates();
           }
         })
-        )
+      )
       .subscribe();
   }
 
   listenWalletUpdates() {
     this.menuService.listenWalletUpdates$()
-    .pipe(
-      map(response => ((response || {}).data || {}).ClientWalletUpdates ),
-      tap(walletUpdate => this.userWallet = walletUpdate),
-      takeUntil(this.ngUnsubscribe)
-    )
-    .subscribe();
+      .pipe(
+        map(response => ((response || {}).data || {}).ClientWalletUpdates),
+        tap(walletUpdate => this.userWallet = walletUpdate),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe();
   }
 
   async login() {

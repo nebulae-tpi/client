@@ -14,7 +14,7 @@ import {
   fareSettings,
   ClientServiceUpdatedSubscription
 } from './gql/service.js';
-import { map, tap, retryWhen, concatMap, delay, distinctUntilChanged } from 'rxjs/operators';
+import { map, tap, retryWhen, concatMap, delay, distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,7 @@ export class ServiceService {
   public static LAYOUT_MOBILE_HORIZONTAL_ADDRESS_MAP_CONTENT = 0;
   public static LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT = 1;
   public static LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT = 2;
-  public static LAYOUT_MOBILE_VERTICAL_MAP_CONTENT = 3;
+  // public static LAYOUT_MOBILE_VERTICAL_MAP_CONTENT = 3;
   public static LAYOUT_DESKTOP_ADDRESS_MAP_CONTENT = 4;
   public static LAYOUT_DESKTOP_MAP_CONTENT = 5;
   public static LAYOUT_ADDRESS_MAP_CONTENT = 6;
@@ -59,7 +59,7 @@ export class ServiceService {
   backNavigation$ = new BehaviorSubject<any>(undefined);
   mapsApiLoaded$ = new BehaviorSubject(null);
 
-  userProfile;
+  userProfile$ = new BehaviorSubject(undefined);
   businessContactInfo;
 
 
@@ -95,44 +95,47 @@ export class ServiceService {
   }
 
   getCurrentService$() {
-    if (this.userProfile) {
-      return this.gateway.apollo
-        .query<any>({
-          query: CurrentServices,
-          fetchPolicy: 'network-only',
-          errorPolicy: 'all'
-        })
-        .pipe(
-          map(result => {
-            if ((result.data || {}).CurrentServices) {
-              return result.data.CurrentServices.length > 0
-                ? result.data.CurrentServices[0]
-                : undefined;
-            }
-            return undefined;
-          }),
-          retryWhen(errors =>
-            errors.pipe(
-              concatMap((e, i) =>
-                // Executes a conditional Observable depending on the result
-                // of the first argument
-                iif(() => i > 3,
-                  // If the condition is true we throw the error (the last error)
-                  throwError(e),
-                  // Otherwise we pipe this back into our stream and delay the retry
-                  of(e).pipe(delay(500))
+    return this.userProfile$
+      .pipe(
+        filter(userProfile => userProfile !== undefined),
+        mergeMap(userProfile => !userProfile
+          ? of(null)
+          : this.gateway.apollo
+            .query<any>({
+              query: CurrentServices,
+              fetchPolicy: 'network-only',
+              errorPolicy: 'all'
+            })
+            .pipe(
+              map(result => {
+                if ((result.data || {}).CurrentServices) {
+                  return result.data.CurrentServices.length > 0
+                    ? result.data.CurrentServices[0]
+                    : undefined;
+                }
+                return undefined;
+              }),
+              retryWhen(errors =>
+                errors.pipe(
+                  concatMap((e, i) =>
+                    // Executes a conditional Observable depending on the result
+                    // of the first argument
+                    iif(() => i > 3,
+                      // If the condition is true we throw the error (the last error)
+                      throwError(e),
+                      // Otherwise we pipe this back into our stream and delay the retry
+                      of(e).pipe(delay(500))
+                    )
+                  )
                 )
               )
             )
-          )
-        );
-    } else {
-      return of(undefined);
-    }
+      )
+    );
   }
 
   getBusinessContactInfo$() {
-    if (this.userProfile) {
+    if (this.userProfile$.getValue()) {
       return this.gateway.apollo
         .query<any>({
           query: BusinessContactInfo,
@@ -140,7 +143,7 @@ export class ServiceService {
           errorPolicy: 'all'
         })
         .pipe(
-          map(result => (result.data || {}).BusinessContactInfo ),
+          map(result => (result.data || {}).BusinessContactInfo),
           tap(business => {
             this.businessContactInfo = business;
           })
@@ -151,7 +154,7 @@ export class ServiceService {
   }
 
   getFareSettings$() {
-    if (this.userProfile) {
+    if (this.userProfile$.getValue()) {
       return this.gateway.apollo
         .query<any>({
           query: fareSettings,
@@ -211,7 +214,7 @@ export class ServiceService {
         query: ClientServiceUpdatedSubscription
       })
       .pipe(
-        map(result => (result.data || {}).ClientServiceUpdatedSubscription )
+        map(result => (result.data || {}).ClientServiceUpdatedSubscription)
       );
     // return of(null)
   }
@@ -268,6 +271,11 @@ export class ServiceService {
     this.originPlaceSelected$.next(place);
   }
 
+  updateUserProfileUpdate(userProfile) {
+    console.log('***[ServiceService].updateUserProfileUpdate***', userProfile);
+    this.userProfile$.next(userProfile);
+  }
+
   /**
    *
    * @param satelliteId satellite to link to client
@@ -306,6 +314,8 @@ export class ServiceService {
   }
 
   publishCommand(command) {
+    console.log('***[ServiceService].publishCommand ==> ', command);
+
     this.serviceCommands$.next(command);
   }
 }

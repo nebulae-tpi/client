@@ -12,6 +12,7 @@ import { filter, takeUntil, tap, map, startWith, distinctUntilChanged, switchMap
 import { Subject, fromEvent, BehaviorSubject, merge, of } from 'rxjs';
 import { ServiceState } from '../service-state';
 import { MenuService } from 'src/app/menu/menu.service';
+import { MatSnackBar } from '@angular/material';
 
 
 @Component({
@@ -52,11 +53,11 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private ngZone: NgZone,
     private serviceService: ServiceService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private snackBar: MatSnackBar,
   ) { }
 
   ngOnInit() {
-    console.log('on init');
 
     this.loadUserProfile();
 
@@ -127,6 +128,8 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
               return;
             }
             const { address_components, name, formatted_address } = place;
+            this.originPlace.favorite = (formatted_address === '[FAVORITE]');
+
             if (this.originPlace.favorite) {
               // this.originPlaceAddresInput.setValue(`${name}`.trim());
               this.originPlaceSearchElementRef.nativeElement.value = `${name}`.trim();
@@ -223,6 +226,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
           this.serviceService.destinationPlaceSelected$.next({
             ...this.destinationPlace,
             name: this.destinationPlace.name,
+            address: this.destinationPlace.favorite ? this.destinationPlace.address : formatted_address,
             location: {
               lat: geometry.location.lat(),
               lng: geometry.location.lng()
@@ -277,6 +281,13 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
       });
+  }
+
+
+  showSnackMessage(message) {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 2000
+    });
   }
 
   listenServiceChanges() {
@@ -415,11 +426,11 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
             const place = command.args[0].place;
             if (command.args[0] && command.args[0].type === 'ORIGIN' && place) {
               this.originPlace = {
-                name: place.address,
+                name: place.name,
+                address: place.address,
                 location: place.location,
                 favorite: true
               };
-              console.log('COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE');
 
               this.serviceService.publishOriginPlace(this.originPlace);
 
@@ -617,6 +628,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
           ? this.serviceService.addFavoritePlace$({
             type: 'other',
             name: place.name,
+            address: place.name,
             lat: place.location.lat,
             lng: place.location.lng
           })
@@ -627,9 +639,10 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
           result: ((response.data || {}).AddFavoritePlace || (response.data || {}).RemoveFavoritePlace || {}).code
         }))
       ).subscribe(data => {
-
+        console.log(data);
         if (data.result === 200) {
-
+          const operation = data.operation === 'ADD' ? 'Agregado' : 'Eliminado';
+          this.showSnackMessage(`El lugar favorito ha sido ${operation} correctamente`);
 
         } else {
           if (type === 'ORIGIN') {

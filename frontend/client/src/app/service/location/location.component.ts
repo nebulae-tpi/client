@@ -179,13 +179,6 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.listenOnResume();
     this.listenCenterChanges();
     this.listenServiceCommands();
-
-    setInterval(() => {
-      if (this.map) {
-        console.log(this.map.getZoom());
-      }
-    }, 500);
-
   }
 
   ngOnDestroy() {
@@ -278,7 +271,8 @@ export class LocationComponent implements OnInit, OnDestroy {
         filter(place => place),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(originPlace => {
-        console.log('ORIGEN SELECCIONADO', originPlace);
+        console.log('LOCATION ORIGIN DSTINATION SELECTED ==> ', originPlace);
+
         this.originPlace = originPlace;
         this.showCenterMarker = false;
 
@@ -295,6 +289,14 @@ export class LocationComponent implements OnInit, OnDestroy {
           map: this.map,
           icon: '../../../assets/icons/location/origin-place-30.png',
         });
+
+        this.originMarker.setPosition({
+          lat: originPlace.location.lat,
+          lng: originPlace.location.lng
+        });
+
+
+        this.map.setCenter({ lat: originPlace.location.lat, lng: originPlace.location.lng });
 
         const buttonString = 'Fijar Con Puntero';
         this.originMarkerInfoWindow = new google.maps.InfoWindow({
@@ -318,7 +320,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
         });
 
-        this.map.setCenter({ lat: originPlace.location.lat, lng: originPlace.location.lng });
+
 
 
 
@@ -331,7 +333,9 @@ export class LocationComponent implements OnInit, OnDestroy {
         filter(place => place),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(destinationPlace => {
-        console.log('DESTINO SELECCIONADO', destinationPlace);
+        this.destinationPlace = destinationPlace;
+        console.log();
+
 
         if (this.directionsDisplay) {
           this.directionsDisplay.setMap(null);
@@ -357,14 +361,11 @@ export class LocationComponent implements OnInit, OnDestroy {
         // UPDATE THE ZOOM AND CENTER TO SHOW DESTINATION AND ORIGINMARKER ON MAP
 
         const bounds = new google.maps.LatLngBounds();
-        let markers = 0;
         if (this.originMarker) {
           bounds.extend(this.originMarker.getPosition());
-          markers++;
         }
         if (bounds && this.destinationMarker) {
           bounds.extend(this.destinationMarker.getPosition());
-          markers++;
 
         }
 
@@ -383,17 +384,33 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   listenServiceCommands() {
+    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+
     this.serviceService.serviceCommands$
       .pipe(
         filter(command => command && command.code),
+        takeUntil(this.ngUnsubscribe)
       ).subscribe(command => {
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
+            console.log('***[Location].listenServiceCommands*** ServiceService.COMMAND_ON_CONFIRM_BTN', {
+              originPlace: this.originPlace,
+              lastCenterReported: this.lastCenterReported
+            });
+            const originLatLnglocation = {
+              lat: (this.originPlace || {}).location ? this.originPlace.location.lat : (this.lastCenterReported || {}).lat,
+              lng: (this.originPlace || {}).location ? this.originPlace.location.lng : (this.lastCenterReported || {}).lng
+            };
+            if (!originLatLnglocation.lat || !originLatLnglocation.lng) {
+              console.log('!!!!! NO HAY CON CONSTRUIR LAS COORDENADAS DEL ORIGEN');
+
+              break;
+            }
             this.originPlace = {
               ...this.originPlace,
               location: {
-                lat: this.originMarker ? this.originMarker.getPosition().lat() : this.lastCenterReported.lat,
-                lng: this.originMarker ? this.originMarker.getPosition().lng() : this.lastCenterReported.lng
+                lat: (this.originPlace || {}).location ? this.originPlace.location.lat : this.lastCenterReported.lat,
+                lng: (this.originPlace || {}).location ? this.originPlace.location.lng : this.lastCenterReported.lng
               }
             };
 
@@ -413,17 +430,21 @@ export class LocationComponent implements OnInit, OnDestroy {
             </div>`
             });
 
+
             this.serviceService.originPlaceSelected$.next(this.originPlace);
+
 
 
             if (this.destinationMarker) {
               this.calculateRoute();
-            } else {
+            }
+            /*else {
               this.serviceService.publishCommand({
                 code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
                 args: []
               });
             }
+            */
 
 
 
@@ -550,6 +571,8 @@ export class LocationComponent implements OnInit, OnDestroy {
         filter((center: any) => {
           const isDifferentLocation = this.lastCenterReported && this.lastCenterReported.lat !== center.lat;
           this.lastCenterReported = center;
+          // console.log('***[Location].listenCenterChanges*** updating lastCenterReported', this.lastCenterReported);
+
           return isDifferentLocation;
         }),
         tap((center: any) => {
@@ -605,10 +628,17 @@ export class LocationComponent implements OnInit, OnDestroy {
       navigator.geolocation.getCurrentPosition(position => {
 
         if (this.map) {
-          this.map.setCenter({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
+          if (!this.originPlace) {
+            console.log('***[Location].currentLocation***', 'geolocation.getCurrentPosition setting map center');
+
+            this.map.setCenter({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+
+          }
+
+
           this.map.setZoom(17);
 
           this.serviceService.markerOnMapChange$.next({
@@ -833,6 +863,9 @@ export class LocationComponent implements OnInit, OnDestroy {
     const originLatLng = this.originPlace.location;
     const destinationLatLng = this.destinationPlace.location;
 
+    console.log({ originLatLng, destinationLatLng });
+
+
 
     this.directionsDisplay = this.directionsDisplay || new google.maps.DirectionsRenderer();
     this.directionsService = this.directionsService || new google.maps.DirectionsService();
@@ -980,18 +1013,19 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
+        console.log('***[Location].listenMarkerPosition***');
         if (this.map) {
+
           this.map.setCenter({
             lat: location.latitude,
             lng: location.longitude
           });
         }
-        const latlng = new google.maps.LatLng(
-          location.latitude,
-          location.longitude
-        );
         const circle = new google.maps.Circle({
-          center: latlng,
+          center: {
+            lat: location.latitude,
+            lng: location.longitude
+          },
           radius: 20000 // meters
         });
 
@@ -1020,6 +1054,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         switch (state) {
           case ServiceState.NO_SERVICE:
             this.estimatedTripCost = null;
+            this.disableMap = false;
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showDestinationPlaceInput = true;
             }
@@ -1029,10 +1064,10 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.destinationMarker = null;
             }
 
-            if (this.originMarker) {
-              this.originMarker.setMap(null);
-              this.originMarker = null;
-            }
+            console.log('ELIMINAR EL MARCADOR DE ORIGEN DEL MAP');
+            this.originMarker.setMap(null);
+            this.originMarker = undefined;
+
             if (this.directionsDisplay) {
               this.directionsDisplay.setMap(null);
             }
@@ -1261,7 +1296,7 @@ export class LocationComponent implements OnInit, OnDestroy {
    * get near vehicles ans paint it in map
    */
   getNearbyVehicles$() {
-    if (!this.serviceService.userProfile) {
+    if (!this.serviceService.userProfile$.getValue()) {
       return of(null);
     }
     return this.serviceService.getNearbyVehicles().pipe(
@@ -1340,10 +1375,6 @@ export class LocationComponent implements OnInit, OnDestroy {
     //   });
     // });
 
-    // this.serviceService.originPlaceSelected$.next({
-    //   name: 'Mi Ubicación Actual',
-    //   location: { lat, lng }
-    // });
 
     this.serviceService.publishOriginPlace({
       name: 'Mi Ubicación Actual',

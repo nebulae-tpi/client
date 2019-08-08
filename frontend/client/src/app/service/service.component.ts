@@ -96,6 +96,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
     private mapsAPILoader: MapsAPILoader
   ) {
 
+    // setInterval(() => {
+    //   console.log(this.layoutType);
+
+    // }, 10);
   }
 
   ngOnInit() {
@@ -115,6 +119,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
 
   checkIfUserIsLoggedAndListenServiceUpdates() {
+    console.log('checkIfUserIsLoggedAndListenServiceUpdates');
+
     if (this.gateway.checkIfUserLogger()) {
 
       of(this.keycloakService.getKeycloakInstance().tokenParsed)
@@ -128,10 +134,14 @@ export class ServiceComponent implements OnInit, OnDestroy {
           ),
           mergeMap(() => this.serviceService.getBusinessContactInfo$()),
           mergeMap(() => this.serviceService.getCurrentService$()),
+          tap(cs => console.log('CURRENT SERVICE QUERIED', cs)),
           filter(service => service),
           takeUntil(this.ngUnsubscribe)
         )
-        .subscribe(service => this.serviceService.publishServiceChanges(service));
+        .subscribe(service => {
+          console.log('***[Service].checkIfUserIsLoggedAndListenServiceUpdates*** Checking current ');
+          this.serviceService.publishServiceChanges(service);
+        });
 
 
       this.serviceService.subscribeToClientServiceUpdatedSubscription$()
@@ -191,7 +201,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
 
   listenRouteParams() {
-    console.log('..........listenRouteParams........');
 
     this.serviceService.mapsApiLoaded$
       .pipe(
@@ -206,6 +215,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
           )
         ),
         map((data: any) => {
+          if (this.currentService.state !== ServiceState.NO_SERVICE) {
+            return null;
+          }
           let favoritePlace;
           let favoritePlaceType;
           if (data.params.origin) {
@@ -223,10 +235,10 @@ export class ServiceComponent implements OnInit, OnDestroy {
             place: favoritePlace
           });
         }),
+        filter((place: any) => place),
+        delay(300),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(data => {
-        console.log({data});
-
         this.serviceService.publishCommand({
           code: ServiceService.COMMAND_USE_FAVORITE_PLACE_TO_REQUEST_SERVICE,
           args: [{ ...data }]
@@ -393,7 +405,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
         if (horizontalLayout) {
           this.layoutType = ServiceService.LAYOUT_MOBILE_HORIZONTAL_MAP_CONTENT;
         } else {
-          this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_MAP_CONTENT;
+          // this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_MAP_CONTENT;
+          this.layoutType = ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT;
         }
       } else {
         this.layoutType = ServiceService.LAYOUT_DESKTOP_MAP_CONTENT;

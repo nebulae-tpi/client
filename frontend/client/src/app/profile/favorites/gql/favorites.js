@@ -31,7 +31,7 @@ export const ClientFavoritePlace = gql`
 
 export const AddFavoritePlace = gql`
   mutation AddFavoritePlace($favoritePlace: FavoritePlaceInput) {
-    AddFavoritePlace(favoriteType: $favoriteType) {
+    AddFavoritePlace(favoritePlace: $favoritePlace) {
       code
       message
     }
