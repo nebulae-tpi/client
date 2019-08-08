@@ -261,7 +261,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           lat: this.originPlace.location.lat,
           lng: this.originPlace.location.lng
         },
-        addressLine1: this.originPlace.address || this.originPlace.name,
+        addressLine1: this.originPlace.address || this.originPlace.name || '',
         addressLine2: this.placeReference,
         neighborhood: 'Solicitud app cliente',
       };
@@ -369,7 +369,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
               this.requestStep = 2;
               this.confirmServiceRequest();
               setTimeout(() => {
-                this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+                this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name || '';
               }, 100);
               // switch (this.requestStep) {
               //   case 0:
@@ -415,7 +415,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
           case ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS:
             this.showFilterSection = true;
             setTimeout(() => {
-              this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+              this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name || '';
             }, 100);
             break;
           case ServiceService.COMMAND_TRIP_COST_CALCULATED:
@@ -655,11 +655,17 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   listenOriginPlaceChanges() {
-
     this.serviceService.originPlaceSelected$
       .pipe(
         filter(place => place),
         // startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
+        filter(place => {
+          if (place.name === null && place.location === null) {
+            this.originPlace = {};
+            return false;
+          }
+          return true;
+        }),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {
         console.log('***[RequestConfirmation]*** originPlaceSelected$', place );
@@ -677,7 +683,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
         this.originPlace = place;
         if (this.originPlaceSearchElementRef) {
-          this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
+          this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name || '';
         }
 
 

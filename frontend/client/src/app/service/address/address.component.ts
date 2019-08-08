@@ -549,6 +549,13 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
     this.serviceService.originPlaceSelected$
       .pipe(
         filter(place => place),
+        filter(place => {
+          if (place.name === null && place.location === null) {
+            this.originPlace = {};
+            return false;
+          }
+          return true;
+        }),
         startWith(({ type: 'INITIAL_MARKER', value: this.serviceService.markerOnMapChange$.getValue() })),
         takeUntil(this.ngUnsubscribe)
       ).subscribe((place: any) => {

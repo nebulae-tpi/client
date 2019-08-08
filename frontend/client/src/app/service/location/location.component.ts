@@ -186,9 +186,20 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.serviceService.originPlaceSelected$
       .pipe(
         filter(place => place),
+        filter(place => {
+          if (place.name === null && place.location === null) {
+            if (this.originMarker) {
+              this.originMarker.setMap(null);
+              this.originPlace = {};
+            }
+            return false;
+          }
+          return true;
+        }),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(originPlace => {
-        console.log('***[Location].listenOriginPlaceChanges*** ==> ', originPlace);
+        console.log('***[Location].listenOriginPlaceChanges*** ==> ', originPlace, '########');
+
 
         this.map.setCenter({ lat: originPlace.location.lat, lng: originPlace.location.lng });
 
@@ -264,6 +275,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         this.showCenterMarker = false;
         this.placeToMoveWithCenter = null;
 
+
         this.destinationMarker = this.destinationMarker || new google.maps.Marker({
           position: new google.maps.LatLng(0, 0),
           icon: '../../../assets/icons/location/destination-place-30.png',
@@ -304,8 +316,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   listenServiceCommands() {
-    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-
     this.serviceService.serviceCommands$
       .pipe(
         filter(command => command && command.code),
@@ -351,7 +361,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             });
 
 
-            this.serviceService.originPlaceSelected$.next(this.originPlace);
+            this.serviceService.publishOriginPlace(this.originPlace);
 
 
 
@@ -465,11 +475,14 @@ export class LocationComponent implements OnInit, OnDestroy {
           this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
 
 
-          if (!this.originPlace || this.originPlace === {}) {
+
+          console.log('----------------- LUGAR INICIAL ==> ', this.originPlace);
+
+          if (!this.originPlace || this.originPlace == {}) {
             console.log('PUBLICANDO EL ORIGEN INICIAL');
 
-            this.serviceService.originPlaceSelected$.next({
-              name: '...ubicacion...',
+            this.serviceService.publishOriginPlace({
+              name: 'Mi Ubicación',
               location: {
                 lat: this.lastCenterReported.lat,
                 lng: this.lastCenterReported.lng
@@ -542,6 +555,8 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region TOOLS */
   currentLocation() {
+    console.log('***[Location].currentLocation()***');
+
 
     const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
 
@@ -560,17 +575,18 @@ export class LocationComponent implements OnInit, OnDestroy {
     } else if (navigator.geolocation) {
 
       navigator.geolocation.getCurrentPosition(position => {
+        console.log('***[Location].currentLocation***', 'geolocation.getCurrentPosition setting map center', position);
 
         if (this.map) {
-          if (!this.originPlace) {
-            console.log('***[Location].currentLocation***', 'geolocation.getCurrentPosition setting map center');
 
-            this.map.setCenter({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
 
-          }
+
+
+          this.map.setCenter({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+
 
 
           this.map.setZoom(17);
@@ -592,6 +608,8 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   initLocation() {
+    console.log('***[Location].initLocation()***');
+
     this.currentService = this.serviceService.currentService$.getValue();
     const markerOnMap = this.serviceService.markerOnMapChange$.getValue();
 
@@ -987,19 +1005,26 @@ export class LocationComponent implements OnInit, OnDestroy {
 
         switch (state) {
           case ServiceState.NO_SERVICE:
+            if (this.destinationPlaceSearchElementRef) {
+              this.destinationPlaceSearchElementRef.nativeElement.value = '';
+            }
+
             this.estimatedTripCost = null;
             this.disableMap = false;
             if (this.layoutType === ServiceService.LAYOUT_MOBILE_VERTICAL_ADDRESS_MAP_CONTENT) {
               this.showDestinationPlaceInput = true;
             }
-            this.showCenterMarker = true;
+            this.serviceService.publishOriginPlace({ name: null, location: null });
             if (this.destinationMarker) {
               this.destinationMarker.setMap(null);
               this.destinationMarker = null;
             }
 
-            console.log('ELIMINAR EL MARCADOR DE ORIGEN DEL MAP');
+            this.showCenterMarker = true;
+
             this.originMarker.setMap(null);
+
+
 
             if (this.directionsDisplay) {
               this.directionsDisplay.setMap(null);
@@ -1031,14 +1056,17 @@ export class LocationComponent implements OnInit, OnDestroy {
           case ServiceState.REQUEST:
             this.showDestinationPlaceInput = false;
 
-            // this.serviceService.originPlaceSelected$.next({
-            //   name: 'Mi Ubicación',
-            //   location: {
-            //     lat: this.lastCenterReported.lat,
-            //     lng: this.lastCenterReported.lng
-            //   }
-            // });
+            console.log('REQUESTED ===> ', this.originPlace);
 
+            if (!this.originPlace) {
+              this.serviceService.originPlaceSelected$.next({
+                name: '',
+                location: {
+                  lat: this.lastCenterReported.lat,
+                  lng: this.lastCenterReported.lng
+                }
+              });
+            }
 
             break;
           case ServiceState.REQUESTED:
@@ -1046,15 +1074,24 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.refreshCenterMap(this.currentService);
             this.disableMap = true;
             if (this.currentService && pickUp && pickUp.marker) {
-              this.originMarker = new google.maps.Marker({
-                position: new google.maps.LatLng(
-                  pickUp.marker.lat,
-                  pickUp.marker.lng
-                ),
-                icon:
-                  '../../../assets/icons/location/assigned_user_marker.png',
-                map: this.map
-              });
+              if (!this.originMarker) {
+                this.originMarker = new google.maps.Marker({
+                  position: {
+                    lat: pickUp.marker.lat,
+                    lng: pickUp.marker.lng
+                  },
+                  icon: '../../../assets/icons/location/destination-place-30.png',
+                  map: this.map
+                });
+              } else {
+                this.originMarker.setPosition({
+                  lat: pickUp.marker.lat,
+                  lng: pickUp.marker.lng
+                });
+              }
+
+
+
             }
             this.showCenterMarker = false;
             break;
@@ -1078,7 +1115,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.nearbyVehiclesEnabled = false;
             this.disableMap = false;
             this.nearbyVehicleList.forEach(vehicle => {
-              vehicle.marker.setMap(undefined);
+              vehicle.marker.setMap(null);
             });
             this.nearbyVehicleList = [];
             if (this.currentService && pickUp && pickUp.marker) {
@@ -1127,7 +1164,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.nearbyVehiclesEnabled = false;
             this.disableMap = false;
             this.nearbyVehicleList.forEach(vehicle => {
-              vehicle.marker.setMap(undefined);
+              vehicle.marker.setMap(null);
             });
             this.nearbyVehicleList = [];
 
@@ -1168,7 +1205,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           default:
             if (this.vehicleMarker) {
-              this.vehicleMarker.setMap(undefined);
+              this.vehicleMarker.setMap(null);
               this.vehicleMarker = undefined;
             }
             if (this.originMarker) {
@@ -1193,7 +1230,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     if (this.originMarker) {
       this.originMarker.setMap(null);
     }
-    this.originPlace = null;
+    this.originPlace = {};
 
 
     if (this.destinationMarker) {
@@ -1241,7 +1278,7 @@ export class LocationComponent implements OnInit, OnDestroy {
           nearbyVehicles.length < 1
         ) {
           return from(this.nearbyVehicleList).pipe(
-            tap(v => v.marker.setMap(undefined)),
+            tap(v => v.marker.setMap(null)),
             toArray(),
             map(() => nearbyVehicles),
             tap(() => this.nearbyVehicleList = [])
@@ -1275,7 +1312,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             const searchVehicle = nearbyVehicles.find(element => vehicle.vehicleId === element.vehicleId);
 
             if (!searchVehicle) {
-              vehicle.marker.setMap(undefined);
+              vehicle.marker.setMap(null);
             }
             return searchVehicle ? undefined : vehicle;
           }),
