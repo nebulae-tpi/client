@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   ViewChild,
-  ChangeDetectorRef,
   OnDestroy,
   ElementRef,
   NgZone
@@ -16,11 +15,8 @@ import {
   debounceTime,
   mergeMap,
   toArray,
-  delay,
-  startWith,
-  distinctUntilChanged,
 } from 'rxjs/operators';
-import { Subject, from, interval, merge, of, combineLatest, defer, Observable, forkJoin } from 'rxjs';
+import { Subject, from, interval, of, Observable, forkJoin } from 'rxjs';
 import { ServiceState } from '../service-state';
 import {
   MatBottomSheetRef,
@@ -33,7 +29,6 @@ import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.componen
 import { MapsAPILoader } from '@agm/core';
 import { ORIGIN_DESTINATION_MATRIX_FARE } from '../specialFarePlaces/originDestinationMatrix';
 import { PLACES_WITH_SPECIAL_FARE } from '../specialFarePlaces/places';
-
 
 
 @Component({
@@ -169,6 +164,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone
   ) {
+
   }
 
   /* #region ANGULAR NGS */
@@ -186,92 +182,15 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-
-
-
-
-  //       // }
-
-  //       // if (places.origin && !this.showCenterMarker) {
-  //       //   this.originPlace = places.origin;
-
-  //       //   if (!this.originMarker) {
-
-  //       //     this.originMarker = new google.maps.Marker({
-  //       //       position: new google.maps.LatLng(
-  //       //         places.origin.location.lat,
-  //       //         places.origin.location.lng,
-  //       //       ),
-  //       //       icon: '../../../assets/icons/location/origin-place-30.png',
-  //       //       map: this.map,
-  //       //       clickable: true,
-  //       //     });
-
-  //       //     const buttonString = 'Fijar Con Puntero';
-  //       //     this.originMarkerInfoWindow = new google.maps.InfoWindow({
-  //       //       content: `
-  //       //       <div id="origin-marker-info-window">
-  //       //         <div id="bodyContent">
-  //       //         <p><b>${places.origin.name}</b></p>
-  //       //         <div id="use-pointer-btn" class="use-pointer-btn">${buttonString}</div>
-  //       //       </div>`
-  //       //     });
-
-  //       //     this.originMarker.addListener('click', () => {
-  //       //       this.originMarkerInfoWindow.open(this.map, this.originMarker);
-
-  //       //       setTimeout(() => {
-  //       //         const buttonHtmlRef = document.getElementById('use-pointer-btn');
-  //       //         if (buttonHtmlRef) {
-  //       //           buttonHtmlRef.addEventListener('mousedown', () => this.onUsePointerToSetLocation('ORIGIN'));
-  //       //         }
-  //       //       }, 200);
-
-  //       //     });
-
-  //       //     this.map.setZoom(17);
-
-
-  //       //   } else {
-
-  //       //     this.originMarker.setPosition({
-  //       //       lat: places.origin.location.lat,
-  //       //       lng: places.origin.location.lng
-  //       //     });
-  //       //     this.map.setCenter(this.originMarker.getPosition());
-  //       //     this.map.setZoom(17);
-
-  //       //   }
-
-  //       // } else if (places.origin && places.origin.favorite) {
-  //       //   this.showCenterMarker = false;
-  //       //   if (!this.originMarker) {
-  //       //     this.originMarker = new google.maps.Marker({
-  //       //       position: {
-  //       //         lat: places.origin.location.lat,
-  //       //         lng: places.origin.location.lng,
-  //       //       },
-  //       //       map: this.map,
-  //       //       icon: '../../../assets/icons/location/origin-place-30.png',
-  //       //     });
-  //       //   }
-
-  //       // }
-
-
-
-
-
-  //     });
-  // }
-
   listenOriginPlaceChanges() {
     this.serviceService.originPlaceSelected$
       .pipe(
         filter(place => place),
         takeUntil(this.ngUnsubscribe)
       ).subscribe(originPlace => {
-        console.log('LOCATION ORIGIN DSTINATION SELECTED ==> ', originPlace);
+        console.log('***[Location].listenOriginPlaceChanges*** ==> ', originPlace);
+
+        this.map.setCenter({ lat: originPlace.location.lat, lng: originPlace.location.lng });
 
         this.originPlace = originPlace;
         this.showCenterMarker = false;
@@ -281,22 +200,24 @@ export class LocationComponent implements OnInit, OnDestroy {
           this.estimatedTripCost = null;
         }
 
-        this.originMarker = this.originMarker || new google.maps.Marker({
-          position: {
+        if (!this.originMarker) {
+          this.originMarker = new google.maps.Marker({
+            position: {
+              lat: originPlace.location.lat,
+              lng: originPlace.location.lng,
+            },
+            icon: '../../../assets/icons/location/origin-place-30.png',
+          });
+
+        } else {
+          this.originMarker.setPosition({
             lat: originPlace.location.lat,
-            lng: originPlace.location.lng,
-          },
-          map: this.map,
-          icon: '../../../assets/icons/location/origin-place-30.png',
-        });
+            lng: originPlace.location.lng
+          });
+        }
+        this.originMarker.setMap(this.map);
 
-        this.originMarker.setPosition({
-          lat: originPlace.location.lat,
-          lng: originPlace.location.lng
-        });
-
-
-        this.map.setCenter({ lat: originPlace.location.lat, lng: originPlace.location.lng });
+        this.map.setCenter(this.originMarker.getPosition());
 
         const buttonString = 'Fijar Con Puntero';
         this.originMarkerInfoWindow = new google.maps.InfoWindow({
@@ -334,8 +255,6 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       ).subscribe(destinationPlace => {
         this.destinationPlace = destinationPlace;
-        console.log();
-
 
         if (this.directionsDisplay) {
           this.directionsDisplay.setMap(null);
@@ -359,11 +278,11 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
         // UPDATE THE ZOOM AND CENTER TO SHOW DESTINATION AND ORIGINMARKER ON MAP
-
         const bounds = new google.maps.LatLngBounds();
         if (this.originMarker) {
           bounds.extend(this.originMarker.getPosition());
         }
+
         if (bounds && this.destinationMarker) {
           bounds.extend(this.destinationMarker.getPosition());
 
@@ -372,6 +291,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         if (this.map && bounds) {
           this.map.fitBounds(bounds); // { top: 40, right: 40, bottom: 40, left: 40 }
         }
+        // UPDATE THE ZOOM AND CENTER TO SHOW DESTINATION AND ORIGINMARKER ON MAP
 
       });
 
@@ -543,6 +463,20 @@ export class LocationComponent implements OnInit, OnDestroy {
           this.destinationPlaceSearchElementRef.nativeElement.value = destinationPlaceName;
 
           this.serviceService.publishServiceChanges({ state: ServiceState.REQUEST });
+
+
+          if (!this.originPlace || this.originPlace === {}) {
+            console.log('PUBLICANDO EL ORIGEN INICIAL');
+
+            this.serviceService.originPlaceSelected$.next({
+              name: '...ubicacion...',
+              location: {
+                lat: this.lastCenterReported.lat,
+                lng: this.lastCenterReported.lng
+              }
+            });
+          }
+
 
           this.serviceService.destinationPlaceSelected$.next({
             ...this.destinationPlace,
@@ -1066,7 +1000,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
             console.log('ELIMINAR EL MARCADOR DE ORIGEN DEL MAP');
             this.originMarker.setMap(null);
-            this.originMarker = undefined;
 
             if (this.directionsDisplay) {
               this.directionsDisplay.setMap(null);
@@ -1199,8 +1132,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             this.nearbyVehicleList = [];
 
             if (this.originMarker) {
-              this.originMarker.setMap(undefined);
-              this.originMarker = undefined;
+              this.originMarker.setMap(null);
             }
             if (this.currentService && location) {
               if (this.vehicleMarker) {
@@ -1240,7 +1172,7 @@ export class LocationComponent implements OnInit, OnDestroy {
               this.vehicleMarker = undefined;
             }
             if (this.originMarker) {
-              this.originMarker.setMap(undefined);
+              this.originMarker.setMap(null);
               this.originMarker = undefined;
             }
 

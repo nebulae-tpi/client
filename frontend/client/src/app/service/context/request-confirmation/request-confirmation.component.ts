@@ -254,12 +254,14 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     if (this.originPlace && this.originPlace.name && this.originPlace.name !== '') {
 
 
+      console.log('origin place', this.originPlace);
+
       const pickUp = {
         marker: {
           lat: this.originPlace.location.lat,
           lng: this.originPlace.location.lng
         },
-        addressLine1: this.originPlace.name,
+        addressLine1: this.originPlace.address || this.originPlace.name,
         addressLine2: this.placeReference,
         neighborhood: 'Solicitud app cliente',
       };
@@ -276,9 +278,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         };
 
       }
-
-      console.log({pickUp, dropOff});
-
 
       this.serviceService.createNewService$(
         this.serviceService.userProfile$.getValue().username,
@@ -676,8 +675,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         //   };
         // }
 
-        this.originPlace.name = place.name || '';
-        this.originPlace.location = place.location;
+        this.originPlace = place;
         if (this.originPlaceSearchElementRef) {
           this.originPlaceSearchElementRef.nativeElement.value = this.originPlace.name;
         }
