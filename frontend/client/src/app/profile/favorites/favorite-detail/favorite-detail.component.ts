@@ -122,37 +122,15 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
           )
         ),
         filter((favorite: any) => favorite),
+        mergeMap(favoriteplace => this.validateLocation$(favoriteplace)),
+
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe((favorite: any) => {
-        this.selectedFavorite$.next(favorite);
-      }, e => console.log(e));
-  }
-
-  mapReady(mapRef) {
-
-    this.map = mapRef;
-    this.listenSelectedFavoritePlace();
-    this.listenMapCenterChanged();
-    this.calculateHeihtUsage({ height: innerHeight, width: innerWidth });
-
-  }
-
-  onCenterChange($event) {
-    this.mapCenter$.next($event);
-  }
-
-  listenSelectedFavoritePlace() {
-    this.selectedFavorite$
-      .pipe(
-        take(1),
-        filter(favoritePlace => favoritePlace),
-        mergeMap(favoriteplace => this.validateLocation$(favoriteplace) )
-      )
-      .subscribe((favorite: any) => {
+        // this.selectedFavorite$.next(favorite);
         console.log('selectedFavorite$ ===> ', favorite);
 
-        this.map.setCenter({ lat: favorite.location.lat, lng: favorite.location.lng });
+
 
         this.selectedFavorite = favorite;
 
@@ -161,29 +139,64 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
         this.favoriteName.setValue(favorite.name);
         this.favoriteAddress.setValue(favorite.address);
 
-        this.favoriteMarker = this.favoriteMarker || new google.maps.Marker({
-          position: { lat: favorite.location.lat, lng: favorite.location.lng },
-          icon: '../../../../assets/icons/location/destination-place-30.png',
-          map: this.map
-        });
 
-        this.favoriteMarker.setPosition({ lat: favorite.location.lat, lng: favorite.location.lng });
-      });
+
+
+      }, e => console.log(e));
   }
+
+  mapReady(mapRef) {
+
+    this.map = mapRef;
+    // this.listenSelectedFavoritePlace();
+    this.listenMapCenterChanged();
+    this.calculateHeihtUsage({ height: innerHeight, width: innerWidth });
+
+    if (this.selectedFavorite) {
+      this.map.setCenter({ lat: this.selectedFavorite.location.lat, lng: this.selectedFavorite.location.lng });
+
+      this.favoriteMarker = this.favoriteMarker || new google.maps.Marker({
+        position: { lat: this.selectedFavorite.location.lat, lng: this.selectedFavorite.location.lng },
+        icon: '../../../../assets/icons/location/destination-place-30.png',
+        map: this.map
+      });
+
+      this.favoriteMarker.setPosition({ lat: this.selectedFavorite.location.lat, lng: this.selectedFavorite.location.lng });
+    }
+
+
+
+  }
+
+  onCenterChange($event) {
+    this.mapCenter$.next($event);
+  }
+
+  // listenSelectedFavoritePlace() {
+  //   this.selectedFavorite$
+  //     .pipe(
+  //       take(1),
+  //       filter(favoritePlace => favoritePlace),
+  //       mergeMap(favoriteplace => this.validateLocation$(favoriteplace) )
+  //     )
+  //     .subscribe((favorite: any) => {
+
+  //     });
+  // }
 
   validateLocation$(favoritePlace) {
     if (!favoritePlace.location.lat || favoritePlace.location.lat === 0) {
       return this.mapCenter$
-      .pipe(
-        filter((center: any) => center),
-        map(center => ({
-          ...favoritePlace,
-          location: {
-            lat: center.lat,
-            lng: center.lng
-          }
-        }))
-      );
+        .pipe(
+          filter((center: any) => center),
+          map(center => ({
+            ...favoritePlace,
+            location: {
+              lat: center.lat,
+              lng: center.lng
+            }
+          }))
+        );
     } else {
       return of(favoritePlace);
     }
