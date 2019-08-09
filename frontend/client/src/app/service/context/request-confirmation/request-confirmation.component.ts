@@ -357,11 +357,11 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         takeUntil(this.ngUnsubscribe)
       ).subscribe(command => {
 
+        console.log('***[RequestConfirmation]*** COMMAND_ON_CONFIRM_BTN ==> ');
+        console.log({origin: this.originPlace, destination:  this.destinationPlace});
+
         switch (command.code) {
           case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            console.log('***[RequestConfirmation]*** COMMAND_ON_CONFIRM_BTN ==> ');
-            console.log(this.originPlace);
-
 
             // no Destination place given
             if (!this.destinationPlace.location) {
@@ -587,7 +587,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         });
 
         if (circle) {
-          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
       });
     }
@@ -648,7 +648,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         }
 
         if (circle) {
-          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
       });
     }
@@ -694,7 +694,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
         } else {
-          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -724,7 +724,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else {
-          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });

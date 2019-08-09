@@ -506,7 +506,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       });
 
       if (circle) {
-        // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
     });
   }
@@ -986,7 +986,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         if (!this.destinationPlaceAutocomplete) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else if (this.showDestinationPlaceInput) {
-          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });

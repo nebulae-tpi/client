@@ -172,7 +172,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
         if (circle) {
-          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
           // this.originPlaceAutocomplete.setBounds(circle.getBounds());
         }
 
@@ -246,7 +246,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       if (circle) {
-        // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
       }
 
     });
@@ -271,13 +271,13 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!this.originPlaceAutocomplete) {
           this.buildOriginPlaceAutoComplete(circle);
         } else if (this.showAddress && this.showTwoInputs) {
-          // this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.originPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
         if (!this.destinationPlace) {
           this.buildDestinationPlaceAutoComplete(circle);
         } else if (this.showAddress && this.destinationPlaceAutocomplete) {
-          // this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
         }
 
       });
@@ -606,15 +606,15 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.destinationPlace.location = place.location;
 
-        // const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
-        // const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
+        const latlng = new google.maps.LatLng(place.location.lat, place.location.lng);
+        const circle = new google.maps.Circle({ center: latlng, radius: 20000 }); // radius in meters
 
 
-        // // if (!this.destinationPlaceAutocomplete) {
-        // //   this.buildDestinationPlaceAutoComplete(circle);
-        // // } else {
-        // //   this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
-        // // }
+        if (!this.destinationPlaceAutocomplete) {
+          this.buildDestinationPlaceAutoComplete(circle);
+        } else {
+          this.destinationPlaceAutocomplete.setOptions({ bounds: circle.getBounds(), strictBounds: true });
+        }
 
       });
   }
