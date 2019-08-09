@@ -1022,7 +1022,10 @@ export class LocationComponent implements OnInit, OnDestroy {
 
             this.showCenterMarker = true;
 
-            this.originMarker.setMap(null);
+            if (this.originMarker) {
+              this.originMarker.setMap(null);
+            }
+
 
 
 
