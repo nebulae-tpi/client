@@ -10,7 +10,8 @@ import {
   takeUntil,
   tap,
   filter,
-  debounceTime
+  debounceTime,
+  take
 } from 'rxjs/operators';
 import {
   Subject,
@@ -144,9 +145,11 @@ export class ClientFavoritesDetailComponent implements OnInit, OnDestroy {
   listenSelectedFavoritePlace() {
     this.selectedFavorite$
       .pipe(
+        take(1),
         filter(favoritePlace => favoritePlace),
         mergeMap(favoriteplace => this.validateLocation$(favoriteplace) )
-      ).subscribe((favorite: any) => {
+      )
+      .subscribe((favorite: any) => {
         console.log('selectedFavorite$ ===> ', favorite);
 
         this.map.setCenter({ lat: favorite.location.lat, lng: favorite.location.lng });

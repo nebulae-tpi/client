@@ -622,6 +622,7 @@ export class AddressComponent implements OnInit, OnDestroy, AfterViewInit {
   toogleFavoritePlace(type: string) {
 
     const place = type === 'ORIGIN' ? this.originPlace : this.destinationPlace;
+    if (!place || !place.name) { return; }
 
     if (type === 'ORIGIN') {
       this.originPlace.favorite = !this.originPlace.favorite;
