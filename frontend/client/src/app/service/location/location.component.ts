@@ -478,7 +478,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
           console.log('----------------- LUGAR INICIAL ==> ', this.originPlace);
 
-          if (!this.originPlace || this.originPlace == {}) {
+          if (!this.originPlace || this.originPlace === {}) {
             console.log('PUBLICANDO EL ORIGEN INICIAL');
 
             this.serviceService.publishOriginPlace({
