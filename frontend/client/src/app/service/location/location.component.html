@@ -8,7 +8,9 @@
   <button mat-mini-fab [color]="'location-button-color'" (click)="currentLocation()" class="location-button">
     <mat-icon #icontest>gps_fixed</mat-icon>
   </button>
-  <button *ngIf="currentService && currentService.state && (currentService.state === 'ASSIGNED' || currentService.state === 'ARRIVED')" mat-mini-fab [color]="'location-button-color'" (click)="openClientChatView()" class="chat-button">
+  <button *ngIf="currentService && currentService.state && (currentService.state === 'ASSIGNED' || currentService.state === 'ARRIVED')" 
+    mat-mini-fab [color]="'location-button-color'" 
+    (click)="openClientChatView()" [ngClass]="{'message-animation': message.message.textMessage }" class="chat-button">
     <mat-icon #icontest>chat</mat-icon>
   </button>
   <div *ngIf="disableMap" [ngStyle]="{ 'width.px': widthMapContent, 'height.px': heightMapContent }"

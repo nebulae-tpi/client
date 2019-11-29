@@ -137,7 +137,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   NUM_DELTAS = 80;
   DELAY = 10;
 
-
+  message= {  message: { textMessage: undefined } }
 
   layoutType = null;
 
@@ -183,7 +183,10 @@ export class LocationComponent implements OnInit, OnDestroy {
       takeUntil(this.ngUnsubscribe)
     ).subscribe(newMessage => {
       const wrapMessage = newMessage.data.ServiceMessageSubscription;
-      console.log(wrapMessage);
+      this.message = wrapMessage;
+      const tempData = this.clientChatService.messageList.getValue();
+      tempData.push({ from: 'Conductor', message: wrapMessage.message.textMessage, timestamp: Date.now() });
+      this.clientChatService.messageList.next(tempData);
     });
   }
 

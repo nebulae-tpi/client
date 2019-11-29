@@ -14,22 +14,23 @@
     </div>
   </div>
 
-  <div fxFlex="90" style="margin-bottom: 50px;" fxLayout="column">
+  <div style="margin:0 auto 50px; padding: 0 10px; width: 90%;">
     <div *ngFor="let message of messageList">
       <div *ngIf="message.from === 'me'" fxLayout="row">
-        <img class="circle" src="../../../../assets/icons/context/default_pic.png" width="50px" height="50px" />
+        
         <div fxFlex="75" class="send-chat-bubble">
           <span style="font-weight: bold; color: white; display: block;">Yo:</span>
           <span style="color: white">{{message.message}}</span>
         </div>
+        <img class="circle" src="../../../../assets/icons/context/default_pic.png" width="50px" height="50px" />
       </div>
       <div *ngIf="message.from !== 'me'" fxLayout="row">
-
+        <img class="circle" src="../../../../assets/icons/context/default_pic.png" width="50px" height="50px" />
         <div fxFlex="75" class="received-chat-bubble">
-          <span style="font-weight: bold; color: #444; display: block;">Yo:</span>
+          <span style="font-weight: bold; color: #444; display: block;">Conductor:</span>
           <span style="color: #444">{{message.message}}</span>
         </div>
-        <img class="circle" src="../../../../assets/icons/context/default_pic.png" width="50px" height="50px" />
+        
       </div>
     </div>
     <div class="bottom-content">

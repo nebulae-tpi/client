@@ -31,6 +31,39 @@
   transform: translateX(-98%);
 }
 
+.message-animation{
+  animation: rebotar infinite 2s alternate;
+}
+
+@keyframes rebotar {
+  0% {
+    background-color: white;
+    transform: translateX(-98%) translateY(0px);
+  }
+
+  10%{
+    transform: translateX(-98%) translateY(-10px);
+  }
+
+  15%{
+    background-color: #d1312c;
+    transform: translateX(-98%) translateY(0px);
+  }
+
+  20%{
+    transform: translateX(-98%) translateY(-5px);
+  }
+
+  25%{
+    transform: translateX(-98%) translateY(0px);
+  }
+  
+  100% {
+    background-color: white;
+    transform: translateX(-98%) translateY(0px);
+  }
+}
+
 .mat-location-button-color {
   background-color: rgb(255, 255, 255);
   color: rgb(0, 0, 0);

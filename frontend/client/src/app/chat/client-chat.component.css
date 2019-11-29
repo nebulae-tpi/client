@@ -5,9 +5,9 @@
 }
 
 /* STYLE FOR XS LAYOUT MEDIA QUERY */
-.xs-content {
-  padding-top: 20px;
-}
+/*.xs-content {
+   padding-top: 20px; 
+}*/
 
 .xs-placeholder {
   font-size: 20px;
@@ -83,21 +83,63 @@
 }
 
 .send-chat-bubble {
-  border-radius: 25px;
-  border: 2px solid rgba(102, 0, 153, 0);
-  background-color: rgba(0, 0, 0, 0.66);
+  border-radius: 4px;
+  /* border: 2px solid rgba(102, 0, 153, 0);
+  background-color: rgba(0, 0, 0, 0.66); */
+  border: 2px solid #d1312c;
+  background-color: #d1312c;
   padding: 10px;
-  margin-left: 10px;
-  margin-bottom: 10px;
+  margin: 0px 10px 10px 10px;
+  position: relative;
+  /* margin-left: 10px;
+  margin-bottom: 10px; */
+}
+
+.send-chat-bubble:after{
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -6px;
+  border-radius: 3px;
+  border-top: 5px solid #d1312c;
+  border-left: 10px solid #d1312c00;
+  border-bottom: 10px solid #d1312c00;
+  border-right: 5px solid #d1312c;
+  z-index: -1;
+  transform: rotate(41deg);
+}
+
+.send-chat-bubble span{
+  word-wrap: break-word;
 }
 
 .received-chat-bubble {
-  border-radius: 25px;
-  border: 2px solid rgb(179, 179, 179);
-  background-color: rgb(179, 179, 179);
+  border-radius: 4px;
+  border: 2px solid #ececec;
+  background-color: #ececec;
   padding: 10px;
-  margin-left: 10px;
-  margin-bottom: 10px;
+  margin: 0px 10px 10px 10px;
+  position: relative;
+  box-shadow: -1px 1px 3px 0px silver;
+  /* margin-left: 10px;
+  margin-bottom: 10px; */
+}
+
+.received-chat-bubble span{
+  word-wrap: break-word;
+}
+
+.received-chat-bubble:after{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -6px;
+  border-radius: 3px;
+  border-top: 5px solid #f3cccc00;
+  border-left: 10px solid #ececec;
+  border-bottom: 10px solid #ececec;
+  border-right: 5px solid #f3cccc00;
+  transform: rotate(41deg);
 }
 
 #ip2 {
@@ -108,4 +150,5 @@
   height: 20px;
   background: white;
   z-index: 3;
+  outline: 0;
 }
