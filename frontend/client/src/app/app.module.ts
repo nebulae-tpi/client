@@ -37,6 +37,7 @@ import { ContactUsComponent } from './contact-us/contact-us.component';
 import { MenuService } from './menu/menu.service';
 import { HistoryService } from './history/history.service';
 import { ServiceDetailComponent } from './history/service-detail/service-detail.component';
+import { ClientChatComponent } from './chat/client-chat.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { ServiceDetailComponent } from './history/service-detail/service-detail.
     NotfoundComponent,
     LocationComponent,
     HistoryComponent,
+    ClientChatComponent,
     ServiceComponent,
     ContextComponent,
     AddressComponent,

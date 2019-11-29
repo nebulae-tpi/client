@@ -29,6 +29,8 @@ import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.componen
 import { MapsAPILoader } from '@agm/core';
 import { ORIGIN_DESTINATION_MATRIX_FARE } from '../specialFarePlaces/originDestinationMatrix';
 import { PLACES_WITH_SPECIAL_FARE } from '../specialFarePlaces/places';
+import { Router } from '@angular/router';
+import { ClientChatService } from 'src/app/chat/client-chat.service';
 
 
 @Component({
@@ -162,7 +164,9 @@ export class LocationComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private mapsAPILoader: MapsAPILoader,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private router: Router,
+    private clientChatService: ClientChatService
   ) {
 
   }
@@ -175,6 +179,12 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.listenOnResume();
     this.listenCenterChanges();
     this.listenServiceCommands();
+    this.clientChatService.listenNewChatMessages$().pipe(
+      takeUntil(this.ngUnsubscribe)
+    ).subscribe(newMessage => {
+      const wrapMessage = newMessage.data.ServiceMessageSubscription;
+      console.log(wrapMessage);
+    });
   }
 
   ngOnDestroy() {
@@ -604,6 +614,10 @@ export class LocationComponent implements OnInit, OnDestroy {
     } else {
       alert('Geolocation is not supported by this browser.');
     }
+  }
+
+  openClientChatView() {
+    this.router.navigate(['/clientchat']);
   }
 
 
