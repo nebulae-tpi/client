@@ -3,6 +3,7 @@ import { MatBottomSheetRef, MatBottomSheet } from '@angular/material';
 import { ServiceService } from '../../service.service';
 import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
+import { ClientChatService } from 'src/app/chat/client-chat.service';
 
 @Component({
   selector: 'app-requested',
@@ -16,7 +17,8 @@ export class RequestedComponent implements OnInit, OnDestroy {
   fxFlexFilter = 40;
   showHeader = true;
   private ngUnsubscribe = new Subject();
-  constructor(private serviceService: ServiceService) {}
+  constructor(private serviceService: ServiceService,
+              private chatService: ClientChatService) { }
 
   ngOnInit() {
     this.serviceService.currentService$
@@ -25,6 +27,7 @@ export class RequestedComponent implements OnInit, OnDestroy {
         this.currentService = service;
         this.tipValue = service && service.tip ? service.tip : '';
       });
+    this.chatService.messageList.next([]);
     this.listenLayoutCommands();
   }
 
