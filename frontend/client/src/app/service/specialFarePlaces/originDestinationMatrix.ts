@@ -3,11 +3,11 @@ export const Places = [ 'CALI', 'AERO', 'PALMIRA', 'JAMUNDI', 'YUMBO'];
 export const ORIGIN_DESTINATION_MATRIX_FARE = [
   { from: 'CALI', to: 'AERO',    fare: 40000 },
   { from: 'CALI', to: 'PALMIRA', fare: 60000 },
-  { from: 'CALI', to: 'JAMUNDI', fare: 20000 },
+  { from: 'CALI', to: 'JAMUNDI', fare: 15000 },
   { from: 'CALI', to: 'YUMBO',   fare: 20000 },
 
   { from: 'AERO', to: 'CALI',    fare: 30000 },
-  // TO DEFINE
+
   { from: 'AERO', to: 'PALMIRA', fare: null },
   { from: 'AERO', to: 'JAMUNDI', fare: null },
   { from: 'AERO', to: 'YUMBO',   fare: null },

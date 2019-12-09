@@ -926,8 +926,10 @@ export class LocationComponent implements OnInit, OnDestroy {
       )
     ).subscribe(([estimatedFare, fareSettings]) => {
       this.estimatedTripCost = estimatedFare;
-      let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) +
-        50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) % 50));
+
+      const rawCostResult = Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer);
+
+      let cost = ( rawCostResult + 50 - (rawCostResult % 50) );
       cost = cost + fareSettings.additionalCost;
 
       if (cost < fareSettings.minimalTripCost) {
