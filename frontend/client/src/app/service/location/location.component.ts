@@ -780,8 +780,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng) {
-    // recardo de noche 700
-
     return forkJoin(
       of(PLACES_WITH_SPECIAL_FARE
         .filter(place => this.isPointInPolygon({ lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
@@ -868,9 +866,11 @@ export class LocationComponent implements OnInit, OnDestroy {
             tripDistance += leg.distance.value;
             tripDuration += leg.duration.value;
           });
-          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
-
-
+          observer.next({
+            duration: tripDuration,
+            distance: Math.floor((tripDistance / 1000) * 100) / 100, // meters to kms
+            cost: 0
+          });
 
         } else {
           observer.next(null);
@@ -920,7 +920,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       map(([estimatedFare, fareSettingsResult]) =>
         [
           estimatedFare,
-          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1410, additionalCost: 0, minimalTripCost: 4000 },
+          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1550, additionalCost: 0, minimalTripCost: 4000 },
 
         ]
       )

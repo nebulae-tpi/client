@@ -1,3 +1,5 @@
+/* https://www.keene.edu/ */
+
 export const PLACES_WITH_SPECIAL_FARE = [
   {
     name: 'YUMBO',
