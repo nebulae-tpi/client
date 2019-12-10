@@ -156,8 +156,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   APP_ID = 'QdSYkExZVq0hsyj08FeA';
   APP_CODE = 'u5BMZRoXK2niQ8RZuHq2mg';
 
-
-
   constructor(
     private serviceService: ServiceService,
     private bottomSheet: MatBottomSheet,
@@ -927,10 +925,17 @@ export class LocationComponent implements OnInit, OnDestroy {
     ).subscribe(([estimatedFare, fareSettings]) => {
       this.estimatedTripCost = estimatedFare;
 
+
       const rawCostResult = Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer);
 
-      let cost = ( rawCostResult + 50 - (rawCostResult % 50) );
+      // apply fare discount
+      let cost = rawCostResult * 0.9; // 10% discount
+
+
+      cost = ( cost + 50 - (cost % 50) );
       cost = cost + fareSettings.additionalCost;
+
+
 
       if (cost < fareSettings.minimalTripCost) {
         cost = fareSettings.minimalTripCost;
