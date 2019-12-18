@@ -5,7 +5,7 @@
 export const environment = {
   production: true,
   keycloak: {
-    url: 'https://tpi-dev.nebulae.com.co/auth', // 'https://lab.nebulae.com.co/auth', //
+    url: 'https://tpi.nebulae.com.co/auth', // 'https://lab.nebulae.com.co/auth', //
     realm: 'TPI',
     clientId: 'CLIENT-APP-LOCAL', // 'CLIENT_APP'
     onLoad: 'check-sso',
@@ -17,10 +17,10 @@ export const environment = {
     gateway: {
       graphql: {
         httpEndPoint:
-          'https://tpi-dev.nebulae.com.co/api/client-gateway/graphql/http',
-        wsEndPoint: 'wss://tpi-dev.nebulae.com.co/api/client-gateway/graphql/ws',
+          'https://tpi.nebulae.com.co/api/client-gateway/graphql/http',
+        wsEndPoint: 'wss://tpi.nebulae.com.co/api/client-gateway/graphql/ws',
         graphiqlEndPoint:
-          'https://tpi-dev.nebulae.com.co/api/client-gateway/graphiql'
+          'https://tpi.nebulae.com.co/api/client-gateway/graphiql'
       }
     }
   },

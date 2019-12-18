@@ -1,3 +1,5 @@
+/* https://www.keene.edu/ */
+
 export const PLACES_WITH_SPECIAL_FARE = [
   {
     name: 'YUMBO',
@@ -27,7 +29,9 @@ export const PLACES_WITH_SPECIAL_FARE = [
       { lng: -76.53848650000009, lat: 3.2472093 },
       { lng: -76.54586790000008, lat: 3.249523 },
       { lng: -76.55659680000008, lat: 3.253722 },
-      { lng: -76.54888269999992, lat: 3.2655688 }]
+      { lng: -76.5603733, lat: 3.2597632 },
+      { lng: -76.54888269999992, lat: 3.2655688 }
+    ]
   },
   {
     name: 'AERO',

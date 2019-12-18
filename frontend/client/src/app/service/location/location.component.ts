@@ -29,6 +29,8 @@ import { DialogArrivedComponent } from './dialog-arrived/dialog-arrived.componen
 import { MapsAPILoader } from '@agm/core';
 import { ORIGIN_DESTINATION_MATRIX_FARE } from '../specialFarePlaces/originDestinationMatrix';
 import { PLACES_WITH_SPECIAL_FARE } from '../specialFarePlaces/places';
+import { Router } from '@angular/router';
+import { ClientChatService } from 'src/app/chat/client-chat.service';
 
 
 @Component({
@@ -135,7 +137,7 @@ export class LocationComponent implements OnInit, OnDestroy {
   NUM_DELTAS = 80;
   DELAY = 10;
 
-
+  message= {  message: { textMessage: undefined } }
 
   layoutType = null;
 
@@ -154,15 +156,15 @@ export class LocationComponent implements OnInit, OnDestroy {
   APP_ID = 'QdSYkExZVq0hsyj08FeA';
   APP_CODE = 'u5BMZRoXK2niQ8RZuHq2mg';
 
-
-
   constructor(
     private serviceService: ServiceService,
     private bottomSheet: MatBottomSheet,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private mapsAPILoader: MapsAPILoader,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private router: Router,
+    private clientChatService: ClientChatService
   ) {
 
   }
@@ -175,6 +177,15 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.listenOnResume();
     this.listenCenterChanges();
     this.listenServiceCommands();
+    this.clientChatService.listenNewChatMessages$().pipe(
+      takeUntil(this.ngUnsubscribe)
+    ).subscribe(newMessage => {
+      const wrapMessage = newMessage.data.ServiceMessageSubscription;
+      this.message = wrapMessage;
+      const tempData = this.clientChatService.messageList.getValue();
+      tempData.push({ from: 'Conductor', message: wrapMessage.message.textMessage, timestamp: Date.now() });
+      this.clientChatService.messageList.next(tempData);
+    });
   }
 
   ngOnDestroy() {
@@ -606,6 +617,10 @@ export class LocationComponent implements OnInit, OnDestroy {
     }
   }
 
+  openClientChatView() {
+    this.router.navigate(['/clientchat']);
+  }
+
 
   initLocation() {
     console.log('***[Location].initLocation()***');
@@ -763,8 +778,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng) {
-    // recardo de noche 700
-
     return forkJoin(
       of(PLACES_WITH_SPECIAL_FARE
         .filter(place => this.isPointInPolygon({ lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
@@ -851,9 +864,11 @@ export class LocationComponent implements OnInit, OnDestroy {
             tripDistance += leg.distance.value;
             tripDuration += leg.duration.value;
           });
-          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
-
-
+          observer.next({
+            duration: tripDuration,
+            distance: Math.floor((tripDistance / 1000) * 100) / 100, // meters to kms
+            cost: 0
+          });
 
         } else {
           observer.next(null);
@@ -903,15 +918,24 @@ export class LocationComponent implements OnInit, OnDestroy {
       map(([estimatedFare, fareSettingsResult]) =>
         [
           estimatedFare,
-          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1410, additionalCost: 0, minimalTripCost: 4000 },
+          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1550, additionalCost: 0, minimalTripCost: 4000 },
 
         ]
       )
     ).subscribe(([estimatedFare, fareSettings]) => {
       this.estimatedTripCost = estimatedFare;
-      let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) +
-        50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) % 50));
+
+
+      const rawCostResult = Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer);
+
+      // apply fare discount
+      let cost = rawCostResult * 0.9; // 10% discount
+
+
+      cost = ( cost + 50 - (cost % 50) );
       cost = cost + fareSettings.additionalCost;
+
+
 
       if (cost < fareSettings.minimalTripCost) {
         cost = fareSettings.minimalTripCost;

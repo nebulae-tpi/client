@@ -21,6 +21,7 @@ import { Subject, fromEvent, of, merge } from 'rxjs';
 import { MapsAPILoader } from '@agm/core';
 import { MenuService } from 'src/app/menu/menu.service';
 import { FormControl } from '@angular/forms';
+import { KeycloakService } from 'keycloak-angular';
 
 
 @Component({
@@ -174,10 +175,11 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private snackBar: MatSnackBar,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private keycloakService: KeycloakService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadUserProfile();
 
     this.listenOriginPlaceChanges();
@@ -187,7 +189,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
     this.listenServiceChanges();
 
     this.listenServiceCommands();
-
+    console.log('Token: ', await this.keycloakService.getToken());
   }
 
   ngAfterViewInit(): void {
@@ -244,7 +246,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
   confirmServiceRequest() {
     console.log('***[RequestConfirmation].confirmServiceRequest***', );
-
     if (!this.originPlace.name) {
       this.originPlace.name = (this.originPlaceSearchElementRef || { nativeElement: {} }).nativeElement.value;
     }
