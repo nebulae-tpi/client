@@ -930,7 +930,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
       // apply fare discount
       let cost = rawCostResult * 1; // 0% discount
-      console.log({ rawCostResult, cost });
 
 
       cost = ( cost + 50 - (cost % 50) );
@@ -942,23 +941,11 @@ export class LocationComponent implements OnInit, OnDestroy {
         cost = fareSettings.minimalTripCost;
       }
       
-      console.log("COST AFTER MODIFICATION =>",  cost);
-
-      // const formatter = new Intl.NumberFormat('co-COP', {
-      //   style: 'currency',
-      //   currency: 'USD',
-      // });
+      const formatter = new Intl.NumberFormat("es");
       
+      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost );
 
-      console.log('ARGUMENTOS PARA EL FORMATTER ==> ', { cost, estimatedTripCost: this.estimatedTripCost.cost }, cost + this.estimatedTripCost.cost  );
-     // console.log(formatter);
-      
-      const priceFormated = cost + this.estimatedTripCost.cost || 0;
-       //formatter.format(cost + this.estimatedTripCost.cost || 0 );
-
-      this.estimatedTripCost.cost = ''+ priceFormated //.substring(0, priceFormated.length - 3);
-
-      console.log({ priceFormated, estimatedTripCost: this.estimatedTripCost });
+      this.estimatedTripCost.cost = priceFormated;
 
       this.serviceService.publishCommand({
         code: ServiceService.COMMAND_TRIP_COST_CALCULATED,
@@ -968,14 +955,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         }]
       });
 
-    }
-
-
-    );
-
-
-
-
+    });
   }
 
   onCenterChange($event) {
