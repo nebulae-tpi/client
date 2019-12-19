@@ -956,7 +956,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       const priceFormated = cost + this.estimatedTripCost.cost || 0;
        //formatter.format(cost + this.estimatedTripCost.cost || 0 );
 
-      this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
+      this.estimatedTripCost.cost = ''+ priceFormated //.substring(0, priceFormated.length - 3);
 
       console.log({ priceFormated, estimatedTripCost: this.estimatedTripCost });
 
