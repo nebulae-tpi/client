@@ -169,7 +169,7 @@ export class RequestServiceDialogComponent implements OnInit, OnDestroy {
           requestedFeatures: featureOptionsGroup,
           dropOff: null,
           // dropOffSpecialType: destinationOptionsGroup,
-          fareDiscount,
+          // fareDiscount,
           fare,
           tip
           // request: {

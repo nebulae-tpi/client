@@ -929,7 +929,7 @@ export class LocationComponent implements OnInit, OnDestroy {
       const rawCostResult = Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer);
 
       // apply fare discount
-      let cost = rawCostResult; // 0% discount
+      let cost = rawCostResult * 1; // 0% discount
 
 
       cost = ( cost + 50 - (cost % 50) );
