@@ -944,16 +944,17 @@ export class LocationComponent implements OnInit, OnDestroy {
       
       console.log("COST AFTER MODIFICATION =>",  cost);
 
-      const formatter = new Intl.NumberFormat('co-COP', {
-        style: 'currency',
-        currency: 'USD',
-      });
+      // const formatter = new Intl.NumberFormat('co-COP', {
+      //   style: 'currency',
+      //   currency: 'USD',
+      // });
       
 
       console.log('ARGUMENTOS PARA EL FORMATTER ==> ', { cost, estimatedTripCost: this.estimatedTripCost.cost }, cost + this.estimatedTripCost.cost  );
-      console.log(formatter);
+     // console.log(formatter);
       
-      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost );
+      const priceFormated = cost + this.estimatedTripCost.cost || 0;
+       //formatter.format(cost + this.estimatedTripCost.cost || 0 );
 
       this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
 
