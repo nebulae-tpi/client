@@ -948,8 +948,13 @@ export class LocationComponent implements OnInit, OnDestroy {
         style: 'currency',
         currency: 'USD',
       });
+      
 
-      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost);
+      console.log('ARGUMENTOS PARA EL FORMATTER ==> ', { cost, estimatedTripCost: this.estimatedTripCost.cost }, cost + this.estimatedTripCost.cost  );
+      console.log(formatter);
+      
+      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost );
+
       this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
 
       console.log({ priceFormated, estimatedTripCost: this.estimatedTripCost });
