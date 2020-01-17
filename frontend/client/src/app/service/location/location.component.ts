@@ -156,8 +156,6 @@ export class LocationComponent implements OnInit, OnDestroy {
   APP_ID = 'QdSYkExZVq0hsyj08FeA';
   APP_CODE = 'u5BMZRoXK2niQ8RZuHq2mg';
 
-
-
   constructor(
     private serviceService: ServiceService,
     private bottomSheet: MatBottomSheet,
@@ -780,8 +778,6 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   searchAdditionalTripFare$(estimatedTripValue, originLatLng, destinationLatLng) {
-    // recardo de noche 700
-
     return forkJoin(
       of(PLACES_WITH_SPECIAL_FARE
         .filter(place => this.isPointInPolygon({ lat: originLatLng.lat, lng: originLatLng.lng }, place.points))
@@ -868,9 +864,11 @@ export class LocationComponent implements OnInit, OnDestroy {
             tripDistance += leg.distance.value;
             tripDuration += leg.duration.value;
           });
-          observer.next({ duration: tripDuration, distance: Math.floor((tripDistance / 1000) * 100) / 100, cost: 0 });
-
-
+          observer.next({
+            duration: tripDuration,
+            distance: Math.floor((tripDistance / 1000) * 100) / 100, // meters to kms
+            cost: 0
+          });
 
         } else {
           observer.next(null);
@@ -920,27 +918,34 @@ export class LocationComponent implements OnInit, OnDestroy {
       map(([estimatedFare, fareSettingsResult]) =>
         [
           estimatedFare,
-          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1410, additionalCost: 0, minimalTripCost: 4000 },
+          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1550, additionalCost: 0, minimalTripCost: 4000 },
 
         ]
       )
     ).subscribe(([estimatedFare, fareSettings]) => {
       this.estimatedTripCost = estimatedFare;
-      let cost = (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) +
-        50 - (Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer) % 50));
+
+
+      const rawCostResult = Math.ceil(parseFloat(this.estimatedTripCost.distance) * fareSettings.valuePerKilometer);
+
+      // apply fare discount
+      let cost = rawCostResult * 1; // 0% discount
+
+
+      cost = ( cost + 50 - (cost % 50) );
       cost = cost + fareSettings.additionalCost;
+
+
 
       if (cost < fareSettings.minimalTripCost) {
         cost = fareSettings.minimalTripCost;
       }
+      
+      const formatter = new Intl.NumberFormat("es");
+      
+      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost );
 
-      const formatter = new Intl.NumberFormat('co-COP', {
-        style: 'currency',
-        currency: 'USD',
-      });
-
-      const priceFormated = formatter.format(cost + this.estimatedTripCost.cost);
-      this.estimatedTripCost.cost = priceFormated.substring(0, priceFormated.length - 3);
+      this.estimatedTripCost.cost = priceFormated;
 
       this.serviceService.publishCommand({
         code: ServiceService.COMMAND_TRIP_COST_CALCULATED,
@@ -950,14 +955,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         }]
       });
 
-    }
-
-
-    );
-
-
-
-
+    });
   }
 
   onCenterChange($event) {

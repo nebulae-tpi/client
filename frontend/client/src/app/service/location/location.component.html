@@ -32,7 +32,7 @@
   <div id="estimated-cost-result" *ngIf="estimatedTripCost" [ngStyle]="{ 'width.px': widthMapContent - 50}">
     <div class="results" fxLayout="column" fxLayoutAlign="center center">
       <span>Distacia: {{ estimatedTripCost.distance + ' Km' }} </span>
-      <span>Valor del Servicio: {{ estimatedTripCost.cost }} </span>
+      <span>Valor del Servicio: $ {{ estimatedTripCost.cost }} </span>
     </div>
 
   </div>

@@ -195,9 +195,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   ngAfterViewInit(): void {
     this.buildOriginPlaceAutoComplete();
     this.buildDestinationPlaceAutoComplete();
-
-
-
     this.listenChangesOnOriginAndDestinationSearchInput();
   }
 
@@ -466,9 +463,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
 
   listenChangesOnOriginAndDestinationSearchInput() {
-
     this.updateInputListeners.next(true);
-
     merge(
       this.originPlaceSearchElementRef
         ? fromEvent(this.originPlaceSearchElementRef.nativeElement, 'keyup').pipe(
@@ -486,7 +481,6 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
       takeUntil(this.updateInputListeners)
     )
       .subscribe((onchange: any) => {
-
 
         const itemsToAutocomplete = this.searchFavoritePlacesWithMatch(onchange.value);
         const s = document.getElementsByClassName('pac-container pac-logo');
@@ -576,6 +570,8 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
             const { address_components, name, formatted_address, geometry } = place;
 
+            console.log({PLACE: place});
+
             this.originPlace.favorite = (formatted_address === '[FAVORITE]');
             let originPlaceName = this.originPlace.favorite
               ? `${name}`.trim()
@@ -583,7 +579,7 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
 
             this.STRINGS_TO_REMOVE.forEach(s => originPlaceName = originPlaceName.replace(s, ''));
 
-            this.originPlace.name = originPlaceName;
+            this.originPlace.name = this.destinationPlace !== {} ? originPlaceName : this.originPlaceSearchElementRef.nativeElement.value;
 
             this.serviceService.publishOriginPlace({
               ...this.originPlace,
