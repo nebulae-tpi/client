@@ -248,7 +248,16 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
   }
 
   confirmServiceRequest() {
-    console.log('***[RequestConfirmation].confirmServiceRequest***', );
+    console.log('***[RequestConfirmation].confirmServiceRequest***');
+    /*
+    this.originPlace = {
+      name: 'TEST',
+      location: {
+        lat: 6.164583,
+        lng: -75.601420
+      }
+    };
+    */
     if (!this.originPlace.name) {
       this.originPlace.name = (this.originPlaceSearchElementRef || { nativeElement: {} }).nativeElement.value;
     }

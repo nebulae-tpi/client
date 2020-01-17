@@ -4,6 +4,9 @@
 
 export const environment = {
   production: true,
+  manizalesBusinessId: 'b19c067e-57b4-468f-b970-d0101a31cacb',
+  caliBusinessId: '75cafa6d-0f27-44be-aa27-c2c82807742d',
+  nebulaBusinessId: 'bf2807e4-e97f-43eb-b15d-09c2aff8b2ab',
   keycloak: {
     url: 'https://tpi.nebulae.com.co/auth', // 'https://lab.nebulae.com.co/auth', //
     realm: 'TPI',

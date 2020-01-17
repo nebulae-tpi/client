@@ -10,6 +10,8 @@ import { MatDialog } from '@angular/material';
 import { ContactUsComponent } from '../contact-us/contact-us.component';
 import { MenuService } from './menu.service';
 import { Router } from '@angular/router';
+import { PlatformLocation } from '@angular/common';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-menu',
@@ -39,7 +41,8 @@ export class MenuComponent implements OnInit, OnDestroy {
     private gateway: GatewayService,
     private dialog: MatDialog,
     private menuService: MenuService,
-    private router: Router
+    private router: Router,
+    private platformLocation: PlatformLocation
   ) {
     this.watcher = media.subscribe((change: MediaChange) => {
       if (change.mqAlias === 'sm' || change.mqAlias === 'xs') {
@@ -79,7 +82,15 @@ export class MenuComponent implements OnInit, OnDestroy {
     if (this.gateway.checkIfUserLogger()) {
       this.userDetails = await this.keycloakService.loadUserProfile();
       this.serviceService.updateUserProfileUpdate(this.userDetails);
-
+      let businessId;
+      if (((this.platformLocation as any).location.origin).includes('localhost')) {
+        businessId = environment.nebulaBusinessId;
+      } else if (((this.platformLocation as any).location.origin).includes('app.txplus')) {
+        businessId = environment.caliBusinessId;
+      } else if (((this.platformLocation as any).location.origin).includes('appm.txplus')) {
+        businessId = environment.manizalesBusinessId;
+      }
+      console.log('BusinessId: ', businessId);
       this.menuService.validateNewClient$()
         .pipe(
           tap(response => {
