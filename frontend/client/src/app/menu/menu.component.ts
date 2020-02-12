@@ -100,9 +100,7 @@ export class MenuComponent implements OnInit, OnDestroy {
                 : undefined;
           }),
           mergeMap(response => {
-            console.log('LLega response: ', response);
             if (response && response.data && response.data.ValidateNewClient && response.data.ValidateNewClient.updated) {
-              console.log('Pasó por aca!!!!!');
               return defer(() => this.keycloakService.updateToken(-1)).pipe(tap(res => console.log('Resultado token: ', res)));
             } else {
               return of(undefined);

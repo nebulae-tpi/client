@@ -2,4 +2,10 @@
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target" : { "namespace": "android_app", "package_name": "co.com.nebulae.tpi.txplus",
                "sha256_cert_fingerprints": ["79:0F:AF:0E:F7:AA:5C:53:A0:0D:67:AD:79:C5:29:33:AD:67:85:3B:CE:C2:4E:6A:1E:54:EB:27:FF:98:DA:65"] }
-}]
+},
+{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "co.com.nebulae.tpi.cliientmanizales",
+               "sha256_cert_fingerprints": ["1A:B4:26:C4:78:56:F3:F8:DD:AD:FA:63:63:C0:10:F4:E1:E1:55:9B:E0:96:DD:C6:BB:67:84:BF:2A:47:A1:3C"] }
+}
+]
