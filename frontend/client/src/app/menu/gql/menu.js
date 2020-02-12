@@ -77,6 +77,7 @@ export const ValidateNewClient = gql`
       clientId
       name
       username
+      updated
     }
   }
 `;

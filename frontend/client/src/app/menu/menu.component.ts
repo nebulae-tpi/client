@@ -1,7 +1,7 @@
 import { KeycloakService } from 'keycloak-angular';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ObservableMedia, MediaChange } from '@angular/flex-layout';
-import { Subscription, Subject, of } from 'rxjs';
+import { Subscription, Subject, of, defer } from 'rxjs';
 import { KeycloakProfile } from 'keycloak-js';
 import { ServiceService } from '../service/service.service';
 import { GatewayService } from '../api/gateway.service';
@@ -87,7 +87,7 @@ export class MenuComponent implements OnInit, OnDestroy {
         businessId = environment.nebulaBusinessId;
       } else if (((this.platformLocation as any).location.origin).includes('app.txplus')) {
         businessId = environment.caliBusinessId;
-      } else if (((this.platformLocation as any).location.origin).includes('appm.txplus')) {
+      } else if (((this.platformLocation as any).location.origin).includes('manizales.txplus.com.co')) {
         businessId = environment.manizalesBusinessId;
       }
       console.log('BusinessId: ', businessId);
@@ -98,6 +98,15 @@ export class MenuComponent implements OnInit, OnDestroy {
               response && response.data && response.data.ValidateNewClient
                 ? response.data.ValidateNewClient.clientId
                 : undefined;
+          }),
+          mergeMap(response => {
+            console.log('LLega response: ', response);
+            if (response && response.data && response.data.ValidateNewClient && response.data.ValidateNewClient.updated) {
+              console.log('Pasó por aca!!!!!');
+              return defer(() => this.keycloakService.updateToken(-1)).pipe(tap(res => console.log('Resultado token: ', res)));
+            } else {
+              return of(undefined);
+            }
           }),
           mergeMap(() => this.menuService.loadClientProfile$()),
           map(r => r && r.data && r.data.ClientProfile ? r.data.ClientProfile : null),
