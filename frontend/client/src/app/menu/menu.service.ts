@@ -29,9 +29,10 @@ export class MenuService {
     });
   }
 
-  validateNewClient$() {
+  validateNewClient$(businessId) {
     return this.gateway.apollo.mutate<any>({
       mutation: ValidateNewClient,
+      variables: { businessId },
       errorPolicy: 'all'
     });
   }

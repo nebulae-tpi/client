@@ -72,8 +72,8 @@ export const ClientWallet = gql`
 
 // MUTATION SECTION
 export const ValidateNewClient = gql`
-  mutation ValidateNewClient {
-    ValidateNewClient {
+  mutation ValidateNewClient($businessId: String) {
+    ValidateNewClient(businessId: $businessId) {
       clientId
       name
       username

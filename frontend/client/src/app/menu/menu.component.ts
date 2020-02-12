@@ -91,7 +91,7 @@ export class MenuComponent implements OnInit, OnDestroy {
         businessId = environment.manizalesBusinessId;
       }
       console.log('BusinessId: ', businessId);
-      this.menuService.validateNewClient$()
+      this.menuService.validateNewClient$(businessId)
         .pipe(
           tap(response => {
             const clientId =
