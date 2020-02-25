@@ -371,8 +371,7 @@ export class SatelliteComponent implements OnInit, OnDestroy {
   listenServicesUpdates() {
     this.satelliteService.listenServiceUpdates$()
     .pipe(
-      // tap(r => console.log(r) ),
-      map(update => ((update || {}).data || {}).ClientServiceUpdatedSubscription ),
+      map(update => ((update || {}).data || {}).ClientServiceUpdatedSubscription),
       filter(s => s),
       mergeMap(service => this.appendService$(service))
     )
