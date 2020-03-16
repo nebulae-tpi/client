@@ -9,8 +9,8 @@ import { ServiceService } from '../service/service.service';
 })
 export class ContactUsComponent implements OnInit {
   businessContactInfo = {
-    phone: 3004832728,
-    whatsapp: 573004832728
+    phone: 3108942249,
+    whatsapp: 573108942249
   };
   constructor(
     public dialogRef: MatDialogRef<ContactUsComponent>,
