@@ -566,7 +566,7 @@ export class LocationComponent implements OnInit, OnDestroy {
 
   /* #region TOOLS */
   currentLocation() {
-    console.log('***[Location].currentLocation()***');
+    // console.log('***[Location].currentLocation()***');
 
 
     const availableStates = [ServiceState.REQUESTED, ServiceState.ASSIGNED, ServiceState.ARRIVED];
@@ -586,7 +586,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     } else if (navigator.geolocation) {
 
       navigator.geolocation.getCurrentPosition(position => {
-        console.log('***[Location].currentLocation***', 'geolocation.getCurrentPosition setting map center', position);
+        // console.log('***[Location].currentLocation***', 'geolocation.getCurrentPosition setting map center', position);
 
         if (this.map) {
 
@@ -940,9 +940,9 @@ export class LocationComponent implements OnInit, OnDestroy {
       if (cost < fareSettings.minimalTripCost) {
         cost = fareSettings.minimalTripCost;
       }
-      
+
       const formatter = new Intl.NumberFormat("es");
-      
+
       const priceFormated = formatter.format(cost + this.estimatedTripCost.cost );
 
       this.estimatedTripCost.cost = priceFormated;
@@ -980,7 +980,7 @@ export class LocationComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(location => {
-        console.log('***[Location].listenMarkerPosition***');
+         // console.log('***[Location].listenMarkerPosition***');
         if (this.map) {
 
           this.map.setCenter({
@@ -1073,9 +1073,6 @@ export class LocationComponent implements OnInit, OnDestroy {
             break;
           case ServiceState.REQUEST:
             this.showDestinationPlaceInput = false;
-
-            console.log('REQUESTED ===> ', this.originPlace);
-
             if (!this.originPlace) {
               this.serviceService.originPlaceSelected$.next({
                 name: '',

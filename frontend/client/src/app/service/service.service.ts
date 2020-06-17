@@ -216,7 +216,6 @@ export class ServiceService {
       .pipe(
         map(result => (result.data || {}).ClientServiceUpdatedSubscription)
       );
-    // return of(null)
   }
   /* #endregion */
 
@@ -230,7 +229,7 @@ export class ServiceService {
     contextWidth?: number,
     contextHeight?: number
   ) {
-    console.log('PUBLISHING LAYOUT COMMANDS ...');
+    // console.log('PUBLISHING LAYOUT COMMANDS ...');
 
     this.layoutChanges$.next({
       layout: {
@@ -272,7 +271,7 @@ export class ServiceService {
   }
 
   updateUserProfileUpdate(userProfile) {
-    console.log('***[ServiceService].updateUserProfileUpdate***', userProfile);
+    // console.log('***[ServiceService].updateUserProfileUpdate***', userProfile);
     this.userProfile$.next(userProfile);
   }
 
@@ -301,11 +300,10 @@ export class ServiceService {
   }
 
   publishServiceChanges(serviceChanges) {
-
     if (JSON.stringify(this.currentService$.getValue()) === JSON.stringify(serviceChanges)) {
       return;
     }
-    console.log('NEW SERVICE ===> ', serviceChanges);
+    console.log('CURRENT SERVICE ===> ', serviceChanges);
     const newService = {
       ...this.currentService$.getValue(),
       ...serviceChanges
@@ -314,8 +312,6 @@ export class ServiceService {
   }
 
   publishCommand(command) {
-    console.log('***[ServiceService].publishCommand ==> ', command);
-
     this.serviceCommands$.next(command);
   }
 }

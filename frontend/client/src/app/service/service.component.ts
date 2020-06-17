@@ -151,6 +151,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
             const diffId = a._id === b._id;
             const diffState = a.state === b.state;
+            const diffLocation = a.location === b.location;
             /*
               timestamp
               vehicle
@@ -169,7 +170,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
               route
               lastModificationTimestamp
              */
-            return diffId && diffState;
+            return diffId && diffState && diffLocation;
 
           }),
           takeUntil(this.ngUnsubscribe)
