@@ -1,12 +1,20 @@
 /* You can add global styles to this file, and also import other style files */
+@import '~@angular/material/theming';
+@include mat-core();
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 .mat-dialog-container {
   overflow: hidden;
   border-radius: 5px;
   padding: 5px;
-  background-color:rgba(68, 68, 68, 0.733);
+  background-color: rgba(68, 68, 68, 0.733);
   color: white;
 }
 
@@ -14,10 +22,17 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   overflow: hidden;
   border-radius: 5px;
   padding: 5px;
-  background-color:rgb(68, 68, 68);
+  background-color: rgb(68, 68, 68);
   color: white;
 }
 
 .mat-radio-outer-circle {
   border-color: white;
-  }
+}
+
+
+$my-app-primary: mat-palette($mat-blue-grey);
+$my-app-accent:  mat-palette($mat-pink, 500, 900, A100);
+$my-app-warn: mat-palette($mat-amber, 400);
+$my-app-theme: mat-light-theme($my-app-primary, $my-app-accent, $my-app-warn);
+@include angular-material-theme($my-app-theme);

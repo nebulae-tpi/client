@@ -46,7 +46,7 @@
   }
 
   15%{
-    background-color: #d1312c;
+    background-color: #fab23a;
     transform: translateX(-98%) translateY(0px);
   }
 
@@ -57,7 +57,7 @@
   25%{
     transform: translateX(-98%) translateY(0px);
   }
-  
+
   100% {
     background-color: white;
     transform: translateX(-98%) translateY(0px);
@@ -85,7 +85,7 @@
     border-radius: 40px;
     background: white;
     border-style: solid;
-    border-color: rgb(196, 70, 70);
+    border-color: #FAB23A;
     height: 40px;
 
     input {
@@ -110,7 +110,7 @@
 
     input::placeholder {
       font-size: 20px;
-      color: rgb(196, 70, 70);
+      color: #FAB23A;
     }
   }
 }
