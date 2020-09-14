@@ -153,10 +153,15 @@ export class ServiceService {
     }
   }
 
-  getFareSettings$() {
+  /**
+   * 
+   * @param location latitude and longitude
+   */
+  getFareSettings$( location: { lat: number, lng: number } ) {
     if (this.userProfile$.getValue()) {
       return this.gateway.apollo
         .query<any>({
+          variables: { lat: location.lat, lng: location.lng },
           query: fareSettings,
           fetchPolicy: 'network-only',
           errorPolicy: 'all'
@@ -165,7 +170,6 @@ export class ServiceService {
       return of(undefined);
     }
 
-    // return of(1310);
   }
   /* #endregion */
 

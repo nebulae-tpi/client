@@ -327,89 +327,88 @@ export class LocationComponent implements OnInit, OnDestroy {
 
 
   listenServiceCommands() {
-    this.serviceService.serviceCommands$
-      .pipe(
-        filter(command => command && command.code),
-        takeUntil(this.ngUnsubscribe)
-      ).subscribe(command => {
-        switch (command.code) {
-          case ServiceService.COMMAND_ON_CONFIRM_BTN:
-            console.log('***[Location].listenServiceCommands*** ServiceService.COMMAND_ON_CONFIRM_BTN', {
-              originPlace: this.originPlace,
-              lastCenterReported: this.lastCenterReported
+    this.serviceService.serviceCommands$.pipe(
+      filter(command => command && command.code),
+      takeUntil(this.ngUnsubscribe)
+    ).subscribe(command => {
+      switch (command.code) {
+        case ServiceService.COMMAND_ON_CONFIRM_BTN:
+
+          // console.log('***[Location].listenServiceCommands*** ServiceService.COMMAND_ON_CONFIRM_BTN', {
+          //   originPlace: this.originPlace,
+          //   lastCenterReported: this.lastCenterReported
+          // });
+
+          const originLatLnglocation = {
+            lat: (this.originPlace || {}).location 
+              ? this.originPlace.location.lat 
+              : (this.lastCenterReported || {}).lat,
+            lng: (this.originPlace || {}).location 
+              ? this.originPlace.location.lng 
+              : (this.lastCenterReported || {}).lng
+          };
+
+          if (!originLatLnglocation.lat || !originLatLnglocation.lng) {
+            console.log('!!!!! NO HAY CON CONSTRUIR LAS COORDENADAS DEL ORIGEN');
+            break;
+          }
+
+          this.originPlace = {
+            ...this.originPlace,
+            location: originLatLnglocation
+          };
+
+          this.originMarkerInfoWindow = new google.maps.InfoWindow({
+            content: `
+          <div id="origin-marker-info-window">
+            <div id="bodyContent">
+            <p><b>${this.originPlace.name}</b></p>
+          </div>`
+          });
+
+          this.destinationMarkerInfoWindow = new google.maps.InfoWindow({
+            content: `
+          <div id="destination-marker-info-window">
+            <div id="bodyContent">
+            <p><b>${this.originPlace.name}</b></p>
+          </div>`
+          });
+
+
+          this.serviceService.publishOriginPlace(this.originPlace);
+
+          if (this.destinationMarker) {
+            this.calculateRoute( this.originPlace.location );
+          }
+          /*else {
+            this.serviceService.publishCommand({
+              code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
+              args: []
             });
-            const originLatLnglocation = {
-              lat: (this.originPlace || {}).location ? this.originPlace.location.lat : (this.lastCenterReported || {}).lat,
-              lng: (this.originPlace || {}).location ? this.originPlace.location.lng : (this.lastCenterReported || {}).lng
-            };
-            if (!originLatLnglocation.lat || !originLatLnglocation.lng) {
-              console.log('!!!!! NO HAY CON CONSTRUIR LAS COORDENADAS DEL ORIGEN');
+          }
+          */
 
-              break;
-            }
-            this.originPlace = {
-              ...this.originPlace,
-              location: {
-                lat: (this.originPlace || {}).location ? this.originPlace.location.lat : this.lastCenterReported.lat,
-                lng: (this.originPlace || {}).location ? this.originPlace.location.lng : this.lastCenterReported.lng
-              }
-            };
+          break;
+        case ServiceService.COMMAND_MOVING_MARKER_WITH_CENTER:
 
-            this.originMarkerInfoWindow = new google.maps.InfoWindow({
-              content: `
-            <div id="origin-marker-info-window">
-              <div id="bodyContent">
-              <p><b>${this.originPlace.name}</b></p>
-            </div>`
-            });
-
-            this.destinationMarkerInfoWindow = new google.maps.InfoWindow({
-              content: `
-            <div id="destination-marker-info-window">
-              <div id="bodyContent">
-              <p><b>${this.originPlace.name}</b></p>
-            </div>`
-            });
-
-
-            this.serviceService.publishOriginPlace(this.originPlace);
-
-
-
-            if (this.destinationMarker) {
-              this.calculateRoute();
-            }
-            /*else {
-              this.serviceService.publishCommand({
-                code: ServiceService.COMMAND_REQUEST_STATE_SHOW_FILTERS,
-                args: []
+          if (command.args[0] === undefined) {
+            const markerToUpdatePosition = this.placeToMoveWithCenter;
+            this.showCenterMarker = false;
+            this.placeToMoveWithCenter = null;
+            if (markerToUpdatePosition === 'ORIGIN') {
+              this.originMarker.setOptions({
+                position: { lat: this.lastCenterReported.lat, lng: this.lastCenterReported.lng },
+                visible: true
               });
             }
-            */
+          }
 
+          break;
 
-
-            break;
-          case ServiceService.COMMAND_MOVING_MARKER_WITH_CENTER:
-
-            if (command.args[0] === undefined) {
-              const markerToUpdatePosition = this.placeToMoveWithCenter;
-              this.showCenterMarker = false;
-              this.placeToMoveWithCenter = null;
-              if (markerToUpdatePosition === 'ORIGIN') {
-                this.originMarker.setOptions({
-                  position: { lat: this.lastCenterReported.lat, lng: this.lastCenterReported.lng },
-                  visible: true
-                });
-              }
-            }
-
-            break;
-
-          default:
-            break;
-        }
-      });
+        default:
+          break;
+      }
+    });
   }
 
   onUsePointerToSetLocation(e: string) {
@@ -815,7 +814,11 @@ export class LocationComponent implements OnInit, OnDestroy {
     });
   }
 
-  calculateRoute() {
+  /**
+   * 
+   * @param location 
+   */
+  calculateRoute(location: { lat: any, lng: any }) {
     this.herePlatform = this.herePlatform || new H.service.Platform({
       app_id: this.APP_ID,
       app_code: this.APP_CODE,
@@ -909,16 +912,14 @@ export class LocationComponent implements OnInit, OnDestroy {
     }).pipe(
       mergeMap(estimatedResult => this.searchAdditionalTripFare$(estimatedResult, originLatLng, destinationLatLng)),
       filter((response: any) => response),
-      mergeMap(result =>
-        forkJoin(
-          of(result),
-          this.serviceService.getFareSettings$()
-        )
-      ),
+      mergeMap(result => forkJoin(
+        of(result),
+        this.serviceService.getFareSettings$(location)
+      )),
       map(([estimatedFare, fareSettingsResult]) =>
         [
           estimatedFare,
-          ((fareSettingsResult || {}).data || {}).fareSettings || { valuePerKilometer: 1550, additionalCost: 0, minimalTripCost: 4000 },
+          ((fareSettingsResult || {}).data || {}).FareSettings || { valuePerKilometer: 1550, additionalCost: 0, minimalTripCost: 4000 },
 
         ]
       )
