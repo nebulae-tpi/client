@@ -11,7 +11,7 @@ import {
   BusinessContactInfo,
   RemoveFavoritePlace,
   AddFavoritePlace,
-  fareSettings,
+  FareSettings,
   ClientServiceUpdatedSubscription
 } from './gql/service.js';
 import { map, tap, retryWhen, concatMap, delay, distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
@@ -162,7 +162,7 @@ export class ServiceService {
       return this.gateway.apollo
         .query<any>({
           variables: { lat: location.lat, lng: location.lng },
-          query: fareSettings,
+          query: FareSettings,
           fetchPolicy: 'network-only',
           errorPolicy: 'all'
         });
