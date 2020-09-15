@@ -26,7 +26,7 @@ export const NearbyVehicles = gql`
 `;
 
 export const FareSettings = gql`
-  query FareSettings($lat: number, $lng: number) {
+  query FareSettings($lat: Float, $lng: Float) {
     FareSettings(lat: $lat, lng: $lng){
       valuePerKilometer
       additionalCost
