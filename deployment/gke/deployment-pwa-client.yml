@@ -14,12 +14,15 @@ spec:
   selector:
     run: frontend-pwa-client
 ---
-apiVersion: extensions/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-pwa-client
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      run: frontend-pwa-client
   template:
     metadata:
       labels:
@@ -27,7 +30,7 @@ spec:
     spec:
       containers:
       - name: frontend-pwa-client
-        image: DOCKERHUB/pwa-client:1.1.48
+        image: DOCKERHUB/pwa-client:1.1.49
         resources:
           requests:
             cpu: "10m"
