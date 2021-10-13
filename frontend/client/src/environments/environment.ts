@@ -29,7 +29,7 @@ export const environment = {
   },
   google: {
     maps: {
-      key: 'AIzaSyBDPax-qkTCgrJRfSzFbmGPLRDRjuiod_k'
+      key: 'AIzaSyC1VkMKnBB_TATeaszTe_a8phyo-B8DSVg'
     }
   }
 };
