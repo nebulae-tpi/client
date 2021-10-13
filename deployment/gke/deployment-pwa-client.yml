@@ -14,7 +14,7 @@ spec:
   selector:
     run: frontend-pwa-client
 ---
-apiVersion: extensions/v1beta1
+apiVersion: extensions/v1
 kind: Deployment
 metadata:
   name: frontend-pwa-client
@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: frontend-pwa-client
-        image: DOCKERHUB/pwa-client:1.1.47
+        image: DOCKERHUB/pwa-client:1.1.48
         resources:
           requests:
             cpu: "10m"

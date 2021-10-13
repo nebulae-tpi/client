@@ -15,7 +15,7 @@ export class AppComponent {
   joke: any;
   lastLocation = null;
   lastBack: Date = null;
-
+ 
   constructor(updates: SwUpdate, private router: Router, private snackBar: MatSnackBar, private service: ServiceService) {
     updates.available.subscribe(ev => {
       updates.activateUpdate().then(() => document.location.reload());
