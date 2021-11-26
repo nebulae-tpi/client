@@ -34,6 +34,7 @@ import { AssignedComponent } from './service/context/assigned/assigned.component
 import { DialogArrivedComponent } from './service/location/dialog-arrived/dialog-arrived.component';
 import { OnboardComponent } from './service/context/onboard/onboard.component';
 import { ContactUsComponent } from './contact-us/contact-us.component';
+import { AppMobileComponent } from './app-mobile/app-mobile.component';
 import { MenuService } from './menu/menu.service';
 import { HistoryService } from './history/history.service';
 import { ServiceDetailComponent } from './history/service-detail/service-detail.component';
@@ -60,7 +61,8 @@ import { ClientChatComponent } from './chat/client-chat.component';
     DialogArrivedComponent,
     OnboardComponent,
     ContactUsComponent,
-    ServiceDetailComponent
+    ServiceDetailComponent,
+    AppMobileComponent
   ],
   imports: [
     BrowserModule,
