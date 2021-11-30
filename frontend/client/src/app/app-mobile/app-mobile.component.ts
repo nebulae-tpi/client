@@ -25,6 +25,7 @@ import { ServiceService } from '../service/service.service';
 export class AppMobileComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   public textMessage: String;
+  private urlParams: String;
   public messageList = [];
   constructor(
     private menuService: MenuService,
@@ -45,8 +46,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
 
 
   redirectAppMobile() {
-    console.log("ROUTER ===> ", this.router.url);
-    window.location.href = 'https://app.txplus.com.co/app-mobile';
+    window.location.replace(`https://app.txplus.com.co/${this.router.url}`);
   }
 
   backClicked() {
