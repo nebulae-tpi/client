@@ -37,7 +37,10 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    console.log("ROUTER ===> ", this.router.url)
+    setTimeout(() => {                           // <<<---using ()=> syntax
+      const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
+      element.click();
+    }, 500);
   }
 
   ngOnDestroy(): void {
@@ -46,8 +49,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
 
 
   redirectAppMobile() {
-    const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
-    element.click();
+
     //window.location.replace(`https://app.txplus.com.co${this.router.url}`);
   }
 
