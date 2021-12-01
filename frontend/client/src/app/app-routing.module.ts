@@ -7,6 +7,7 @@ import { HistoryComponent } from './history/history.component';
 import { AppAuthGuard } from './auth/appAuthGuard.service';
 import { ClientChatComponent } from './chat/client-chat.component';
 import { AppMobileComponent } from './app-mobile/app-mobile.component';
+import { AppMobilesComponent } from './app-mobiles/app-mobiles.component';
 
 const routes: Routes = [
   {
@@ -15,6 +16,7 @@ const routes: Routes = [
       { path: '', component: ServiceComponent},
       { path: 'history', component: HistoryComponent },
       { path: 'app-mobile', component: AppMobileComponent },
+      { path: 'app-mobiles', component: AppMobilesComponent },
       { path: 'clientchat', component: ClientChatComponent },
       { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canActivate: [ AppAuthGuard ] },
       { path: 'satellite', loadChildren: './satellite/satellite.module#SatelliteModule', canActivate: [AppAuthGuard] },

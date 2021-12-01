@@ -39,6 +39,7 @@ import { MenuService } from './menu/menu.service';
 import { HistoryService } from './history/history.service';
 import { ServiceDetailComponent } from './history/service-detail/service-detail.component';
 import { ClientChatComponent } from './chat/client-chat.component';
+import { AppMobilesComponent } from './app-mobiles/app-mobiles.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,8 @@ import { ClientChatComponent } from './chat/client-chat.component';
     OnboardComponent,
     ContactUsComponent,
     ServiceDetailComponent,
-    AppMobileComponent
+    AppMobileComponent,
+    AppMobilesComponent
   ],
   imports: [
     BrowserModule,
