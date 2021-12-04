@@ -47,13 +47,13 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit() {
-    console.log("INGRES ON INITI ===> ",this.router.url);
-    if(this.router.url.includes("?state"))
+    console.log("INGRES ON INITI ===> ",window.location.href);
+    if(window.location.href.includes("?state"))
     {
       console.log("INGRES ON IF ===> ");
       setTimeout(()=>{
         console.log("INGRES EJEXUTA TIMEOUT");
-        window.location.replace(`https://app.txplus.com.co${this.router.url.replace("?state", "app-mobile?state")}`);
+        window.location.replace(`${window.location.href.replace("?state", "app-mobile?state")}`);
     }, 200);
       
     }
