@@ -37,10 +37,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.urlParams = this.router.url.replace("app-mobile", "app-mobiles");
-    setTimeout(()=>{
-      window.location.replace(`https://app.txplus.com.co${this.urlParams}`);
-  }, 200);
+
   }
 
   ngOnDestroy(): void {
@@ -51,7 +48,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   redirectAppMobile() {
     // const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
     // element.click();  
-    window.location.replace(`https://app.txplus.com.co${this.urlParams}`);
+    window.location.replace(`https://app.txplus.com.co${this.router.url.replace("/app-mobile?state", "?state")}`);
   }
 
   backClicked() {

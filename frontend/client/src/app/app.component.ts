@@ -10,7 +10,7 @@ import { ServiceState } from './service/service-state';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   update = false;
   joke: any;
   lastLocation = null;
@@ -41,6 +41,17 @@ export class AppComponent {
       }
     });
   }
+
+  ngOnInit() {
+    if(this.router.url.includes("?state"))
+    {
+      setTimeout(()=>{
+        window.location.replace(`https://app.txplus.com.co${this.router.url.replace("?state", "/app-mobile?state")}`);
+    }, 200);
+      
+    }
+  }
+
 
   showSnackMessage(message) {
     this.snackBar.open(message, 'Cerrar', {
