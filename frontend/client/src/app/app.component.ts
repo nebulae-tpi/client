@@ -1,9 +1,13 @@
 import { ServiceService } from './service/service.service';
 import { MatSnackBar } from '@angular/material';
-import { Component } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { Router } from '@angular/router';
 import { ServiceState } from './service/service-state';
+import {
+  Component,
+  OnInit,
+  OnDestroy
+} from '@angular/core';
 
 @Component({
   selector: 'app-root',
