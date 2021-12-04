@@ -1,6 +1,6 @@
 #!/bin/bash
 export DOCKERHUB_IMAGE=pwa-client
-export DOCKERHUB_TAG=1.1.73
+export DOCKERHUB_TAG=1.1.74
 
 rm -rf deployment/docker/dist/
 cp -R $FRONTEND_SHELL_PATH/dist deployment/docker/dist

@@ -48,7 +48,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   redirectAppMobile() {
     // const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
     // element.click();  
-    window.location.replace(`https://app.txplus.com.co${this.router.url.replace("/app-mobile?state", "?state")}`);
+    window.location.replace(`https://app.txplus.com.co${this.router.url.replace("/app-mobile?state", "/?state")}`);
   }
 
   backClicked() {
