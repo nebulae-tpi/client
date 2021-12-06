@@ -72,8 +72,8 @@
         </mat-list-item>
       </mat-nav-list>
 
-      <a href="https://app.txplus.com.co/app-mobile" style="color: white">
-        <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.1.84</h4>
+      <a id="redirectA" href="https://app.txplus.com.co/app-mobile" style="color: white">
+        <h4 style="margin-left: 10px; position: absolute; bottom: 0px">Version: 1.1.85</h4>
       </a>
     </div>
   </mat-sidenav>
@@ -84,7 +84,7 @@
         <mat-icon>menu</mat-icon>
       </button>
 
-      <div id="redirectA" *ngIf="userWallet && userWallet.pockets"  style="width: 100%; color: white" fxLayoutAlign="center center">
+      <div *ngIf="userWallet && userWallet.pockets"  style="width: 100%; color: white" fxLayoutAlign="center center">
         <div style="font-size: 25px">
           {{ userWallet.pockets.main | currency }}
         </div>
