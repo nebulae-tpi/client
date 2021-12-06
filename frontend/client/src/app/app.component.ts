@@ -53,7 +53,8 @@ export class AppComponent implements OnInit{
       console.log("INGRES ON IF ===> ");
       setTimeout(()=>{
         console.log("INGRES EJEXUTA TIMEOUT");
-        window.location.replace(`${window.location.href.replace("?state", "app-mobile?state")}`);
+          const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
+     element.click();  
     }, 200);
       
     }
