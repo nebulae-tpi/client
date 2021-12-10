@@ -38,7 +38,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.hrefMobileToken = window.location.href.replace("app-mobile","appmobiles");
+    this.hrefMobileToken = window.location.href.replace("/app-mobile","/appmobiles");
     console.log("INGRES ON IF ===> ");
     setTimeout(()=>{
       console.log("INGRES EJEXUTA TIMEOUT");
