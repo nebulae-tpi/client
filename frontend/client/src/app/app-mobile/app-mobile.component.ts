@@ -27,6 +27,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   public textMessage: String;
   private urlParams: String;
   public messageList = [];
+  hrefMobileToken = '';
   constructor(
     private menuService: MenuService,
     private serviceService: ServiceService,
@@ -37,7 +38,13 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-
+    this.hrefMobileToken = window.location.href.replace("app-mobile","appmobiles");
+    console.log("INGRES ON IF ===> ");
+    setTimeout(()=>{
+      console.log("INGRES EJEXUTA TIMEOUT");
+        const element: HTMLElement = document.getElementById("redirectB") as HTMLElement;
+        element.click();  
+  }, 200);
   }
 
   ngOnDestroy(): void {
