@@ -86,7 +86,7 @@ export class MenuComponent implements OnInit, OnDestroy {
       this.hrefToken = window.location.href.replace("?state","app-mobile/?state");
       console.log("INGRES ON IF ===> ");
       setTimeout(()=>{
-        console.log("INGRES EJEXUTA TIMEOUT");
+        console.log("INGRES EJEXUTA TIMEOUT 3333333333333333333");
           const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
           element.click();  
     }, 200);
