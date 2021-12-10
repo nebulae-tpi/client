@@ -83,7 +83,7 @@ export class MenuComponent implements OnInit, OnDestroy {
     console.log("INGRES ON INITI ===> ",window.location.href);
     if(window.location.href.includes("?state") && !window.location.href.includes("app-mobile") &&  !window.location.href.includes("appmobiles"))
     {
-      this.hrefToken = window.location.href.replace("?state","app-mobile/?state");
+      this.hrefToken = window.location.href.replace("?state","appmobiles/?state");
       console.log("INGRES ON IF ===> ");
       setTimeout(()=>{
         console.log("INGRES EJEXUTA TIMEOUT 3333333333333333333");
