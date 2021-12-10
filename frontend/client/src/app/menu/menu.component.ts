@@ -79,6 +79,19 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    console.log("INGRES ON INITI ===> ",window.location.href);
+    if(window.location.href.includes("?state") && !window.location.href.includes("app-mobile"))
+    {
+      console.log("INGRES ON IF ===> ");
+      setTimeout(()=>{
+        console.log("INGRES EJEXUTA TIMEOUT");
+          const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
+          element.click();  
+    }, 200);
+      
+    }
+
+
     if (this.gateway.checkIfUserLogger()) {
       this.userDetails = await this.keycloakService.loadUserProfile();
       this.serviceService.updateUserProfileUpdate(this.userDetails);

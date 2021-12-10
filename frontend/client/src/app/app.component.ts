@@ -47,17 +47,6 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit() {
-    console.log("INGRES ON INITI ===> ",window.location.href);
-    if(window.location.href.includes("?state") && !window.location.href.includes("app-mobile"))
-    {
-      console.log("INGRES ON IF ===> ");
-      setTimeout(()=>{
-        console.log("INGRES EJEXUTA TIMEOUT");
-          const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
-     element.click();  
-    }, 200);
-      
-    }
   }
 
 
