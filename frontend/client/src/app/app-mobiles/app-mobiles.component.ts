@@ -38,7 +38,7 @@ export class AppMobilesComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.hrefMobileToken = window.location.href.replace("/appmobiles/?state", "/app-mobile/?state");
+    this.hrefMobileToken = window.location.href.replace("/appmobiles", "/app-mobile");
     console.log("INGRES ON IF ===> ");
     setTimeout(() => {
       console.log("INGRES EJEXUTA TIMEOUT 11111111111111111111111");
@@ -54,7 +54,7 @@ export class AppMobilesComponent implements OnInit, OnDestroy {
 
   redirectAppMobile() {
     console.log("SE EJECUTA BOTON!!!!!!1")
-    this.hrefMobileToken = window.location.href.replace("/appmobiles/?state", "/app-mobile/?state");
+    this.hrefMobileToken = window.location.href.replace("/appmobiles", "/app-mobile");
     const element: HTMLElement = document.getElementById("redirectC") as HTMLElement;
     element.click();
   }
