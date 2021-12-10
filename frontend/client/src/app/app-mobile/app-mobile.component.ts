@@ -38,7 +38,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.hrefMobileToken = window.location.href.replace("/app-mobile","/appmobiles");
+    this.hrefMobileToken = window.location.href.replace("/app-mobile/","/appmobiles/");
     console.log("INGRES ON IF ===> ");
     setTimeout(()=>{
       console.log("INGRES EJEXUTA TIMEOUT");
@@ -55,11 +55,7 @@ export class AppMobileComponent implements OnInit, OnDestroy {
   redirectAppMobile() {
     // const element: HTMLElement = document.getElementById("redirectA") as HTMLElement;
     // element.click();  
-    if(this.router.url.includes("/?state")){
-      window.location.replace(`https://app.txplus.com.co${this.router.url.replace("/app-mobile", "/app-mobiles")}`);
-    }else {
-      window.location.replace(`https://app.txplus.com.co/app-mobiles`);
-    }
+  
     
   }
 
