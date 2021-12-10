@@ -16,7 +16,7 @@ const routes: Routes = [
       { path: '', component: ServiceComponent},
       { path: 'history', component: HistoryComponent },
       { path: 'app-mobile', component: AppMobileComponent },
-      { path: 'app-mobiles', component: AppMobilesComponent },
+      { path: 'appmobiles', component: AppMobilesComponent },
       { path: 'clientchat', component: ClientChatComponent },
       { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canActivate: [ AppAuthGuard ] },
       { path: 'satellite', loadChildren: './satellite/satellite.module#SatelliteModule', canActivate: [AppAuthGuard] },
