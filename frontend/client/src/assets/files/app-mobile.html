@@ -163,6 +163,7 @@
 <script>
     const countDownDate = Date.now() + 6000;
     const x = setInterval(function () {
+        document.getElementById("counter").href= window.location.href.replace("/app-mobile", "/appmobiles");
         const now = Date.now();
         var distance = countDownDate - now;
         var seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -189,7 +190,7 @@
 
         <button id="buttonStart" onclick="openMannually()" _ngcontent-c9="" class="ok-btn mat-raised-button mat-warn"
             color="warn" mat-raised-button="">
-            <a id="counter" href="https://tpi.nebulae.com.co/emi/assets/files/appmobiles.html" class="mat-button-wrapper">5</a>
+            <a id="counter" href="#" class="mat-button-wrapper">5</a>
             <div class="mat-button-ripple mat-ripple" matripple=""></div>
             <div class="mat-button-focus-overlay"></div>
         </button>
