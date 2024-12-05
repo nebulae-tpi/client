@@ -16,7 +16,7 @@ import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material';
 import { ServiceService } from '../service/service.service';
-
+ 
 @Component({
   selector: 'app-mobile',
   templateUrl: './app-mobile.component.html',
