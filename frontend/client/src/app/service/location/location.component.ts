@@ -180,7 +180,7 @@ export class LocationComponent implements OnInit, OnDestroy {
     this.clientChatService.listenNewChatMessages$().pipe(
       takeUntil(this.ngUnsubscribe)
     ).subscribe(newMessage => {
-      const wrapMessage = newMessage.data.ServiceMessageSubscription;
+      const wrapMessage = (newMessage.data as any).ServiceMessageSubscription;
       this.message = wrapMessage;
       const tempData = this.clientChatService.messageList.getValue();
       tempData.push({ from: 'Conductor', message: wrapMessage.message.textMessage, timestamp: Date.now() });

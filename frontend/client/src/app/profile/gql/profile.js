@@ -30,9 +30,21 @@ export const unlinkSatellite = gql`
   }
 `;
 
+export const getBusinesses = gql`
+  query getBusinesses($page: Int!, $count: Int!, $filterText: String, $sortColumn: String, $sortOrder: String){
+  getBusinesses(page: $page, count: $count, filter: $filterText, sortColumn: $sortColumn, sortOrder: $sortOrder){
+    _id
+    generalInfo {
+      name
+    }
+    state
+  }
+}
+`;
+
 export const ClientSatellites = gql`
-  query ClientSatellites($filterText: String! ) {
-    ClientSatellites(filterText: $filterText) {
+  query ClientSatellites($filterText: String!, $businessId: String) {
+    ClientSatellites(filterText: $filterText, businessId: $businessId) {
       businessId
       _id
       name

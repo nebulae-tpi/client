@@ -10,7 +10,7 @@ export const environment = {
   keycloak: {
     url: 'https://tpi.nebulae.com.co/auth', // 'https://lab.nebulae.com.co/auth', //
     realm: 'TPI',
-    clientId: 'CLIENT-APP-LOCAL', // 'CLIENT_APP'
+    clientId: 'CLIENT-APP', // 'CLIENT_APP'
     onLoad: 'check-sso',
     checkLoginIframe: false,
     enableBearerInterceptor: true,

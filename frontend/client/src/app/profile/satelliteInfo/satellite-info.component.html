@@ -51,6 +51,14 @@
     fxLayout="row wrap">
 
     <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex="100">
+      <mat-select placeholder="Seleccione Unidad" (selectionChange)="onBusinessChange($event.value)">
+        <mat-option *ngFor="let businessItem of businessList" [value]="businessItem.id">
+          {{ businessItem.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field ngClass.xs="xs-mff" ngClass.gt-xs="gt-xs-mff" fxFlex="100">
       <mat-placeholder ngClass.xs="xs-placeholder" ngClass.gt-xs="gt-xs-placeholder">Seleccione Satélite</mat-placeholder>
       <input matInput [matAutocomplete]="auto" [formControl]="satelliteCtrl"
         [value]="selectedSatellite ? selectedSatellite.name : ''" >

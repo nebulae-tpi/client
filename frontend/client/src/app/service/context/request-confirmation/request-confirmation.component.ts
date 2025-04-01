@@ -296,9 +296,9 @@ export class RequestConfirmationComponent implements OnInit, OnDestroy, AfterVie
         .pipe(
           tap(response => {
             console.log('***[RequestConfirmation].confirmServiceRequest*** RESPONSE ==> ', response );
-            if (response && response.errors ) {
+            if (response && (response as any).errors ) {
 
-              const exception = (((response.errors[0] || {}).extensions || {}).exception || {}).message || {};
+              const exception = ((((response as any).errors[0] || {}).extensions || {}).exception || {}).message || {};
 
               console.log('***[RequestConfirmation].confirmServiceRequest*** ERROR ', exception );
 

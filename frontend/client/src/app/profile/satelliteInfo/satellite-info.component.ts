@@ -22,8 +22,10 @@ import { MenuService } from 'src/app/menu/menu.service';
 export class SatelliteInfoComponent implements OnInit, OnDestroy {
 
   private ngUnsubscribe = new Subject();
-  satelliteCtrl = new FormControl(null);
+  satelliteCtrl = new FormControl({ value: '', disabled: true });
   satellitesFiltered$: Observable<any>;
+  businessList = [];
+  selectedBusinessId: any;
 
   selectedSatellite: any;
   userProfile: any;
@@ -40,10 +42,25 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
     this.loadAutocomplete();
     this.loadUserProfile();
     this.loadSatellite();
+    this.loadBusinessList();
   }
 
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
+  }
+
+  loadBusinessList() {
+    this.profileService.getbusinessList$()
+      .pipe(
+        map((result: any) => ((result || {}).data || {}).getBusinesses),
+        filter((response: any) => !response.errors),
+        tap((response: any) => {
+          this.businessList = response.map(r => ({name: r.generalInfo.name, id: r._id}));
+          console.log("businessList ==> ", this.businessList);
+        }),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe();
   }
 
   loadSatellite() {
@@ -93,6 +110,15 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
 
   }
 
+  onBusinessChange(selectedId: string) {
+    this.selectedBusinessId = selectedId;
+    if (this.selectedBusinessId) {
+      this.satelliteCtrl.enable();
+    } else {
+      this.satelliteCtrl.disable();
+    }
+  }
+
   removeSelectedSatellite() {
     this.selectedSatellite = null;
   }
@@ -109,7 +135,7 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
    }
 
   getSatelliteFiltered$(filterInput): Observable<any[]> {
-    return this.profileService.getFilteredSatelliteList$(filterInput).pipe(
+    return this.profileService.getFilteredSatelliteList$(filterInput, this.selectedBusinessId).pipe(
       filter((resp: any) => !resp.errors),
       map((result: any) => ((result || {}).data || {}).ClientSatellites),
       takeUntil(this.ngUnsubscribe)

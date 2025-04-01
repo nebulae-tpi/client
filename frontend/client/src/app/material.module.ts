@@ -17,7 +17,8 @@ import {
   MatBottomSheetModule,
   MatSnackBarModule,
   MatDialogModule,
-  MatRadioModule
+  MatRadioModule,
+  MatSelectModule
 } from '@angular/material';
 
 @NgModule({
@@ -39,9 +40,11 @@ import {
     MatBottomSheetModule,
     MatSnackBarModule,
     MatDialogModule,
-    MatRadioModule
+    MatRadioModule,
+    MatSelectModule
   ],
   exports: [
+    MatSelectModule,
     MatFormFieldModule,
     MatInputModule,
     CommonModule,

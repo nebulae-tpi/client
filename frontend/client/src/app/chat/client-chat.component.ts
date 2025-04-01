@@ -47,7 +47,7 @@ export class ClientChatComponent implements OnInit, OnDestroy {
     this.clientChatService.listenNewChatMessages$().pipe(
       takeUntil(this.ngUnsubscribe)
     ).subscribe(newMessage => {
-      const wrapMessage = newMessage.data.ServiceMessageSubscription;
+      const wrapMessage = (newMessage as any).data.ServiceMessageSubscription;
       const tempData = this.clientChatService.messageList.getValue();
       console.log('wrapMessage.textMessage: ' + wrapMessage.message.textMessage);
       tempData.push({ from: 'Conductor', message: wrapMessage.message.textMessage, timestamp: Date.now() });

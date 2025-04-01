@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GatewayService } from '../api/gateway.service';
-import { linkSatellite, ClientSatellites, unlinkSatellite, RemoveFavoritePlace } from './gql/profile.js';
+import { linkSatellite, ClientSatellites, unlinkSatellite, RemoveFavoritePlace, getBusinesses } from './gql/profile.js';
 
 @Injectable({
   providedIn: 'root'
@@ -27,11 +27,24 @@ export class ProfileService {
     });
   }
 
-  getFilteredSatelliteList$(filterText) {
+  getFilteredSatelliteList$(filterText, businessId) {
     return this.gateway.apollo.query<any>({
       query: ClientSatellites,
       fetchPolicy: 'network-only',
-      variables: { filterText },
+      variables: { filterText, businessId },
+      errorPolicy: 'all'
+    });
+  }
+
+  getbusinessList$(){
+    return this.gateway.apollo.query<any>({
+      query: getBusinesses,
+      fetchPolicy: 'network-only',
+      variables: {
+        page: 0,
+        count: 50,
+        filterText: ""
+      },
       errorPolicy: 'all'
     });
   }

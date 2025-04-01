@@ -218,7 +218,7 @@ export class ServiceService {
         query: ClientServiceUpdatedSubscription
       })
       .pipe(
-        map(result => (result.data || {}).ClientServiceUpdatedSubscription)
+        map(result => ((result.data || {}) as any).ClientServiceUpdatedSubscription)
       );
   }
   /* #endregion */
