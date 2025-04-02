@@ -45,6 +45,7 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
     this.loadUserProfile();
     this.loadSatellite();
     this.loadBusinessList();
+    console.log('Token: ', await this.keycloakService.getToken());
   }
 
   ngOnDestroy(): void {
@@ -166,6 +167,13 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
         }),
         mergeMap(() => {
           return from(this.keycloakService.updateToken(2592000));
+        }),
+        tap(refreshed => {
+          if (refreshed) {
+            console.log('Token refrescado:', this.keycloakService.getKeycloakInstance().token);
+          } else {
+            console.log('El token sigue siendo válido');
+          }
         })
       )
       .subscribe(result => {}, e => console.log(e), () => { });
