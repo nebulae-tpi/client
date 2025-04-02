@@ -9,10 +9,11 @@ import {
   debounceTime,
   distinctUntilChanged
 } from 'rxjs/operators';
-import { of, Subject, Observable, combineLatest, fromEvent, forkJoin } from 'rxjs';
+import { of, Subject, Observable, combineLatest, fromEvent, forkJoin, from } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { ProfileService } from '../profile.service';
 import { MenuService } from 'src/app/menu/menu.service';
+import { KeycloakService } from 'keycloak-angular';
 
 @Component({
   selector: 'app-satellite-info',
@@ -35,10 +36,11 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private profileService: ProfileService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private keycloakService: KeycloakService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadAutocomplete();
     this.loadUserProfile();
     this.loadSatellite();
@@ -161,6 +163,9 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
           this.menuService.currentLinkedSatellite$.next(this.selectedSatellite);
           this.selectedSatellite = null;
           }
+        }),
+        mergeMap(() => {
+          return from(this.keycloakService.updateToken(2592000));
         })
       )
       .subscribe(result => {}, e => console.log(e), () => { });
