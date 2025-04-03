@@ -55,7 +55,7 @@ export class SatelliteInfoComponent implements OnInit, OnDestroy {
   loadBusinessList() {
     this.profileService.getbusinessList$()
       .pipe(
-        map((result: any) => ((result || {}).data || {}).getBusinesses),
+        map((result: any) => ((result || {}).data || {}).getBusinessesCities),
         filter((response: any) => !response.errors),
         tap((response: any) => {
           this.businessList = response.map(r => ({name: r.generalInfo.name, id: r._id}));

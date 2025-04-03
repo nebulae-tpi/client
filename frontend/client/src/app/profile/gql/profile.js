@@ -31,8 +31,8 @@ export const unlinkSatellite = gql`
 `;
 
 export const getBusinesses = gql`
-  query getBusinesses($page: Int!, $count: Int!, $filterText: String, $sortColumn: String, $sortOrder: String){
-  getBusinesses(page: $page, count: $count, filter: $filterText, sortColumn: $sortColumn, sortOrder: $sortOrder){
+  query getBusinessesCities{
+  getBusinessesCities{
     _id
     generalInfo {
       name
