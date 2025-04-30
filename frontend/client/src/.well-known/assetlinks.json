@@ -16,7 +16,19 @@
     "sha256_cert_fingerprints":
     [
       "AE:5C:AD:A6:1C:BA:44:B1:EF:AC:65:38:59:0D:D6:26:EC:7F:B0:5A:4A:EA:97:9B:18:C9:D0:43:F1:C9:3E:76",
-    "44:ED:A0:1C:38:B0:B8:83:DB:6F:B6:FB:EF:AD:04:BF:53:11:80:18:9A:2C:FB:B6:1F:98:E6:0C:C5:6D:28:5D",
+    "1B:13:33:9C:3D:7F:FD:BF:1B:39:EF:BB:9E:E4:EE:3C:8E:66:94:D2:39:4C:04:49:BA:63:03:C6:8D:52:9A:79",
+    "44:ED:A0:1C:38:B0:B8:83:DB:6F:B6:FB:EF:AD:04:BF:53:11:80:18:9A:2C:FB:B6:1F:98:E6:0C:C5:6D:28:5D"
+  ]
+  }
+},
+{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "co.com.nebulae.tpi.client",
+    "sha256_cert_fingerprints":
+    [
+      "AE:5C:AD:A6:1C:BA:44:B1:EF:AC:65:38:59:0D:D6:26:EC:7F:B0:5A:4A:EA:97:9B:18:C9:D0:43:F1:C9:3E:76",
     "1B:13:33:9C:3D:7F:FD:BF:1B:39:EF:BB:9E:E4:EE:3C:8E:66:94:D2:39:4C:04:49:BA:63:03:C6:8D:52:9A:79",
     "44:ED:A0:1C:38:B0:B8:83:DB:6F:B6:FB:EF:AD:04:BF:53:11:80:18:9A:2C:FB:B6:1F:98:E6:0C:C5:6D:28:5D"
   ]
