@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: frontend-pwa-client
-        image: DOCKERHUB/pwa-client:1.1.114
+        image: DOCKERHUB/pwa-client:1.1.115
         resources:
           requests:
             cpu: "10m"
